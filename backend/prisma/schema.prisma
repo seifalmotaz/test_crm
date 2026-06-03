@@ -1,0 +1,685 @@
+generator client {
+  provider = "prisma-client-js"
+  // "native" resolves to the host OS at build time — required for local development on any platform.
+  // "debian-openssl-3.0.x" is the runtime target for the Debian-based Docker production image.
+  // Both must be listed so `prisma generate` produces query-engine binaries for both environments.
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
+enum UserRole {
+  admin
+  manager
+  agent
+  staff
+  sales_manager
+  team_leader
+  marketing
+  marketing_manager
+  sales_admin
+  quality_control
+}
+
+enum PropertyType {
+  Apartment
+  Villa
+  Commercial
+  Townhouse
+  Land
+}
+
+enum PropertyStatus {
+  Active
+  Pending
+  Sold
+  Withdrawn
+}
+
+enum LeadStage {
+  freshLead
+  qualified
+  callBack
+  followUp
+  notInterested
+  lowBudget
+  reservation
+}
+
+enum DealStage {
+  offer
+  negotiation
+  inspection
+  appraisal
+  closing
+  closed
+  lost
+}
+
+enum TaskPriority {
+  critical
+  high
+  medium
+  low
+}
+
+enum TaskStatus {
+  not_started
+  in_progress
+  completed
+  overdue
+}
+
+enum TaskCategory {
+  Deal
+  Lead
+  Property
+  Client
+  Admin
+}
+
+enum AgentTier {
+  elite
+  core
+  developing
+}
+
+enum CommissionStatus {
+  hold      // within 7-day post-close hold period
+  released  // hold period passed; ready for payroll
+  paid      // included in a payroll batch
+  adjusted  // manager-adjusted amount
+  voided    // deal fell through; commission cancelled
+}
+
+// ─── Auth ────────────────────────────────────────────────────────────────────
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  role      UserRole @default(agent)
+  isActive  Boolean  @default(true)
+  features  String[] @default([])
+  userQuota   Int?
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  agent                Agent?
+  approvedAdjustments  CommissionAdjustment[] @relation("AdjustmentApprover")
+  chatParticipations   ConversationParticipant[]
+  chatMessages         ChatMessage[]
+
+  @@index([email])
+  @@map("users")
+}
+
+// ─── Agent ───────────────────────────────────────────────────────────────────
+
+model Agent {
+  id                 String    @id @default(cuid())
+  userId             String    @unique
+  user               User      @relation(fields: [userId], references: [id])
+  name               String
+  avatar             String
+  color              String    @default("#3b82f6")
+  tier               AgentTier @default(developing)
+  rank               Int       @default(99)
+  region             String
+  specialization     String
+  tenure             Int       @default(0)
+  email              String
+  phone              String
+  revenueYTD         Float     @default(0)
+  revenuePrev        Float     @default(0)
+  dealsClosedYTD     Int       @default(0)
+  dealsClosedMonth   Int       @default(0)
+  avgDealValue       Float     @default(0)
+  conversionRate     Float     @default(0)
+  prevConversionRate Float     @default(0)
+  avgDaysToClose     Int       @default(0)
+  npsScore           Float     @default(0)
+  repeatClientRate   Float     @default(0)
+  leadsAssigned      Int       @default(0)
+  activeDeals        Int       @default(0)
+  dealVelocity       String    @default("stable")
+  responseTimeAvg    Float     @default(0)
+  retentionRisk      String    @default("low")
+  monthlyRevenue     Json      @default("[]")
+  strengths          Json      @default("[]")
+  developmentAreas   Json      @default("[]")
+  recommendation     String?
+  coachingPlan       String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  properties        Property[]
+  leads             Lead[]
+  deals             Deal[]
+  tasks             Task[]             @relation("AgentTasks")
+  commissionRecords CommissionRecord[]
+
+  @@index([tier])
+  @@index([rank])
+  @@map("agents")
+}
+
+// ─── Property ─────────────────────────────────────────────────────────────────
+
+model Property {
+  id              String         @id @default(cuid())
+  address         String
+  neighborhood    String
+  type            PropertyType
+  price           Float
+  beds            Int            @default(0)
+  baths           Int            @default(0)
+  sqft            Int            @default(0)
+  yearBuilt       Int?
+  status          PropertyStatus @default(Active)
+  matchScore      Int?
+  views           Int            @default(0)
+  daysOnMarket    Int            @default(0)
+  appreciationYoY Float          @default(0)
+  priceVsAvg      Float          @default(0)
+  description     String?
+  recommendation  String?
+  agentId         String
+  agent           Agent          @relation(fields: [agentId], references: [id])
+  isDeleted       Boolean        @default(false)
+  version         Int            @default(1)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  tags     PropertyTag[]
+  comps    PropertyComp[]
+  concerns PropertyConcern[]
+  deals    Deal[]
+  tasks    Task[]            @relation("PropertyTasks")
+
+  @@index([status])
+  @@index([type])
+  @@index([neighborhood])
+  @@index([agentId])
+  @@index([price])
+  @@index([isDeleted])
+  @@map("properties")
+}
+
+model PropertyTag {
+  id         String   @id @default(cuid())
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  tag        String
+
+  @@index([propertyId])
+  @@map("property_tags")
+}
+
+model PropertyComp {
+  id         String   @id @default(cuid())
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  address    String
+  price      Float
+  sqft       Int
+  dom        Int
+
+  @@map("property_comps")
+}
+
+model PropertyConcern {
+  id         String   @id @default(cuid())
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  concern    String
+
+  @@map("property_concerns")
+}
+
+// ─── Lead ─────────────────────────────────────────────────────────────────────
+
+model Lead {
+  id                    String    @id @default(cuid())
+  name                  String
+  type                  String
+  avatar                String
+  color                 String    @default("#3b82f6")
+  email                 String
+  phone                 String
+  source                String
+  budget                Float
+  budgetMin             Float     @default(0)
+  interest              String
+  location              String
+  timeline              Int       @default(30)
+  stage                 LeadStage @default(freshLead)
+  score                 Int       @default(0)
+  scoreBreakdown        Json      @default("{}")
+  readiness             Int       @default(0)
+  readinessFactors      String[]
+  agentId               String
+  agent                 Agent     @relation(fields: [agentId], references: [id])
+  lastContact           Int       @default(0)
+  propertiesViewed      Int       @default(0)
+  responseTime          Float     @default(0)
+  preApproved           Boolean   @default(false)
+  specificTimeline      Boolean   @default(false)
+  requestedCMA          Boolean   @default(false)
+  notes                 String?
+  nextAction            String?
+  conversionProbability Int       @default(0)
+  concerns              String[]
+  opportunities         String[]
+  suggestedProperties   String[]
+  recommendedAgent      String?
+  previousAgentIds      String[]
+  isDeleted             Boolean   @default(false)
+  version               Int       @default(1)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  tags         LeadTag[]
+  interactions LeadInteraction[]
+  deals        Deal[]
+  tasks        Task[]            @relation("LeadTasks")
+
+  @@index([stage])
+  @@index([agentId])
+  @@index([score])
+  @@index([source])
+  @@index([isDeleted])
+  @@map("leads")
+}
+
+model LeadTag {
+  id     String @id @default(cuid())
+  leadId String
+  lead   Lead   @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  tag    String
+
+  @@index([leadId])
+  @@map("lead_tags")
+}
+
+model LeadInteraction {
+  id        String   @id @default(cuid())
+  leadId    String
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  date      DateTime
+  action    String
+  type      String
+  notes     String?
+  createdAt DateTime @default(now())
+
+  @@index([leadId])
+  @@map("lead_interactions")
+}
+
+// ─── Deal ─────────────────────────────────────────────────────────────────────
+
+model Deal {
+  id                 String    @id @default(cuid())
+  propertyId         String?
+  property           Property? @relation(fields: [propertyId], references: [id])
+  leadId             String?
+  lead               Lead?     @relation(fields: [leadId], references: [id])
+  clientId           String?
+  client             Client?   @relation(fields: [clientId], references: [id])
+  agentId            String
+  agent              Agent     @relation(fields: [agentId], references: [id])
+  type               String
+  value              Float
+  commissionRate     Float
+  stage              DealStage @default(offer)
+  offerDate          DateTime
+  targetCloseDate    DateTime
+  daysUntilClose     Int       @default(0)
+  daysElapsed        Int       @default(0)
+  closingProbability Int       @default(50)
+  risk               String    @default("low")
+  icon               String?
+  notes              String?
+  progress           Json      @default("{}")
+  positives          String[]
+  risks              String[]
+  nextActions        String[]
+  financialRisk      String    @default("low")
+  timelineRisk       String    @default("low")
+  partyRisk          String    @default("low")
+  isDeleted          Boolean   @default(false)
+  version            Int       @default(1)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  milestones        DealMilestone[]
+  documents         DealDocument[]
+  tasks             Task[]          @relation("DealTasks")
+  commissionRecord  CommissionRecord?
+
+  @@index([stage])
+  @@index([agentId])
+  @@index([targetCloseDate])
+  @@index([isDeleted])
+  @@map("deals")
+}
+
+model DealMilestone {
+  id     String   @id @default(cuid())
+  dealId String
+  deal   Deal     @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  name   String
+  due    DateTime
+  status String
+
+  @@index([dealId])
+  @@map("deal_milestones")
+}
+
+model DealDocument {
+  id         String   @id @default(cuid())
+  dealId     String
+  deal       Deal     @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  name       String
+  type       String
+  url        String
+  uploadedAt DateTime @default(now())
+
+  @@map("deal_documents")
+}
+
+// ─── Client ───────────────────────────────────────────────────────────────────
+
+model Client {
+  id                        String    @id @default(cuid())
+  name                      String
+  avatar                    String
+  color                     String    @default("#3b82f6")
+  type                      String[]
+  tier                      String    @default("regular")
+  agentName                 String?
+  email                     String    @unique
+  phone                     String
+  location                  String
+  status                    String    @default("active")
+  lifetimeValue             Float     @default(0)
+  transactionCount          Int       @default(0)
+  satisfaction              Float?
+  npsScore                  Float?
+  repeatLikelihood          Int       @default(0)
+  referralCount             Int       @default(0)
+  referralValue             Float     @default(0)
+  lastTransactionDate       DateTime?
+  lastContactDate           DateTime?
+  daysSinceContact          Int       @default(0)
+  nextTransactionLikelihood Int       @default(0)
+  nextTransactionTimeline   String?
+  nextTransactionType       String?
+  nextTransactionValue      Float     @default(0)
+  preferredPropertyType     String?
+  preferredLocation         String?
+  budgetMin                 Float     @default(0)
+  budgetMax                 Float     @default(0)
+  engagementLevel           String    @default("medium")
+  engagementStrategy        String?
+  notes                     String?
+  isDeleted                 Boolean   @default(false)
+  version                   Int       @default(1)
+  createdAt                 DateTime  @default(now())
+  updatedAt                 DateTime  @updatedAt
+
+  tags         ClientTag[]
+  transactions ClientTransaction[]
+  deals        Deal[]
+  tasks        Task[]              @relation("ClientTasks")
+
+  @@index([tier])
+  @@index([status])
+  @@index([isDeleted])
+  @@map("clients")
+}
+
+model ClientTag {
+  id       String @id @default(cuid())
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  tag      String
+
+  @@index([clientId])
+  @@map("client_tags")
+}
+
+model ClientTransaction {
+  id        String   @id @default(cuid())
+  clientId  String
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  date      DateTime
+  type      String
+  property  String
+  value     Float
+  profit    Float?
+  createdAt DateTime @default(now())
+
+  @@index([clientId])
+  @@map("client_transactions")
+}
+
+// ─── Task ─────────────────────────────────────────────────────────────────────
+
+model Task {
+  id               String       @id @default(cuid())
+  title            String
+  category         TaskCategory
+  priority         TaskPriority
+  status           TaskStatus   @default(not_started)
+  dueDate          DateTime
+  daysOverdue      Int          @default(0)
+  assigneeId       String?
+  assignee         Agent?       @relation("AgentTasks", fields: [assigneeId], references: [id])
+  dealId           String?
+  deal             Deal?        @relation("DealTasks", fields: [dealId], references: [id])
+  leadId           String?
+  lead             Lead?        @relation("LeadTasks", fields: [leadId], references: [id])
+  clientId         String?
+  client           Client?      @relation("ClientTasks", fields: [clientId], references: [id])
+  propertyId       String?
+  property         Property?    @relation("PropertyTasks", fields: [propertyId], references: [id])
+  description      String?
+  completionProof  String?
+  proofLabel       String?
+  escalated        Boolean      @default(false)
+  escalateTo       String?
+  impact           String?
+  workflowTemplate String?
+  isDeleted        Boolean      @default(false)
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  subtasks TaskSubtask[]
+  tags     TaskTag[]
+
+  @@index([status])
+  @@index([priority])
+  @@index([assigneeId])
+  @@index([dueDate])
+  @@index([category])
+  @@index([isDeleted])
+  @@map("tasks")
+}
+
+model TaskSubtask {
+  id     String  @id @default(cuid())
+  taskId String
+  task   Task    @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  label  String
+  done   Boolean @default(false)
+
+  @@index([taskId])
+  @@map("task_subtasks")
+}
+
+model TaskTag {
+  id     String @id @default(cuid())
+  taskId String
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  tag    String
+
+  @@index([taskId])
+  @@map("task_tags")
+}
+
+// ─── Commission tracking ──────────────────────────────────────────────────────
+
+model CommissionRecord {
+  id             String           @id @default(cuid())
+  dealId         String           @unique
+  deal           Deal             @relation(fields: [dealId], references: [id])
+  agentId        String
+  agent          Agent            @relation(fields: [agentId], references: [id])
+  amount         Float            // final commission amount in dollars
+  ratePct        Float            // rate as percent (e.g. 5.0)
+  status         CommissionStatus @default(hold)
+  closeDate      DateTime         // actual deal close date
+  releaseDate    DateTime         // closeDate + 7 days (when hold lifts)
+  releasedAt     DateTime?        // when status moved to released
+  paidAt         DateTime?        // when included in payroll batch
+  payrollBatchId String?          // links to weekly payroll batch
+  notes          String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  adjustments CommissionAdjustment[]
+
+  @@index([agentId])
+  @@index([status])
+  @@index([releaseDate])
+  @@index([payrollBatchId])
+  @@map("commission_records")
+}
+
+model CommissionAdjustment {
+  id                 String           @id @default(cuid())
+  commissionRecordId String
+  commissionRecord   CommissionRecord @relation(fields: [commissionRecordId], references: [id])
+  approvedById       String
+  approvedBy         User             @relation("AdjustmentApprover", fields: [approvedById], references: [id])
+  originalAmount     Float
+  adjustedAmount     Float
+  reason             String
+  createdAt          DateTime         @default(now())
+
+  @@index([commissionRecordId])
+  @@map("commission_adjustments")
+}
+
+// ─── Notifications ────────────────────────────────────────────────────────────
+
+model Notification {
+  id          String    @id @default(cuid())
+  type        String    // HOT_LEAD | DEAL_RISK | OVERDUE_TASK | CLOSING_SOON | NEW_LISTING | MARKET_UPDATE
+  recipientId String    // Agent.id of the recipient
+  entityType  String?   // lead | deal | task | property
+  entityId    String?
+  title       String
+  message     String
+  channels    String[]  // email | sms | push | in_app
+  status      String    @default("pending") // pending | sent | failed | cancelled
+  readAt      DateTime?
+  sentAt      DateTime?
+  metadata    Json      @default("{}")
+  createdAt   DateTime  @default(now())
+
+  @@index([recipientId, status])
+  @@index([type])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+// ─── Audit log ────────────────────────────────────────────────────────────────
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String
+  userEmail  String
+  userRole   String
+  action     String   // e.g. USER_LOGIN, DEAL_STAGE_ADVANCE, COMMISSION_ADJUST, PRICE_CHANGE
+  resource   String   // deals | leads | properties | agents | commissions | auth
+  resourceId String?
+  changes    Json?    // { before: {}, after: {} }
+  metadata   Json?    // { ip, userAgent, endpoint, method }
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([resource, resourceId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// ─── Chat ─────────────────────────────────────────────────────────────────────
+
+model Conversation {
+  id           String                    @id @default(cuid())
+  type         String                    @default("direct") // "direct" | "group"
+  name         String?
+  createdAt    DateTime                  @default(now())
+  participants ConversationParticipant[]
+  messages     ChatMessage[]
+
+  @@map("conversations")
+}
+
+model ConversationParticipant {
+  conversationId String
+  userId         String
+  joinedAt       DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([conversationId, userId])
+  @@map("conversation_participants")
+}
+
+model ChatMessage {
+  id             String       @id @default(cuid())
+  conversationId String
+  senderId       String
+  type           String       @default("text") // text | image | video | audio | file
+  text           String?
+  fileUrl        String?
+  fileName       String?
+  fileSize       Int?
+  fileMime       String?
+  readBy         String[]     @default([])
+  createdAt      DateTime     @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+  @@map("chat_messages")
+}
+
+// ─── File ─────────────────────────────────────────────────────────────────────
+
+model File {
+  id           String   @id @default(cuid())
+  filename     String
+  originalName String
+  mimeType     String
+  size         Int
+  url          String
+  entityType   String
+  entityId     String
+  uploadedById String?
+  createdAt    DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@map("files")
+}

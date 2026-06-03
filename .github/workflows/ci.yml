@@ -1,0 +1,146 @@
+# Required GitHub Actions secrets (Settings → Secrets and variables → Actions):
+#
+#   DATABASE_URL        — Full PostgreSQL connection string for the ephemeral test
+#                         container spun up by this workflow. Must use the credentials
+#                         defined in the postgres service block below.
+#                         Value to set:
+#                           postgresql://postgres:ci_password@localhost:5432/propcrm_test
+#
+#   JWT_SECRET          — Secret used to sign JWT access tokens. Any random string
+#                         ≥ 32 characters works for CI.
+#                         Generate: openssl rand -base64 32
+#
+#   JWT_REFRESH_SECRET  — Secret used to sign JWT refresh tokens. Use a different
+#                         value from JWT_SECRET.
+#                         Generate: openssl rand -base64 32
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+
+  # ─── 1. Backend unit + integration tests ─────────────────────────────────────
+  test:
+    name: Test (backend)
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ci_password
+          POSTGRES_DB: propcrm_test
+        options: >-
+          --health-cmd "pg_isready -U postgres -d propcrm_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    env:
+      DATABASE_URL:         ${{ secrets.DATABASE_URL }}
+      JWT_SECRET:           ${{ secrets.JWT_SECRET }}
+      JWT_REFRESH_SECRET:   ${{ secrets.JWT_REFRESH_SECRET }}
+      JWT_EXPIRES_IN:       15m
+      JWT_REFRESH_EXPIRES_IN: 7d
+      NODE_ENV:             test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Run prisma migrate deploy
+        working-directory: backend
+        run: npx prisma migrate deploy
+
+      - name: Run Jest
+        working-directory: backend
+        run: npm test
+
+      - name: Upload backend logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-logs
+          path: backend/logs/
+          if-no-files-found: ignore
+
+  # ─── 2. Frontend lint ─────────────────────────────────────────────────────────
+  lint:
+    name: Lint (frontend)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: ESLint on src/
+        run: npx eslint src/
+
+  # ─── 3. Frontend build ────────────────────────────────────────────────────────
+  build:
+    name: Build (frontend)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Vite build
+        run: npm run build
+
+  # ─── 4. Docker image build check ─────────────────────────────────────────────
+  # Builds both images to confirm neither Dockerfile is broken.
+  # No images are pushed — this is a pure syntax and layer-resolution check.
+  # Both Dockerfiles are self-contained: they run npm ci and build internally.
+  docker-build:
+    name: Docker build check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build frontend Docker image
+        run: docker build --tag propcrm-frontend:ci .
+
+      - name: Build backend Docker image
+        run: docker build --tag propcrm-backend:ci ./backend

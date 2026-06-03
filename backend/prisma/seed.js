@@ -1,0 +1,1117 @@
+require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
+const { PrismaClient } = require('@prisma/client');
+const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
+
+const prisma = new PrismaClient();
+
+async function main() {
+  console.log('🌱 Seeding PropCRM database...\n');
+
+  // ─── Users + Agents ──────────────────────────────────────────────────────
+
+  // Use SEED_PASSWORD if set; otherwise generate a random one so hardcoded
+  // credentials never land in staging/production.
+  const isGenerated  = !process.env.SEED_PASSWORD;
+  const seedPassword = process.env.SEED_PASSWORD || crypto.randomBytes(16).toString('hex');
+  const password     = await bcrypt.hash(seedPassword, 12);
+
+  // Admin
+  await prisma.user.upsert({
+    where:  { email: 'admin@propcrm.io' },
+    update: {},
+    create: { id: 'user_admin', email: 'admin@propcrm.io', password, role: 'admin' },
+  });
+  await prisma.agent.upsert({
+    where:  { id: 'agent_admin' },
+    update: {},
+    create: {
+      id: 'agent_admin', userId: 'user_admin',
+      name: 'Admin', avatar: 'AD', color: '#E53935',
+      tier: 'elite', rank: 0, region: 'All', specialization: 'Management',
+      tenure: 0, email: 'admin@propcrm.io', phone: '',
+      revenueYTD: 0, revenuePrev: 0, dealsClosedYTD: 0, dealsClosedMonth: 0,
+      avgDealValue: 0, conversionRate: 0, prevConversionRate: 0,
+      avgDaysToClose: 0, npsScore: 0, repeatClientRate: 0,
+      leadsAssigned: 0, activeDeals: 0, dealVelocity: 'stable',
+      responseTimeAvg: 0, retentionRisk: 'low',
+      monthlyRevenue: [0,0,0,0,0,0,0,0,0,0,0,0],
+      strengths: [], developmentAreas: [], recommendation: '', coachingPlan: '',
+    },
+  });
+
+  // Manager
+  await prisma.user.upsert({
+    where:  { email: 'manager@propcrm.io' },
+    update: {},
+    create: { id: 'user_manager', email: 'manager@propcrm.io', password, role: 'manager' },
+  });
+
+  // Agent users (each linked to an Agent profile)
+  const agentSeeds = [
+    {
+      userId: 'user_001', agentId: 'agent_001',
+      email: 'sarah.j@propcrm.io',
+      agent: {
+        name: 'Sarah Johnson', avatar: 'SJ', color: '#3b82f6',
+        tier: 'elite', rank: 1, region: 'Downtown', specialization: 'Luxury',
+        tenure: 7, email: 'sarah.j@propcrm.io', phone: '+1 (555) 101-2020',
+        revenueYTD: 4200000, revenuePrev: 3750000, dealsClosedYTD: 34, dealsClosedMonth: 8,
+        avgDealValue: 1235000, conversionRate: 38, prevConversionRate: 35,
+        avgDaysToClose: 31, npsScore: 9.2, repeatClientRate: 52,
+        leadsAssigned: 89, activeDeals: 6, dealVelocity: 'increasing',
+        responseTimeAvg: 0.8, retentionRisk: 'high',
+        monthlyRevenue: [310000,340000,290000,380000,420000,395000,410000,440000,390000,450000,420000,380000],
+        strengths: ['Highest revenue generator ($4.2M YTD)','Best conversion rate (38%)','Exceptional client satisfaction (NPS 9.2)','52% repeat client rate'],
+        developmentAreas: ['Avg close time 31 days (target 28)','Could mentor 2–3 junior agents'],
+        recommendation: 'Elite performer. Promotion candidate to Downtown Team Lead.',
+        coachingPlan: 'Leadership track. Pair with 2 developing agents. Enroll Advanced Negotiation Q3.',
+      },
+    },
+    {
+      userId: 'user_002', agentId: 'agent_002',
+      email: 'marcus.c@propcrm.io',
+      agent: {
+        name: 'Marcus Chen', avatar: 'MC', color: '#10b981',
+        tier: 'elite', rank: 2, region: 'Downtown', specialization: 'Commercial',
+        tenure: 6, email: 'marcus.c@propcrm.io', phone: '+1 (555) 202-3030',
+        revenueYTD: 3900000, revenuePrev: 3700000, dealsClosedYTD: 28, dealsClosedMonth: 6,
+        avgDealValue: 1392857, conversionRate: 35, prevConversionRate: 33,
+        avgDaysToClose: 36, npsScore: 8.5, repeatClientRate: 44,
+        leadsAssigned: 80, activeDeals: 5, dealVelocity: 'stable',
+        responseTimeAvg: 1.4, retentionRisk: 'medium',
+        monthlyRevenue: [290000,320000,310000,350000,370000,340000,360000,390000,380000,400000,410000,360000],
+        strengths: ['Commercial specialist — highest avg deal value','Strong investor relationships','Consistent YoY growth (+5.4%)'],
+        developmentAreas: ['Response time 1.4h (target under 1h)','Avg close time 36 days'],
+        recommendation: 'Strong elite performer. Candidate for Commercial Division Lead in 6 months.',
+        coachingPlan: 'Focus on response time automation. Monthly 1-on-1 on pipeline discipline.',
+      },
+    },
+    {
+      userId: 'user_003', agentId: 'agent_003',
+      email: 'priya.p@propcrm.io',
+      agent: {
+        name: 'Priya Patel', avatar: 'PP', color: '#8b5cf6',
+        tier: 'elite', rank: 3, region: 'Westside', specialization: 'Residential',
+        tenure: 5, email: 'priya.p@propcrm.io', phone: '+1 (555) 303-4040',
+        revenueYTD: 3100000, revenuePrev: 3400000, dealsClosedYTD: 26, dealsClosedMonth: 5,
+        avgDealValue: 1192307, conversionRate: 33, prevConversionRate: 36,
+        avgDaysToClose: 29, npsScore: 8.9, repeatClientRate: 48,
+        leadsAssigned: 79, activeDeals: 4, dealVelocity: 'decreasing',
+        responseTimeAvg: 0.9, retentionRisk: 'high',
+        monthlyRevenue: [310000,325000,340000,360000,310000,280000,270000,260000,250000,240000,270000,290000],
+        strengths: ['Fastest average close time (29 days)','High NPS (8.9)','Fastest response time (0.9h)'],
+        developmentAreas: ['Revenue down 9% vs last year','Conversion rate declining (36% → 33%)'],
+        recommendation: 'WATCH: Possible burnout. Schedule private check-in. Needs support, not pressure.',
+        coachingPlan: 'Priority: 1-on-1 wellness check. Review lead quality for Westside.',
+      },
+    },
+    {
+      userId: 'user_004', agentId: 'agent_004',
+      email: 'james.r@propcrm.io',
+      agent: {
+        name: 'James Rivera', avatar: 'JR', color: '#f59e0b',
+        tier: 'core', rank: 4, region: 'East End', specialization: 'Residential',
+        tenure: 3, email: 'james.r@propcrm.io', phone: '+1 (555) 404-5050',
+        revenueYTD: 2400000, revenuePrev: 1980000, dealsClosedYTD: 20, dealsClosedMonth: 4,
+        avgDealValue: 1200000, conversionRate: 29, prevConversionRate: 24,
+        avgDaysToClose: 38, npsScore: 8.1, repeatClientRate: 31,
+        leadsAssigned: 69, activeDeals: 4, dealVelocity: 'increasing',
+        responseTimeAvg: 2.1, retentionRisk: 'low',
+        monthlyRevenue: [140000,160000,190000,210000,230000,250000,260000,280000,300000,290000,310000,330000],
+        strengths: ['Highest revenue growth (+21% YoY)','Conversion improving rapidly (24%→29%)','Strong East End market instinct'],
+        developmentAreas: ['Avg close time 38 days (needs improvement)','Response time 2.1h — above target'],
+        recommendation: 'Rising star. Best growth trajectory. Strong promotion candidate in 12 months.',
+        coachingPlan: 'Pair with Sarah Johnson for mentorship. Enroll in Relationship Selling course.',
+      },
+    },
+    {
+      userId: 'user_005', agentId: 'agent_005',
+      email: 'lisa.t@propcrm.io',
+      agent: {
+        name: 'Lisa Torres', avatar: 'LT', color: '#ec4899',
+        tier: 'core', rank: 5, region: 'North Hills', specialization: 'Residential',
+        tenure: 4, email: 'lisa.t@propcrm.io', phone: '+1 (555) 505-6060',
+        revenueYTD: 1980000, revenuePrev: 2100000, dealsClosedYTD: 18, dealsClosedMonth: 3,
+        avgDealValue: 1100000, conversionRate: 27, prevConversionRate: 30,
+        avgDaysToClose: 33, npsScore: 8.3, repeatClientRate: 38,
+        leadsAssigned: 67, activeDeals: 3, dealVelocity: 'decreasing',
+        responseTimeAvg: 1.8, retentionRisk: 'medium',
+        monthlyRevenue: [180000,195000,210000,190000,175000,165000,170000,160000,155000,160000,170000,165000],
+        strengths: ['Good client satisfaction (NPS 8.3)','Solid close time (33 days)','North Hills expertise'],
+        developmentAreas: ['Revenue down 5.7% vs last year','Conversion declining (30%→27%)'],
+        recommendation: 'Mid-tier performer trending downward. Root cause: fewer leads + inventory decline.',
+        coachingPlan: 'Review lead assignment. If market issue: expand territory to Midtown.',
+      },
+    },
+    {
+      userId: 'user_006', agentId: 'agent_006',
+      email: 'david.k@propcrm.io',
+      agent: {
+        name: 'David Kim', avatar: 'DK', color: '#06b6d4',
+        tier: 'core', rank: 6, region: 'Midtown', specialization: 'Apartment',
+        tenure: 3, email: 'david.k@propcrm.io', phone: '+1 (555) 606-7070',
+        revenueYTD: 1650000, revenuePrev: 1480000, dealsClosedYTD: 16, dealsClosedMonth: 3,
+        avgDealValue: 1031250, conversionRate: 26, prevConversionRate: 24,
+        avgDaysToClose: 35, npsScore: 7.9, repeatClientRate: 27,
+        leadsAssigned: 62, activeDeals: 3, dealVelocity: 'stable',
+        responseTimeAvg: 2.4, retentionRisk: 'low',
+        monthlyRevenue: [120000,130000,140000,150000,145000,155000,140000,150000,145000,155000,160000,170000],
+        strengths: ['Revenue growing +11.5% YoY','Good apartment market knowledge'],
+        developmentAreas: ['Response time 2.4h — too slow','NPS 7.9 — room for improvement'],
+        recommendation: 'Solid core performer. Needs coaching on client experience and response speed.',
+        coachingPlan: 'Set up automated lead response. Post-close client feedback sessions.',
+      },
+    },
+    {
+      userId: 'user_007', agentId: 'agent_007',
+      email: 'rachel.m@propcrm.io',
+      agent: {
+        name: 'Rachel Moore', avatar: 'RM', color: '#f97316',
+        tier: 'developing', rank: 10, region: 'East End', specialization: 'Residential',
+        tenure: 1, email: 'rachel.m@propcrm.io', phone: '+1 (555) 707-8080',
+        revenueYTD: 480000, revenuePrev: 0, dealsClosedYTD: 4, dealsClosedMonth: 1,
+        avgDealValue: 720000, conversionRate: 14, prevConversionRate: 0,
+        avgDaysToClose: 44, npsScore: 7.6, repeatClientRate: 12,
+        leadsAssigned: 29, activeDeals: 2, dealVelocity: 'increasing',
+        responseTimeAvg: 3.8, retentionRisk: 'low',
+        monthlyRevenue: [0,0,40000,60000,80000,90000,70000,80000,60000,60000,80000,90000],
+        strengths: ['1st year agent — strong start vs peers','Motivated and coachable'],
+        developmentAreas: ['Conversion at 14% (needs to reach 25%+)','Response time 3.8h — critical'],
+        recommendation: 'First-year agent with solid foundation. Pair with Sarah Johnson for mentorship.',
+        coachingPlan: 'Weekly 1-on-1 with team lead. Shadow Sarah Johnson on 2 deals/month.',
+      },
+    },
+  ];
+
+  for (const { userId, agentId, email, agent } of agentSeeds) {
+    await prisma.user.upsert({
+      where:  { email },
+      update: {},
+      create: { id: userId, email, password, role: 'agent' },
+    });
+    await prisma.agent.upsert({
+      where:  { id: agentId },
+      update: {},
+      create: { id: agentId, userId, ...agent },
+    });
+  }
+  console.log(`✓ ${agentSeeds.length + 2} users + ${agentSeeds.length} agents`);
+
+  // ─── Properties ──────────────────────────────────────────────────────────
+
+  const propertySeeds = [
+    {
+      id: 'prop_001', address: '123 Oak Street', neighborhood: 'Downtown',
+      type: 'Apartment', price: 1950000, beds: 3, baths: 2, sqft: 1820, yearBuilt: 2018,
+      status: 'Active', matchScore: 97, views: 280, daysOnMarket: 14,
+      appreciationYoY: 4.2, priceVsAvg: -3, agentId: 'agent_001',
+      description: 'Modern 3-bed corner unit with panoramic city views. Floor-to-ceiling windows, gourmet kitchen, rooftop access.',
+      recommendation: 'Strong fit — below market rate, high demand area, strong appreciation trajectory.',
+      tags: ['Corner Unit','City Views','Gym','Concierge'],
+      comps: [
+        { address: '119 Oak St', price: 1880000, sqft: 1750, dom: 21 },
+        { address: '200 Park Blvd', price: 2050000, sqft: 1900, dom: 9 },
+        { address: '45 River Walk', price: 1920000, sqft: 1800, dom: 31 },
+      ],
+      concerns: [],
+    },
+    {
+      id: 'prop_002', address: '456 Park Avenue', neighborhood: 'Downtown',
+      type: 'Apartment', price: 2450000, beds: 3, baths: 3, sqft: 2200, yearBuilt: 2021,
+      status: 'Active', matchScore: 92, views: 156, daysOnMarket: 45,
+      appreciationYoY: 3.8, priceVsAvg: 8, agentId: 'agent_001',
+      description: 'Luxury penthouse-floor unit in premium building. Private elevator, chef kitchen, 2 parking spaces.',
+      recommendation: 'Overpriced by ~8%. Recommend price reduction to $2.27M.',
+      tags: ['Penthouse Floor','Private Elevator','2 Parking','Luxury Finish'],
+      comps: [
+        { address: '123 Oak St', price: 1950000, sqft: 1820, dom: 14 },
+        { address: '500 Grand Ave', price: 2380000, sqft: 2100, dom: 18 },
+        { address: '88 Metro', price: 2420000, sqft: 2150, dom: 22 },
+      ],
+      concerns: ['45 days on market (vs 28 avg)','+8% above neighborhood average'],
+    },
+    {
+      id: 'prop_003', address: '789 Harbor Drive', neighborhood: 'Harbor View',
+      type: 'Villa', price: 4100000, beds: 5, baths: 4, sqft: 4800, yearBuilt: 2019,
+      status: 'Pending', matchScore: 88, views: 410, daysOnMarket: 9,
+      appreciationYoY: 6.1, priceVsAvg: 2, agentId: 'agent_001',
+      description: 'Stunning waterfront villa with private dock. 5 beds, home theater, infinity pool, smart home system.',
+      recommendation: 'Exceptional property at fair market value. High appreciation potential (6.1% YoY).',
+      tags: ['Waterfront','Private Dock','Pool','Smart Home','Theater'],
+      comps: [
+        { address: '750 Harbor Dr', price: 4200000, sqft: 5000, dom: 12 },
+        { address: '12 Bay Crest', price: 3950000, sqft: 4600, dom: 7 },
+        { address: '88 Coastline Rd', price: 4300000, sqft: 5100, dom: 20 },
+      ],
+      concerns: ['Currently Pending — may be available if deal falls through'],
+    },
+    {
+      id: 'prop_004', address: '230 Skyline Tower', neighborhood: 'Midtown',
+      type: 'Apartment', price: 1250000, beds: 2, baths: 2, sqft: 1100, yearBuilt: 2016,
+      status: 'Active', matchScore: 83, views: 94, daysOnMarket: 22,
+      appreciationYoY: 2.9, priceVsAvg: -5, agentId: 'agent_002',
+      description: 'Well-maintained 2-bed in mid-rise. Modern finishes, building gym, walking distance to transit.',
+      recommendation: 'Value buy — 5% below market average. Good entry-level investment.',
+      tags: ['Near Transit','Gym','Pet Friendly','Rooftop'],
+      comps: [
+        { address: '210 Skyline Blvd', price: 1290000, sqft: 1150, dom: 19 },
+        { address: '300 Central Ave',  price: 1180000, sqft: 1050, dom: 30 },
+        { address: '88 Tower Rd',       price: 1320000, sqft: 1200, dom: 14 },
+      ],
+      concerns: [],
+    },
+    {
+      id: 'prop_005', address: '14 Green Park Estate', neighborhood: 'North Hills',
+      type: 'Villa', price: 3200000, beds: 4, baths: 3, sqft: 3800, yearBuilt: 2020,
+      status: 'Active', matchScore: 79, views: 312, daysOnMarket: 6,
+      appreciationYoY: 5.4, priceVsAvg: -1, agentId: 'agent_004',
+      description: 'Brand new 4-bed villa in gated community. Large garden, 3-car garage, top-tier school district.',
+      recommendation: 'Exceptional value. Just listed (6 days) in hot market. Move fast.',
+      tags: ['Gated Community','New Build','Top Schools','3-Car Garage','Garden'],
+      comps: [
+        { address: '20 Green Park', price: 3350000, sqft: 3900, dom: 8 },
+        { address: '7 Hill Crest',   price: 3100000, sqft: 3700, dom: 15 },
+        { address: '55 North Blvd',  price: 3250000, sqft: 3850, dom: 11 },
+      ],
+      concerns: ['Recently listed — high demand, expect multiple offers'],
+    },
+    {
+      id: 'prop_006', address: '88 Metro Business Hub', neighborhood: 'Downtown',
+      type: 'Commercial', price: 5500000, beds: 0, baths: 4, sqft: 8200, yearBuilt: 2017,
+      status: 'Active', matchScore: 74, views: 67, daysOnMarket: 38,
+      appreciationYoY: 3.2, priceVsAvg: 4, agentId: 'agent_002',
+      description: 'Premium grade-A office space. 8,200 sqft across 3 floors. Central atrium, 40-person conference room.',
+      recommendation: 'Strong commercial opportunity. Minor price adjustment ($5.3M) would accelerate sale.',
+      tags: ['Grade A','Conference Rooms','Parking Garage','LEED Certified'],
+      comps: [
+        { address: '100 Metro Ave',    price: 5300000, sqft: 8000, dom: 25 },
+        { address: '200 Business Blvd', price: 5700000, sqft: 8500, dom: 42 },
+        { address: '55 Commerce St',    price: 5200000, sqft: 7900, dom: 19 },
+      ],
+      concerns: ['Slightly above market rate (+4%)','38 days on market'],
+    },
+    {
+      id: 'prop_007', address: '7 Westside Gardens', neighborhood: 'Westside',
+      type: 'Townhouse', price: 980000, beds: 3, baths: 2, sqft: 1600, yearBuilt: 2015,
+      status: 'Active', matchScore: 86, views: 178, daysOnMarket: 11,
+      appreciationYoY: 3.7, priceVsAvg: -2, agentId: 'agent_003',
+      description: 'Charming 3-bed townhouse in quiet residential street. Private garden, garage, newly renovated kitchen.',
+      recommendation: 'Excellent value at -2% below market. Strong neighborhood demand.',
+      tags: ['Private Garden','Garage','Renovated Kitchen','Quiet Street'],
+      comps: [
+        { address: '12 West End',      price: 1020000, sqft: 1650, dom: 9 },
+        { address: '3 Garden Lane',    price: 950000,  sqft: 1580, dom: 17 },
+        { address: '55 Westside Ave',  price: 1010000, sqft: 1620, dom: 13 },
+      ],
+      concerns: [],
+    },
+    {
+      id: 'prop_008', address: '55 Bay Residences', neighborhood: 'East End',
+      type: 'Apartment', price: 750000, beds: 1, baths: 1, sqft: 680, yearBuilt: 2022,
+      status: 'Active', matchScore: 71, views: 231, daysOnMarket: 4,
+      appreciationYoY: 4.8, priceVsAvg: 1, agentId: 'agent_004',
+      description: 'Brand new 1-bed in waterfront complex. Sea views from balcony, resort-style amenities.',
+      recommendation: 'Perfect entry-level investment. Brand new, high rental yield (Est. 5.2% gross).',
+      tags: ['Sea Views','New Build','Balcony','Pool','Gym'],
+      comps: [
+        { address: '60 Bay Blvd',  price: 730000, sqft: 670, dom: 7 },
+        { address: '40 Coast Rd',  price: 780000, sqft: 700, dom: 3 },
+        { address: '88 Marina',    price: 760000, sqft: 690, dom: 5 },
+      ],
+      concerns: ['Small unit (680 sqft)','Limited parking'],
+    },
+  ];
+
+  for (const { tags, comps, concerns, ...prop } of propertySeeds) {
+    await prisma.property.upsert({
+      where:  { id: prop.id },
+      update: {},
+      create: {
+        ...prop,
+        tags:     { create: tags.map(tag     => ({ tag })) },
+        comps:    { create: comps },
+        concerns: { create: concerns.map(concern => ({ concern })) },
+      },
+    });
+  }
+  console.log(`✓ ${propertySeeds.length} properties`);
+
+  // ─── Clients ─────────────────────────────────────────────────────────────
+
+  const clientSeeds = [
+    {
+      id: 'client_001', name: 'Coastal Ventures LLC', avatar: 'CV', color: '#3b82f6',
+      type: ['investor'], tier: 'vip', agentName: 'Marcus Chen',
+      email: 'contact@coastalventures.com', phone: '+1 (555) 901-2345', location: 'Downtown',
+      status: 'active', lifetimeValue: 9200000, transactionCount: 7, satisfaction: 9.4,
+      npsScore: 9.4, repeatLikelihood: 95, referralCount: 4, referralValue: 3800000,
+      lastTransactionDate: new Date('2026-03-15'), lastContactDate: new Date('2026-05-10'),
+      daysSinceContact: 4, nextTransactionLikelihood: 88, nextTransactionTimeline: '3–6 months',
+      nextTransactionType: 'Commercial purchase', nextTransactionValue: 4500000,
+      preferredPropertyType: 'Commercial', preferredLocation: 'Downtown',
+      budgetMin: 2000000, budgetMax: 6000000, engagementLevel: 'very high',
+      engagementStrategy: 'Quarterly executive briefings. First access to off-market commercial assets.',
+      notes: 'Corporate investment group. PE-backed. CEO James Thornton is primary contact.',
+      tags: ['VIP','Investor','Repeat Buyer','Top Referrer','Corporate'],
+      transactions: [
+        { date: new Date('2026-03-15'), type: 'bought', property: '88 Metro Business Hub (partial)', value: 2100000, profit: null },
+        { date: new Date('2025-11-20'), type: 'sold',   property: '200 Harbor St',                 value: 1850000, profit: 380000 },
+        { date: new Date('2025-06-10'), type: 'bought', property: '300 Commerce Blvd',             value: 1600000, profit: null },
+      ],
+    },
+    {
+      id: 'client_002', name: 'Robert & Emily Walsh', avatar: 'RW', color: '#10b981',
+      type: ['buyer'], tier: 'high-value', agentName: 'Sarah Johnson',
+      email: 'walsh.family@email.com', phone: '+1 (555) 234-5678', location: 'North Hills',
+      status: 'active', lifetimeValue: 1800000, transactionCount: 1, satisfaction: 9.1,
+      npsScore: 9.1, repeatLikelihood: 72, referralCount: 2, referralValue: 1200000,
+      lastTransactionDate: new Date('2026-05-01'), lastContactDate: new Date('2026-05-12'),
+      daysSinceContact: 2, nextTransactionLikelihood: 65, nextTransactionTimeline: '3–5 years',
+      nextTransactionType: 'Upgrade or sell', nextTransactionValue: 2200000,
+      preferredPropertyType: 'Villa', preferredLocation: 'North Hills',
+      budgetMin: 1500000, budgetMax: 2500000, engagementLevel: 'high',
+      engagementStrategy: 'Post-close month-1 welcome. School year anniversary check-in.',
+      notes: 'Young family relocating. Very satisfied. Emily mentioned sister also looking.',
+      tags: ['Family','First-Time Buyer','Referral Source','School-Focused'],
+      transactions: [
+        { date: new Date('2026-05-01'), type: 'bought', property: '14 Green Park Estate', value: 1800000, profit: null },
+      ],
+    },
+    {
+      id: 'client_003', name: 'TechHub Properties Inc', avatar: 'TH', color: '#8b5cf6',
+      type: ['investor'], tier: 'vip', agentName: 'Marcus Chen',
+      email: 'acquisitions@techhubbprops.com', phone: '+1 (555) 345-6789', location: 'Midtown',
+      status: 'active', lifetimeValue: 7100000, transactionCount: 5, satisfaction: 8.6,
+      npsScore: 8.6, repeatLikelihood: 85, referralCount: 1, referralValue: 550000,
+      lastTransactionDate: new Date('2025-12-10'), lastContactDate: new Date('2026-05-08'),
+      daysSinceContact: 6, nextTransactionLikelihood: 78, nextTransactionTimeline: '3–6 months',
+      nextTransactionType: 'Commercial acquisition', nextTransactionValue: 5500000,
+      preferredPropertyType: 'Commercial', preferredLocation: 'Midtown / Downtown',
+      budgetMin: 3000000, budgetMax: 7000000, engagementLevel: 'high',
+      engagementStrategy: 'Monthly investment pipeline briefing. Exclusive grade-A commercial listings.',
+      notes: 'PE fund strategy: buy-hold-sell cycle of 18 months. CFO Maria Santos handles financials.',
+      tags: ['VIP','Investor','PE-Backed','Portfolio Strategy'],
+      transactions: [
+        { date: new Date('2025-12-10'), type: 'bought', property: '500 Grand Ave Commercial', value: 2200000, profit: null },
+        { date: new Date('2025-05-22'), type: 'sold',   property: '120 Tech Park',            value: 1800000, profit: 420000 },
+        { date: new Date('2024-08-14'), type: 'bought', property: '88 Midtown Office',        value: 1400000, profit: null },
+      ],
+    },
+    {
+      id: 'client_004', name: 'Diana Fontaine', avatar: 'DF', color: '#f59e0b',
+      type: ['buyer'], tier: 'regular', agentName: 'Priya Patel',
+      email: 'diana.fontaine@email.com', phone: '+1 (555) 456-7890', location: 'Westside',
+      status: 'active', lifetimeValue: 980000, transactionCount: 1, satisfaction: 8.2,
+      npsScore: 8.2, repeatLikelihood: 55, referralCount: 0, referralValue: 0,
+      lastTransactionDate: null, lastContactDate: new Date('2026-05-08'),
+      daysSinceContact: 6, nextTransactionLikelihood: 54, nextTransactionTimeline: '60–90 days',
+      nextTransactionType: 'First purchase', nextTransactionValue: 980000,
+      preferredPropertyType: 'Apartment', preferredLocation: 'Westside',
+      budgetMin: 600000, budgetMax: 1000000, engagementLevel: 'medium',
+      engagementStrategy: 'Connect with mortgage broker immediately. Send pre-approval guide.',
+      notes: 'First-time buyer. Has not completed purchase yet. Pre-approval is the immediate blocker.',
+      tags: ['First-Time Buyer','Pre-Approval Needed','Nurture'],
+      transactions: [],
+    },
+    {
+      id: 'client_005', name: 'Sophia & David Park', avatar: 'SP', color: '#ef4444',
+      type: ['buyer'], tier: 'high-value', agentName: 'Sarah Johnson',
+      email: 'park.family@email.com', phone: '+1 (555) 567-8901', location: 'Harbor View',
+      status: 'active', lifetimeValue: 3100000, transactionCount: 2, satisfaction: 9.6,
+      npsScore: 9.6, repeatLikelihood: 80, referralCount: 3, referralValue: 2400000,
+      lastTransactionDate: new Date('2026-05-14'), lastContactDate: new Date('2026-05-14'),
+      daysSinceContact: 0, nextTransactionLikelihood: 71, nextTransactionTimeline: '2–4 years',
+      nextTransactionType: 'Upgrade or investment', nextTransactionValue: 2500000,
+      preferredPropertyType: 'Villa', preferredLocation: 'Harbor View',
+      budgetMin: 1500000, budgetMax: 3000000, engagementLevel: 'very high',
+      engagementStrategy: 'Send closing gift today. Month-1 call. VIP client event invite.',
+      notes: 'Best NPS client in portfolio. David mentioned interest in investment property.',
+      tags: ['High-Value','Repeat Buyer','Top Referrer','Just Closed'],
+      transactions: [
+        { date: new Date('2026-05-14'), type: 'bought', property: '14 Harbor View Villa', value: 1721300, profit: null },
+        { date: new Date('2024-08-20'), type: 'sold',   property: '22 Bayfront Rd',       value: 1380000, profit: 280000 },
+      ],
+    },
+    {
+      id: 'client_006', name: 'Wei & Li Zhang', avatar: 'WZ', color: '#06b6d4',
+      type: ['buyer','investor'], tier: 'high-value', agentName: 'Marcus Chen',
+      email: 'zhang.invest@email.com', phone: '+1 (555) 678-9012', location: 'Midtown',
+      status: 'active', lifetimeValue: 2800000, transactionCount: 3, satisfaction: 8.8,
+      npsScore: 8.8, repeatLikelihood: 82, referralCount: 2, referralValue: 980000,
+      lastTransactionDate: new Date('2026-04-28'), lastContactDate: new Date('2026-05-05'),
+      daysSinceContact: 9, nextTransactionLikelihood: 76, nextTransactionTimeline: '12–18 months',
+      nextTransactionType: 'Investment purchase', nextTransactionValue: 1500000,
+      preferredPropertyType: 'Apartment', preferredLocation: 'Midtown / Downtown',
+      budgetMin: 1000000, budgetMax: 1800000, engagementLevel: 'high',
+      engagementStrategy: 'Monthly investment newsletter. Rental yield analysis. Q4 portfolio review.',
+      notes: 'Buy-and-hold investors. Currently renting out first two properties.',
+      tags: ['Investor','Repeat Buyer','Rental Strategy','High-Value'],
+      transactions: [
+        { date: new Date('2026-04-28'), type: 'bought', property: '230 Skyline Tower', value: 1250000, profit: null },
+        { date: new Date('2025-03-15'), type: 'bought', property: '100 Midtown Ave',   value: 980000,  profit: null },
+        { date: new Date('2024-01-10'), type: 'bought', property: '55 Bay Residences', value: 570000,  profit: null },
+      ],
+    },
+    {
+      id: 'client_007', name: 'Marcus & Keisha Thompson', avatar: 'MT', color: '#64748b',
+      type: ['buyer'], tier: 'regular', agentName: 'James Rivera',
+      email: 'm.thompson@email.com', phone: '+1 (555) 567-8901', location: 'Westside',
+      status: 'active', lifetimeValue: 480000, transactionCount: 0, satisfaction: null,
+      npsScore: null, repeatLikelihood: 40, referralCount: 0, referralValue: 0,
+      lastTransactionDate: null, lastContactDate: new Date('2026-05-04'),
+      daysSinceContact: 10, nextTransactionLikelihood: 28, nextTransactionTimeline: '4–6 months',
+      nextTransactionType: 'First purchase (Townhouse)', nextTransactionValue: 1200000,
+      preferredPropertyType: 'Townhouse', preferredLocation: 'Westside',
+      budgetMin: 900000, budgetMax: 1200000, engagementLevel: 'low',
+      engagementStrategy: 'Add to monthly Westside newsletter. Re-engage in 30 days.',
+      notes: 'Still early stage. Partner not aligned on location yet.',
+      tags: ['Prospect','Early Stage','Long Timeline','Nurture'],
+      transactions: [],
+    },
+    {
+      id: 'client_008', name: 'Helen Crawford', avatar: 'HC', color: '#84cc16',
+      type: ['buyer','investor'], tier: 'vip', agentName: 'Sarah Johnson',
+      email: 'helen.c@crawfordgroup.com', phone: '+1 (555) 789-0123', location: 'Downtown',
+      status: 'dormant', lifetimeValue: 6800000, transactionCount: 8, satisfaction: 8.9,
+      npsScore: 8.9, repeatLikelihood: 60, referralCount: 6, referralValue: 4200000,
+      lastTransactionDate: new Date('2024-01-20'), lastContactDate: new Date('2024-08-15'),
+      daysSinceContact: 272, nextTransactionLikelihood: 52,
+      nextTransactionTimeline: 'Unknown — re-engage first',
+      nextTransactionType: 'Luxury sale or investment', nextTransactionValue: 3000000,
+      preferredPropertyType: 'Luxury Villa / Commercial', preferredLocation: 'Downtown / Harbor View',
+      budgetMin: 2000000, budgetMax: 5000000, engagementLevel: 'dormant',
+      engagementStrategy: 'PRIORITY RE-ENGAGEMENT: Call personally. Invite to exclusive private listing event.',
+      notes: 'Best historical referral source. 272 days since last contact — urgent re-engagement needed.',
+      tags: ['VIP','Dormant','High Referral Source','Re-engage Urgently','Investor'],
+      transactions: [
+        { date: new Date('2024-01-20'), type: 'sold',   property: '180 Downtown Plaza', value: 2100000, profit: 620000 },
+        { date: new Date('2023-05-10'), type: 'bought', property: '300 Harbor Blvd',    value: 1800000, profit: null },
+        { date: new Date('2022-09-30'), type: 'sold',   property: '45 Luxury Row',      value: 1350000, profit: 280000 },
+      ],
+    },
+  ];
+
+  for (const { tags, transactions, ...client } of clientSeeds) {
+    await prisma.client.upsert({
+      where:  { id: client.id },
+      update: {},
+      create: {
+        ...client,
+        tags:         { create: tags.map(tag => ({ tag })) },
+        transactions: { create: transactions },
+      },
+    });
+  }
+  console.log(`✓ ${clientSeeds.length} clients`);
+
+  // ─── Leads ───────────────────────────────────────────────────────────────
+
+  const leadSeeds = [
+    {
+      id: 'lead_001', name: 'Coastal Ventures LLC', type: 'Investor', avatar: 'CV', color: '#3b82f6',
+      email: 'bizdev@coastalventures.com', phone: '+1 (555) 901-2345',
+      source: 'Referral', budget: 3200000, budgetMin: 2000000, interest: 'Commercial',
+      location: 'Downtown', timeline: 30, stage: 'reservation', score: 94, readiness: 92,
+      agentId: 'agent_002', lastContact: 1, propertiesViewed: 11, responseTime: 0.8,
+      preApproved: true, specificTimeline: true, requestedCMA: true,
+      notes: 'Serious corporate buyer. Looking for grade-A office space for HQ relocation.',
+      nextAction: 'Schedule property tour at 88 Metro Business Hub within 24 hours',
+      conversionProbability: 92, recommendedAgent: 'Marcus Chen',
+      scoreBreakdown: { budget_confirmed: 25, timeline_urgency: 20, engagement: 20, recent_activity: 15, property_match: 14 },
+      readinessFactors: ['Pre-approved financing ($3.2M)','Viewed 11 properties','Responds within 1 hour','Timeline: 30 days'],
+      concerns: [], opportunities: ['Pre-qualified and urgent — fast-track process','Corporate buyer = larger deal potential'],
+      suggestedProperties: ['88 Metro Business Hub','500 Grand Ave Commercial','200 Business Blvd'],
+      tags: ['Pre-approved','High Budget','Investor','Urgent'],
+      history: [
+        { date: new Date('2026-05-13'), action: 'Viewed 88 Metro Business Hub', type: 'view' },
+        { date: new Date('2026-05-12'), action: 'Requested CMA report',         type: 'request' },
+        { date: new Date('2026-05-10'), action: 'Called agent — discussed requirements', type: 'call' },
+        { date: new Date('2026-05-08'), action: 'Submitted lead form',          type: 'form' },
+      ],
+    },
+    {
+      id: 'lead_002', name: 'Robert & Emily Walsh', type: 'Family', avatar: 'RW', color: '#10b981',
+      email: 'walsh.leads@email.com', phone: '+1 (555) 234-5678',
+      source: 'Website', budget: 1800000, budgetMin: 1500000, interest: 'Villa',
+      location: 'North Hills', timeline: 45, stage: 'qualified', score: 88, readiness: 81,
+      agentId: 'agent_001', lastContact: 2, propertiesViewed: 8, responseTime: 1.8,
+      preApproved: true, specificTimeline: true, requestedCMA: false,
+      notes: 'Young family relocating. Need top school district. Kids starting school in September.',
+      nextAction: 'Show 14 Green Park Estate — matches all criteria, school district confirmed',
+      conversionProbability: 81, recommendedAgent: 'Sarah Johnson',
+      scoreBreakdown: { budget_confirmed: 25, timeline_urgency: 18, engagement: 20, recent_activity: 15, property_match: 10 },
+      readinessFactors: ['Pre-approved financing ($1.8M)','Viewed 8 properties in 2 weeks','Timeline: 45 days'],
+      concerns: ['September deadline is firm — limited time'],
+      opportunities: ['Hard deadline creates urgency','Pre-approved = fast closing'],
+      suggestedProperties: ['14 Green Park Estate','7 Westside Gardens','20 Green Park'],
+      tags: ['Pre-approved','Family','Top Schools Priority'],
+      history: [
+        { date: new Date('2026-05-12'), action: 'Viewed 14 Green Park Estate',        type: 'view' },
+        { date: new Date('2026-05-11'), action: 'Visited 3 properties in North Hills', type: 'view' },
+        { date: new Date('2026-05-09'), action: 'Phone call — discussed school districts', type: 'call' },
+        { date: new Date('2026-05-07'), action: 'Registered via website portal',      type: 'form' },
+      ],
+    },
+    {
+      id: 'lead_003', name: 'TechHub Properties Inc', type: 'Investor', avatar: 'TH', color: '#8b5cf6',
+      email: 'leads@techhubbprops.com', phone: '+1 (555) 345-6789',
+      source: 'Referral', budget: 5500000, budgetMin: 4000000, interest: 'Commercial',
+      location: 'Midtown', timeline: 90, stage: 'qualified', score: 81, readiness: 68,
+      agentId: 'agent_002', lastContact: 3, propertiesViewed: 5, responseTime: 3.9,
+      preApproved: false, specificTimeline: true, requestedCMA: true,
+      notes: 'PE-backed property group. Looking for multi-tenant commercial asset. Long evaluation cycle.',
+      nextAction: 'Send updated investment pro-forma for 88 Metro Business Hub',
+      conversionProbability: 68, recommendedAgent: 'Marcus Chen',
+      scoreBreakdown: { budget_confirmed: 25, timeline_urgency: 12, engagement: 18, recent_activity: 15, property_match: 11 },
+      readinessFactors: ['Budget confirmed ($5.5M)','Viewed 5 properties','Timeline: 90 days'],
+      concerns: ['Not yet pre-approved','90-day timeline — risk of deal stalling'],
+      opportunities: ['Largest budget in pipeline ($5.5M)','Could be repeat buyer'],
+      suggestedProperties: ['88 Metro Business Hub','200 Business Blvd'],
+      tags: ['High Budget','Investment Grade','Midtown Focus'],
+      history: [
+        { date: new Date('2026-05-11'), action: 'Requested investment analysis',      type: 'request' },
+        { date: new Date('2026-05-08'), action: 'Viewed 2 commercial properties',     type: 'view' },
+        { date: new Date('2026-05-05'), action: 'Initial consultation call',          type: 'call' },
+        { date: new Date('2026-05-01'), action: 'Referred by Coastal Ventures',      type: 'form' },
+      ],
+    },
+    {
+      id: 'lead_004', name: 'Diana Fontaine', type: 'Individual', avatar: 'DF', color: '#f59e0b',
+      email: 'diana.fontaine.lead@email.com', phone: '+1 (555) 456-7890',
+      source: 'Social Media', budget: 980000, budgetMin: 750000, interest: 'Apartment',
+      location: 'Westside', timeline: 60, stage: 'freshLead', score: 77, readiness: 54,
+      agentId: 'agent_003', lastContact: 5, propertiesViewed: 4, responseTime: 11.2,
+      preApproved: false, specificTimeline: false, requestedCMA: false,
+      notes: 'First-time buyer. Excited but needs financial guidance. Has not spoken to a mortgage broker.',
+      nextAction: 'Connect with preferred mortgage broker — recommend pre-approval as next step',
+      conversionProbability: 54, recommendedAgent: 'Priya Patel',
+      scoreBreakdown: { budget_confirmed: 20, timeline_urgency: 15, engagement: 15, recent_activity: 12, property_match: 15 },
+      readinessFactors: ['Budget range stated (not confirmed)','Viewed 4 properties','Timeline: ~60 days (vague)'],
+      concerns: ['Not pre-approved — major blocker','Slow response time (12h)','Vague timeline'],
+      opportunities: ['First-time buyer = long-term client relationship','Motivated — viewed 4 props'],
+      suggestedProperties: ['7 Westside Gardens','230 Skyline Tower','55 Bay Residences'],
+      tags: ['First-Time Buyer','Needs Pre-approval','Westside'],
+      history: [
+        { date: new Date('2026-05-08'), action: 'Saved 2 properties to favorites',  type: 'view' },
+        { date: new Date('2026-05-06'), action: 'Viewed 2 Westside properties',     type: 'view' },
+        { date: new Date('2026-05-03'), action: 'Instagram ad click → inquiry form', type: 'form' },
+      ],
+    },
+    {
+      id: 'lead_005', name: 'Marcus & Keisha Thompson', type: 'Family', avatar: 'MT', color: '#ef4444',
+      email: 'thompson.lead@email.com', phone: '+1 (555) 567-8901',
+      source: 'Portal (Zillow)', budget: 1200000, budgetMin: 900000, interest: 'Townhouse',
+      location: 'Westside', timeline: 120, stage: 'freshLead', score: 62, readiness: 38,
+      agentId: 'agent_004', lastContact: 9, propertiesViewed: 2, responseTime: 26.4,
+      preApproved: false, specificTimeline: false, requestedCMA: false,
+      notes: 'Still exploring. Just started looking. Partner not yet aligned on neighborhood preference.',
+      nextAction: 'Add to monthly newsletter. Re-engage in 30 days with Westside market report.',
+      conversionProbability: 28, recommendedAgent: 'James Rivera',
+      scoreBreakdown: { budget_confirmed: 15, timeline_urgency: 10, engagement: 15, recent_activity: 10, property_match: 12 },
+      readinessFactors: ['Budget estimated (not confirmed)','Viewed 2 properties','Timeline: 4 months'],
+      concerns: ['9 days since last contact','120-day timeline — low urgency','Partner alignment needed'],
+      opportunities: ['Westside inventory low — scarcity might accelerate timeline'],
+      suggestedProperties: ['7 Westside Gardens','3 Garden Lane'],
+      tags: ['Early Stage','Long Timeline','Needs Nurture'],
+      history: [
+        { date: new Date('2026-05-04'), action: 'Viewed 1 Westside townhouse', type: 'view' },
+        { date: new Date('2026-05-01'), action: 'Zillow inquiry submitted',   type: 'form' },
+      ],
+    },
+    {
+      id: 'lead_006', name: 'Evelyn Cruz', type: 'Individual', avatar: 'EC', color: '#06b6d4',
+      email: 'evelyn.c@email.com', phone: '+1 (555) 678-9012',
+      source: 'Website', budget: 750000, budgetMin: 600000, interest: 'Apartment',
+      location: 'East End', timeline: 30, stage: 'reservation', score: 89, readiness: 88,
+      agentId: 'agent_004', lastContact: 0, propertiesViewed: 9, responseTime: 0.9,
+      preApproved: true, specificTimeline: true, requestedCMA: true,
+      notes: 'Ready to make offer. Torn between 55 Bay Residences and 230 Skyline Tower.',
+      nextAction: 'Schedule side-by-side comparison showing TODAY — she is ready to offer',
+      conversionProbability: 88, recommendedAgent: 'James Rivera',
+      scoreBreakdown: { budget_confirmed: 25, timeline_urgency: 20, engagement: 20, recent_activity: 14, property_match: 10 },
+      readinessFactors: ['Pre-approved financing','Viewed 9 properties','Responds within 1 hour','Shortlisted 2 properties'],
+      concerns: [],
+      opportunities: ['Ready to make offer — close this week','Referred 1 friend'],
+      suggestedProperties: ['55 Bay Residences','230 Skyline Tower'],
+      tags: ['Pre-approved','Urgent','Shortlisted'],
+      history: [
+        { date: new Date('2026-05-14'), action: 'Requested final comparison of 2 properties', type: 'request' },
+        { date: new Date('2026-05-13'), action: 'Second visit to 55 Bay Residences',          type: 'view' },
+        { date: new Date('2026-05-11'), action: 'CMA report reviewed',                        type: 'request' },
+        { date: new Date('2026-05-09'), action: 'Shortlisted to 2 properties',               type: 'action' },
+      ],
+    },
+  ];
+
+  for (const { tags, history, ...lead } of leadSeeds) {
+    await prisma.lead.upsert({
+      where:  { id: lead.id },
+      update: {},
+      create: {
+        ...lead,
+        tags:         { create: tags.map(tag => ({ tag })) },
+        interactions: { create: history.map(h => ({ date: h.date, action: h.action, type: h.type })) },
+      },
+    });
+  }
+  console.log(`✓ ${leadSeeds.length} leads`);
+
+  // ─── Deals ───────────────────────────────────────────────────────────────
+
+  const dealSeeds = [
+    {
+      id: 'deal_001', propertyId: 'prop_003', leadId: 'lead_001', clientId: 'client_001',
+      agentId: 'agent_001', type: 'Villa', value: 4100000, commissionRate: 4.5,
+      stage: 'negotiation', offerDate: new Date('2026-05-05'), targetCloseDate: new Date('2026-06-10'),
+      daysUntilClose: 27, daysElapsed: 9, closingProbability: 74, risk: 'medium', icon: '🏡',
+      notes: 'Seller dug in on repair credits. Buyer has leverage — offer is full price.',
+      progress: { offer_accepted: true, negotiation_complete: false, inspection_clear: false, appraisal_complete: false, financing_approved: false, docs_signed: false },
+      positives: ['Offer accepted','Buyer is pre-approved ($5M)','High buyer motivation'],
+      risks: ['Seller requesting 3 repair credits ($85K total)','Counter #2 pending'],
+      nextActions: ['Negotiate repair credits down to $50K','Agree on counter terms by May 17','Order appraisal in parallel'],
+      financialRisk: 'low', timelineRisk: 'medium', partyRisk: 'low',
+      milestones: [
+        { name: 'Offer Accepted',          due: new Date('2026-05-06'), status: 'done' },
+        { name: 'Counter-Offer Resolution', due: new Date('2026-05-17'), status: 'pending' },
+        { name: 'Inspection',              due: new Date('2026-05-22'), status: 'not_started' },
+        { name: 'Appraisal',              due: new Date('2026-05-26'), status: 'pending' },
+        { name: 'Financing Approval',      due: new Date('2026-06-01'), status: 'not_started' },
+        { name: 'Close',                   due: new Date('2026-06-10'), status: 'not_started' },
+      ],
+    },
+    {
+      id: 'deal_002', propertyId: 'prop_001', leadId: 'lead_002', clientId: 'client_002',
+      agentId: 'agent_001', type: 'Apartment', value: 1950000, commissionRate: 5,
+      stage: 'inspection', offerDate: new Date('2026-04-28'), targetCloseDate: new Date('2026-06-05'),
+      daysUntilClose: 22, daysElapsed: 16, closingProbability: 85, risk: 'low', icon: '🏙️',
+      notes: 'On track. Accelerate appraisal immediately to avoid timeline crunch.',
+      progress: { offer_accepted: true, negotiation_complete: true, inspection_clear: false, appraisal_complete: false, financing_approved: false, docs_signed: false },
+      positives: ['Negotiation complete','Buyer pre-approved ($2M)','Family with hard deadline = high motivation'],
+      risks: ['Inspection not yet clear','Appraisal not yet ordered'],
+      nextActions: ['Order appraisal TODAY (takes 5–7 days)','Receive inspection report by May 16'],
+      financialRisk: 'low', timelineRisk: 'medium', partyRisk: 'low',
+      milestones: [
+        { name: 'Offer Accepted',      due: new Date('2026-04-29'), status: 'done' },
+        { name: 'Negotiation Complete', due: new Date('2026-05-06'), status: 'done' },
+        { name: 'Inspection Report',   due: new Date('2026-05-16'), status: 'pending' },
+        { name: 'Appraisal',          due: new Date('2026-05-22'), status: 'pending' },
+        { name: 'Financing Approval',  due: new Date('2026-05-28'), status: 'not_started' },
+        { name: 'Close',               due: new Date('2026-06-05'), status: 'not_started' },
+      ],
+    },
+    {
+      id: 'deal_003', propertyId: 'prop_002', agentId: 'agent_001',
+      type: 'Apartment', value: 2450000, commissionRate: 4.5,
+      stage: 'inspection', offerDate: new Date('2026-04-20'), targetCloseDate: new Date('2026-05-30'),
+      daysUntilClose: 16, daysElapsed: 24, closingProbability: 58, risk: 'high', icon: '🏢',
+      notes: 'At risk. Two overdue items. Escalate to senior management immediately.',
+      progress: { offer_accepted: true, negotiation_complete: true, inspection_clear: false, appraisal_complete: false, financing_approved: false, docs_signed: false },
+      positives: ['Negotiation complete','High-value deal ($2.45M)'],
+      risks: ['Inspection found 2 major issues (HVAC & roof, est. $45K)','Appraisal overdue 4 days','Close date only 16 days away'],
+      nextActions: ['URGENT: Expedite appraisal today','Negotiate repair responsibility','Confirm financing contingency extension'],
+      financialRisk: 'high', timelineRisk: 'high', partyRisk: 'medium',
+      milestones: [
+        { name: 'Offer Accepted',      due: new Date('2026-04-21'), status: 'done' },
+        { name: 'Negotiation Complete', due: new Date('2026-04-29'), status: 'done' },
+        { name: 'Inspection Report',   due: new Date('2026-05-05'), status: 'done' },
+        { name: 'Repair Resolution',   due: new Date('2026-05-15'), status: 'overdue' },
+        { name: 'Appraisal',          due: new Date('2026-05-10'), status: 'overdue' },
+        { name: 'Financing Approval',  due: new Date('2026-05-22'), status: 'pending' },
+        { name: 'Close',               due: new Date('2026-05-30'), status: 'not_started' },
+      ],
+    },
+    {
+      id: 'deal_004', propertyId: 'prop_005', clientId: 'client_002',
+      agentId: 'agent_004', type: 'Villa', value: 3200000, commissionRate: 5,
+      stage: 'appraisal', offerDate: new Date('2026-04-15'), targetCloseDate: new Date('2026-05-28'),
+      daysUntilClose: 14, daysElapsed: 29, closingProbability: 81, risk: 'low', icon: '🏡',
+      notes: 'In great shape. Smooth deal — just needs appraisal to land at or above $3.2M.',
+      progress: { offer_accepted: true, negotiation_complete: true, inspection_clear: true, appraisal_complete: false, financing_approved: true, docs_signed: false },
+      positives: ['Inspection passed (clean)','Financing approved','Both parties motivated'],
+      risks: ['Appraisal result pending','Close date 14 days away'],
+      nextActions: ['Receive appraisal report by May 16','Prepare gap coverage plan if appraisal low'],
+      financialRisk: 'low', timelineRisk: 'low', partyRisk: 'low',
+      milestones: [
+        { name: 'Offer Accepted',      due: new Date('2026-04-16'), status: 'done' },
+        { name: 'Negotiation Complete', due: new Date('2026-04-22'), status: 'done' },
+        { name: 'Inspection Clear',    due: new Date('2026-04-30'), status: 'done' },
+        { name: 'Financing Approved',  due: new Date('2026-05-08'), status: 'done' },
+        { name: 'Appraisal Report',    due: new Date('2026-05-16'), status: 'pending' },
+        { name: 'Final Docs',          due: new Date('2026-05-24'), status: 'not_started' },
+        { name: 'Close',               due: new Date('2026-05-28'), status: 'not_started' },
+      ],
+    },
+    {
+      id: 'deal_005', propertyId: 'prop_004', clientId: 'client_006',
+      agentId: 'agent_002', type: 'Apartment', value: 1250000, commissionRate: 5,
+      stage: 'closing', offerDate: new Date('2026-04-01'), targetCloseDate: new Date('2026-05-18'),
+      daysUntilClose: 4, daysElapsed: 43, closingProbability: 96, risk: 'low', icon: '🏗️',
+      notes: 'Nearly done. Execute flawlessly. Commission $62,500 incoming in 4 days.',
+      progress: { offer_accepted: true, negotiation_complete: true, inspection_clear: true, appraisal_complete: true, financing_approved: true, docs_signed: false },
+      positives: ['Inspection clear','Appraisal matched price','Financing approved','All contingencies removed'],
+      risks: ['Docs not yet signed (closing May 18)','Wire transfer must clear by noon May 18'],
+      nextActions: ['Send closing docs for e-signature today','Confirm wire transfer instructions'],
+      financialRisk: 'low', timelineRisk: 'low', partyRisk: 'low',
+      milestones: [
+        { name: 'Offer Accepted',      due: new Date('2026-04-02'), status: 'done' },
+        { name: 'Negotiation Complete', due: new Date('2026-04-08'), status: 'done' },
+        { name: 'Inspection Clear',    due: new Date('2026-04-16'), status: 'done' },
+        { name: 'Appraisal Complete',  due: new Date('2026-04-25'), status: 'done' },
+        { name: 'Financing Approved',  due: new Date('2026-05-05'), status: 'done' },
+        { name: 'Final Walkthrough',   due: new Date('2026-05-17'), status: 'pending' },
+        { name: 'Close',               due: new Date('2026-05-18'), status: 'pending' },
+      ],
+    },
+    {
+      id: 'deal_006', propertyId: 'prop_006', leadId: 'lead_003', clientId: 'client_003',
+      agentId: 'agent_002', type: 'Commercial', value: 5500000, commissionRate: 3.5,
+      stage: 'negotiation', offerDate: new Date('2026-05-08'), targetCloseDate: new Date('2026-07-01'),
+      daysUntilClose: 48, daysElapsed: 6, closingProbability: 68, risk: 'medium', icon: '🏢',
+      notes: 'High value deal but slow-moving. Watch financing carefully.',
+      progress: { offer_accepted: true, negotiation_complete: false, inspection_clear: false, appraisal_complete: false, financing_approved: false, docs_signed: false },
+      positives: ['Offer accepted','Largest deal in pipeline ($5.5M)','Buyer is PE-backed firm'],
+      risks: ['Financing not yet confirmed','Due diligence period is long (30 days)'],
+      nextActions: ['Push buyer to confirm financing this week','Negotiate shorter due diligence'],
+      financialRisk: 'medium', timelineRisk: 'low', partyRisk: 'medium',
+      milestones: [
+        { name: 'Offer Accepted',     due: new Date('2026-05-09'), status: 'done' },
+        { name: 'Due Diligence Start', due: new Date('2026-05-14'), status: 'pending' },
+        { name: 'Inspection / Survey', due: new Date('2026-05-28'), status: 'not_started' },
+        { name: 'Financing Confirmed', due: new Date('2026-06-10'), status: 'not_started' },
+        { name: 'Close',               due: new Date('2026-07-01'), status: 'not_started' },
+      ],
+    },
+    {
+      id: 'deal_007', propertyId: 'prop_007', leadId: 'lead_004', clientId: 'client_004',
+      agentId: 'agent_003', type: 'Townhouse', value: 980000, commissionRate: 5,
+      stage: 'appraisal', offerDate: new Date('2026-04-22'), targetCloseDate: new Date('2026-05-25'),
+      daysUntilClose: 11, daysElapsed: 22, closingProbability: 72, risk: 'medium', icon: '🏘️',
+      notes: 'First-time buyer nervousness. Financing is the blocker. Needs daily check-in.',
+      progress: { offer_accepted: true, negotiation_complete: true, inspection_clear: true, appraisal_complete: false, financing_approved: false, docs_signed: false },
+      positives: ['Inspection passed','Appraisal in progress'],
+      risks: ['Financing NOT yet approved (first-time buyer)','Close date only 11 days away'],
+      nextActions: ['URGENT: Push lender on financing approval today','Prepare contingency: request 7-day close extension'],
+      financialRisk: 'medium', timelineRisk: 'high', partyRisk: 'low',
+      milestones: [
+        { name: 'Offer Accepted',       due: new Date('2026-04-23'), status: 'done' },
+        { name: 'Negotiation Complete', due: new Date('2026-04-28'), status: 'done' },
+        { name: 'Inspection Clear',     due: new Date('2026-05-05'), status: 'done' },
+        { name: 'Appraisal Report',     due: new Date('2026-05-15'), status: 'pending' },
+        { name: 'Financing Approval',   due: new Date('2026-05-18'), status: 'pending' },
+        { name: 'Close',                due: new Date('2026-05-25'), status: 'not_started' },
+      ],
+    },
+    {
+      id: 'deal_008', propertyId: 'prop_003', clientId: 'client_005',
+      agentId: 'agent_001', type: 'Villa', value: 1721300, commissionRate: 5,
+      stage: 'closing', offerDate: new Date('2026-04-05'), targetCloseDate: new Date('2026-05-20'),
+      daysUntilClose: 6, daysElapsed: 39, closingProbability: 94, risk: 'low', icon: '🏡',
+      notes: "Commission $86,065 incoming in 6 days. Sarah's best deal this quarter.",
+      progress: { offer_accepted: true, negotiation_complete: true, inspection_clear: true, appraisal_complete: true, financing_approved: true, docs_signed: true },
+      positives: ['All docs signed','All contingencies clear','Wire transfer initiated'],
+      risks: ['Seller delay in vacating property (moving May 19)'],
+      nextActions: ['Confirm seller vacates by May 19 EOD','Verify wire receipt with escrow on May 20'],
+      financialRisk: 'low', timelineRisk: 'low', partyRisk: 'low',
+      milestones: [
+        { name: 'Offer Accepted',      due: new Date('2026-04-06'), status: 'done' },
+        { name: 'Negotiation Complete', due: new Date('2026-04-12'), status: 'done' },
+        { name: 'Inspection Clear',    due: new Date('2026-04-20'), status: 'done' },
+        { name: 'Appraisal Complete',  due: new Date('2026-04-28'), status: 'done' },
+        { name: 'Financing Approved',  due: new Date('2026-05-06'), status: 'done' },
+        { name: 'Docs Signed',         due: new Date('2026-05-12'), status: 'done' },
+        { name: 'Close',               due: new Date('2026-05-20'), status: 'pending' },
+      ],
+    },
+    {
+      id: 'deal_009', propertyId: 'prop_008', leadId: 'lead_006', clientId: 'client_006',
+      agentId: 'agent_004', type: 'Apartment', value: 750000, commissionRate: 5,
+      stage: 'offer', offerDate: new Date('2026-05-13'), targetCloseDate: new Date('2026-06-20'),
+      daysUntilClose: 37, daysElapsed: 1, closingProbability: 62, risk: 'medium', icon: '🏙️',
+      notes: 'Buyer ready to escalate if counter comes in over $800K. Strong motivation.',
+      progress: { offer_accepted: false, negotiation_complete: false, inspection_clear: false, appraisal_complete: false, financing_approved: false, docs_signed: false },
+      positives: ['Buyer is pre-approved','Very motivated buyer (shortlisted 2 props)'],
+      risks: ['Seller reviewing — counter expected','Competing offer rumored'],
+      nextActions: ['Follow up with listing agent within 24h','Prepare counter-offer strategy'],
+      financialRisk: 'low', timelineRisk: 'low', partyRisk: 'medium',
+      milestones: [
+        { name: 'Offer Submitted',   due: new Date('2026-05-13'), status: 'done' },
+        { name: 'Seller Response',   due: new Date('2026-05-15'), status: 'pending' },
+        { name: 'Inspection',        due: new Date('2026-05-22'), status: 'not_started' },
+        { name: 'Close',             due: new Date('2026-06-20'), status: 'not_started' },
+      ],
+    },
+    {
+      id: 'deal_010', agentId: 'agent_004', type: 'Land', value: 480000, commissionRate: 5,
+      stage: 'offer', offerDate: new Date('2026-05-12'), targetCloseDate: new Date('2026-06-28'),
+      daysUntilClose: 45, daysElapsed: 2, closingProbability: 55, risk: 'medium', icon: '🌳',
+      notes: 'Speculative buyer. May withdraw if seller is firm on price.',
+      progress: { offer_accepted: false, negotiation_complete: false, inspection_clear: false, appraisal_complete: false, financing_approved: false, docs_signed: false },
+      positives: ['Long timeline — low pressure','Clean land deal (no inspection complexity)'],
+      risks: ['Buyer not yet pre-approved','Vague motivation'],
+      nextActions: ['Confirm buyer has financing lined up','Await seller decision'],
+      financialRisk: 'medium', timelineRisk: 'low', partyRisk: 'medium',
+      milestones: [
+        { name: 'Offer Submitted', due: new Date('2026-05-12'), status: 'done' },
+        { name: 'Seller Response', due: new Date('2026-05-16'), status: 'pending' },
+        { name: 'Appraisal',      due: new Date('2026-06-01'), status: 'not_started' },
+        { name: 'Close',           due: new Date('2026-06-28'), status: 'not_started' },
+      ],
+    },
+  ];
+
+  for (const { milestones, ...deal } of dealSeeds) {
+    await prisma.deal.upsert({
+      where:  { id: deal.id },
+      update: {},
+      create: { ...deal, milestones: { create: milestones } },
+    });
+  }
+  console.log(`✓ ${dealSeeds.length} deals`);
+
+  // ─── Tasks ────────────────────────────────────────────────────────────────
+
+  const taskSeeds = [
+    {
+      id: 'task_001', title: 'Expedite appraisal — 456 Park Avenue', category: 'Deal',
+      priority: 'critical', status: 'overdue', dueDate: new Date('2026-05-10'), daysOverdue: 4,
+      assigneeId: 'agent_001', dealId: 'deal_003',
+      description: 'Appraisal was due May 10. Order rush appraisal immediately (pay $300 expedite fee). Financing contingency expires May 22.',
+      completionProof: 'email', proofLabel: 'Forward appraisal order confirmation',
+      escalated: true, escalateTo: 'Regional Manager',
+      impact: 'Deal at risk — close date May 30, only 16 days remaining',
+      tags: ['At Risk','Appraisal','Overdue'],
+      subtasks: [
+        { label: 'Contact appraisal company for rush slot', done: false },
+        { label: 'Pay rush fee ($300)', done: false },
+        { label: 'Notify buyer agent of appraisal date', done: false },
+        { label: 'Update deal record with appraisal date', done: false },
+      ],
+    },
+    {
+      id: 'task_002', title: 'Negotiate repair credits — Harbor View Villa', category: 'Deal',
+      priority: 'critical', status: 'in_progress', dueDate: new Date('2026-05-17'), daysOverdue: 0,
+      assigneeId: 'agent_001', dealId: 'deal_001',
+      description: 'Seller requesting 3 repair credits totaling $85K. Counter-propose 50/50 split.',
+      completionProof: 'email', proofLabel: 'Upload signed counter-offer document',
+      escalated: false, impact: '$4.1M deal at risk if negotiation stalls past May 17',
+      tags: ['Negotiation','High-Value','Counter-Offer'],
+      subtasks: [
+        { label: 'Draft counter-offer with $42.5K credit', done: true },
+        { label: 'Review with client (Coastal Ventures)', done: true },
+        { label: "Submit counter to seller's agent", done: false },
+        { label: 'Await seller response', done: false },
+      ],
+    },
+    {
+      id: 'task_003', title: 'Send closing docs for e-signature — 230 Skyline Tower', category: 'Deal',
+      priority: 'critical', status: 'not_started', dueDate: new Date('2026-05-15'), daysOverdue: 1,
+      assigneeId: 'agent_002', dealId: 'deal_005',
+      description: 'Closing is May 18. All contingencies cleared. Send closing docs to DocuSign by May 15 COB.',
+      completionProof: 'timestamp', proofLabel: 'Confirm DocuSign sent and escrow wire instructions emailed',
+      escalated: true, escalateTo: 'Regional Manager',
+      impact: 'Closing May 18 — delay in docs = delayed wire = closing postponed',
+      tags: ['Closing','DocuSign','Wire Transfer'],
+      subtasks: [
+        { label: 'Prepare closing docs package', done: true },
+        { label: 'Upload to DocuSign and send to buyer', done: false },
+        { label: 'Send wire instructions to escrow', done: false },
+        { label: 'Confirm all parties signed by May 17', done: false },
+      ],
+    },
+    {
+      id: 'task_004', title: 'Order appraisal — 123 Oak Street', category: 'Deal',
+      priority: 'high', status: 'not_started', dueDate: new Date('2026-05-16'), daysOverdue: 0,
+      assigneeId: 'agent_001', dealId: 'deal_002',
+      description: 'Inspection complete. Must order appraisal TODAY — takes 5–7 days.',
+      completionProof: 'email', proofLabel: 'Forward appraisal order confirmation email',
+      escalated: false, impact: 'June 5 close at risk if appraisal delayed past today',
+      tags: ['Appraisal','Time-Sensitive'],
+      subtasks: [
+        { label: 'Contact appraisal company', done: false },
+        { label: 'Confirm appraisal date (by May 22)', done: false },
+        { label: 'Notify buyer of appraisal schedule', done: false },
+      ],
+    },
+    {
+      id: 'task_005', title: 'Push lender on financing approval — 7 Westside Gardens', category: 'Deal',
+      priority: 'high', status: 'in_progress', dueDate: new Date('2026-05-18'), daysOverdue: 0,
+      assigneeId: 'agent_003', dealId: 'deal_007',
+      description: 'First-time buyer, not yet approved. Close date May 25. Financing must be confirmed by May 18.',
+      completionProof: 'email', proofLabel: 'Forward lender approval letter or extension confirmation',
+      escalated: false, impact: 'May 25 close impossible without financing approval by May 18',
+      tags: ['Financing','First-Time Buyer','Urgent'],
+      subtasks: [
+        { label: 'Call lender — get status update', done: true },
+        { label: 'Send outstanding docs to lender (bank statements)', done: true },
+        { label: 'Await conditional approval decision', done: false },
+        { label: 'If delay: draft extension request to seller', done: false },
+      ],
+    },
+    {
+      id: 'task_006', title: 'Schedule comparison showing — Evelyn Cruz', category: 'Lead',
+      priority: 'critical', status: 'not_started', dueDate: new Date('2026-05-15'), daysOverdue: 1,
+      assigneeId: 'agent_004', leadId: 'lead_006',
+      description: 'Lead score 89 — ready to make an offer. Wants side-by-side viewing of 55 Bay Residences vs 230 Skyline.',
+      completionProof: 'timestamp', proofLabel: 'Share calendar invite with client',
+      escalated: false, impact: 'Lead may go cold or find property via competitor if showing not arranged within 48h',
+      tags: ['Hot Lead','Showing','Ready to Offer'],
+      subtasks: [
+        { label: 'Contact Evelyn — confirm preferred date', done: false },
+        { label: 'Book 55 Bay Residences showing slot', done: false },
+        { label: 'Book 230 Skyline Tower showing slot', done: false },
+        { label: 'Send calendar invite + confirmation', done: false },
+      ],
+    },
+    {
+      id: 'task_007', title: 'Send pre-approval guide — Diana Fontaine', category: 'Lead',
+      priority: 'high', status: 'in_progress', dueDate: new Date('2026-05-16'), daysOverdue: 0,
+      assigneeId: 'agent_003', leadId: 'lead_004',
+      description: 'First-time buyer not yet pre-approved. This is the primary blocker.',
+      completionProof: 'email', proofLabel: 'Forward sent email to client',
+      escalated: false, impact: 'Without pre-approval, cannot make offer — lead stalls at 54% conversion',
+      tags: ['First-Time Buyer','Pre-Approval','Lead Nurture'],
+      subtasks: [
+        { label: 'Prepare pre-approval guide PDF', done: true },
+        { label: 'Email guide with broker introduction', done: false },
+        { label: 'Follow up in 3 days', done: false },
+      ],
+    },
+    {
+      id: 'task_008', title: 'Monthly newsletter — Westside market report', category: 'Lead',
+      priority: 'medium', status: 'not_started', dueDate: new Date('2026-05-20'), daysOverdue: 0,
+      assigneeId: 'agent_004',
+      description: 'Send monthly Westside market report to 13 nurture leads.',
+      completionProof: 'email', proofLabel: 'Confirm email blast sent (include open rate)',
+      escalated: false, impact: 'Keeps 13 nurture leads warm — prevents drift to competitor agents',
+      tags: ['Newsletter','Nurture','Westside'],
+      subtasks: [
+        { label: 'Pull Westside market stats (April 2026)', done: false },
+        { label: 'Write 300-word market summary', done: false },
+        { label: 'Select 3 featured listings', done: false },
+        { label: 'Send via email platform', done: false },
+      ],
+    },
+    {
+      id: 'task_009', title: 'Professional photos — 14 Green Park Estate (new listing)', category: 'Property',
+      priority: 'high', status: 'completed', dueDate: new Date('2026-05-12'), daysOverdue: 0,
+      assigneeId: 'agent_004', propertyId: 'prop_005',
+      description: 'New listing requires professional photography before portal upload.',
+      completionProof: 'photo', proofLabel: 'Upload 20+ high-res photos to property record',
+      escalated: false, impact: 'Listing live on portals — 312 views in first week',
+      tags: ['Photography','New Listing','Completed'],
+      subtasks: [
+        { label: 'Book photographer', done: true },
+        { label: 'Oversee shoot (May 11)', done: true },
+        { label: 'Upload to portal listings', done: true },
+      ],
+    },
+    {
+      id: 'task_010', title: 'Price review — 456 Park Avenue (45 days, no offer)', category: 'Property',
+      priority: 'high', status: 'not_started', dueDate: new Date('2026-05-17'), daysOverdue: 0,
+      assigneeId: 'agent_001', propertyId: 'prop_002',
+      description: 'Property at $2.45M — 45 days on market. Recommend price reduction to $2.27M.',
+      completionProof: 'email', proofLabel: 'Upload seller approval of price reduction / rejection',
+      escalated: false, impact: 'Overpriced by 8% — price reduction should generate offers within 7–14 days',
+      tags: ['Price Reduction','Stale Listing','45 DOM'],
+      subtasks: [
+        { label: 'Pull comparable sales analysis', done: true },
+        { label: 'Prepare price recommendation presentation', done: false },
+        { label: 'Meet with seller (May 17)', done: false },
+        { label: 'Update MLS listing if approved', done: false },
+      ],
+    },
+    {
+      id: 'task_011', title: 'Re-engage Helen Crawford — 272 days dormant', category: 'Client',
+      priority: 'high', status: 'not_started', dueDate: new Date('2026-05-16'), daysOverdue: 0,
+      assigneeId: 'agent_001', clientId: 'client_008',
+      description: 'VIP client, 8 transactions, $6.8M LTV, best referral source (6 referrals = $4.2M). Silent 272 days.',
+      completionProof: 'timestamp', proofLabel: 'Log call outcome and next action in client record',
+      escalated: false, impact: 'Best referral source in portfolio — losing her could cost $3M+ in future pipeline',
+      tags: ['VIP','Dormant','Re-engagement','Priority'],
+      subtasks: [
+        { label: 'Research what Helen may be up to (LinkedIn)', done: false },
+        { label: 'Personal call — ask how she is, no sales pressure', done: false },
+        { label: 'Invite to private listing event (June)', done: false },
+        { label: 'Log outcome and set 30-day follow-up', done: false },
+      ],
+    },
+    {
+      id: 'task_012', title: 'Post-close welcome call — Sophia & David Park', category: 'Client',
+      priority: 'medium', status: 'not_started', dueDate: new Date('2026-05-21'), daysOverdue: 0,
+      assigneeId: 'agent_001', clientId: 'client_005',
+      description: 'Closed May 14. Month-1 follow-up is critical for NPS and referral generation.',
+      completionProof: 'timestamp', proofLabel: 'Log call notes and any referral mentions',
+      escalated: false, impact: 'Best time to ask for referral — 3 referrals already, highest NPS (9.6)',
+      tags: ['Post-Close','Referral Opportunity','NPS'],
+      subtasks: [
+        { label: 'Send "Congratulations on your new home" card', done: false },
+        { label: 'Schedule 7-day post-close call', done: false },
+        { label: 'Mention referral program naturally', done: false },
+        { label: 'Request Google review if satisfied', done: false },
+      ],
+    },
+    {
+      id: 'task_013', title: 'Weekly team performance report', category: 'Admin',
+      priority: 'medium', status: 'in_progress', dueDate: new Date('2026-05-15'), daysOverdue: 1,
+      assigneeId: 'agent_002',
+      description: 'Weekly report for leadership: deal pipeline value, closes this week, agent performance.',
+      completionProof: 'email', proofLabel: 'Send report to leadership@propcrm.io',
+      escalated: false, impact: 'Leadership visibility into pipeline health',
+      tags: ['Admin','Report','Weekly'],
+      subtasks: [
+        { label: 'Pull pipeline data from CRM', done: true },
+        { label: 'Draft agent performance section', done: false },
+        { label: 'Review overdue task section', done: false },
+        { label: 'Send to leadership', done: false },
+      ],
+    },
+    {
+      id: 'task_014', title: 'Q2 commission calculations — all agents', category: 'Admin',
+      priority: 'low', status: 'not_started', dueDate: new Date('2026-06-05'), daysOverdue: 0,
+      assigneeId: 'agent_002',
+      description: 'Calculate Q2 commissions for all 12 agents. Cross-reference closed deals in CRM.',
+      completionProof: 'email', proofLabel: 'Forward signed commission summary to finance team',
+      escalated: false, impact: 'Payroll accuracy — agent trust depends on timely commission calculation',
+      tags: ['Admin','Finance','Q2'],
+      subtasks: [
+        { label: 'Export Q2 closed deals from CRM', done: false },
+        { label: 'Calculate commissions per agent', done: false },
+        { label: 'Review with HR', done: false },
+        { label: 'Send to finance', done: false },
+      ],
+    },
+  ];
+
+  for (const { tags, subtasks, ...task } of taskSeeds) {
+    await prisma.task.upsert({
+      where:  { id: task.id },
+      update: {},
+      create: {
+        ...task,
+        tags:     { create: tags.map(tag => ({ tag })) },
+        subtasks: { create: subtasks },
+      },
+    });
+  }
+  console.log(`✓ ${taskSeeds.length} tasks`);
+
+  console.log('\n✅ Seed complete!\n');
+  if (isGenerated) {
+    console.log(`  ⚠️  No SEED_PASSWORD set — generated password: ${seedPassword}`);
+    console.log('  Save this now; it cannot be recovered after the process exits.\n');
+  } else {
+    console.log('  Password: set via SEED_PASSWORD env var\n');
+  }
+  console.log('  Seeded accounts:');
+  console.log('  admin@propcrm.io      (role: admin)');
+  console.log('  manager@propcrm.io    (role: manager)');
+  console.log('  sarah.j@propcrm.io    (role: agent — Sarah Johnson)');
+  console.log('  marcus.c@propcrm.io   (role: agent — Marcus Chen)');
+  console.log('  priya.p@propcrm.io    (role: agent — Priya Patel)');
+  console.log('  james.r@propcrm.io    (role: agent — James Rivera)\n');
+}
+
+main()
+  .then(() => prisma.$disconnect())
+  .catch(async (e) => { console.error(e); await prisma.$disconnect(); process.exit(1); });

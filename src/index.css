@@ -1,0 +1,168 @@
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   PIN CRM — Brand Identity (by Triple Shield)
+   Palette: #E53935 / #0B1320 / #1F2937 / #374151 / #E5E7EB
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Dark theme CSS variables (default) ──────────────────────────── */
+:root {
+  /* RGB channel values — used as rgb(var(--navy-800) / 0.95) */
+  --navy-900:  11  19  32;   /* #0B1320 — page background */
+  --navy-800:  20  29  45;   /* slightly lighter than 900 — sidebar/header */
+  --navy-700:  31  41  55;   /* #1F2937 — secondary surfaces */
+  --navy-600:  55  65  81;   /* #374151 — dividers */
+  --navy-500:  75  85  99;   /* subtle bg */
+  --card:      20  29  45;   /* cards */
+  --card-hover:31  41  55;   /* #1F2937 */
+
+  /* Accent — Brand Red (#E53935) is the default */
+  --accent-300: 252 165 165;  /* red-300 — lightened brand red */
+  --accent-400: 248 113 113;  /* red-400 */
+  --accent-500: 229  57  53;  /* red-500 — #E53935 BRAND */
+  --accent-600: 197  48  45;  /* red-600 — darker brand red */
+}
+
+/* ── Accent color overrides (optional alternates) ────────────────── */
+html.accent-blue {
+  --accent-300: 147 197 253;
+  --accent-400:  96 165 250;
+  --accent-500:  59 130 246;
+  --accent-600:  37  99 235;
+}
+html.accent-violet {
+  --accent-300: 196 181 253;
+  --accent-400: 167 139 250;
+  --accent-500: 139  92 246;
+  --accent-600: 124  58 237;
+}
+html.accent-emerald {
+  --accent-300: 110 231 183;
+  --accent-400:  52 211 153;
+  --accent-500:  16 185 129;
+  --accent-600:   5 150 105;
+}
+html.accent-rose {
+  --accent-300: 253 164 175;
+  --accent-400: 251 113 133;
+  --accent-500: 244  63  94;
+  --accent-600: 225  29  72;
+}
+html.accent-amber {
+  --accent-300: 252 211  77;
+  --accent-400: 251 191  36;
+  --accent-500: 245 158  11;
+  --accent-600: 217 119   6;
+}
+html.accent-cyan {
+  --accent-300: 103 232 249;
+  --accent-400:  34 211 238;
+  --accent-500:   6 182 212;
+  --accent-600:   8 145 178;
+}
+
+/* ── Light theme CSS variables ───────────────────────────────────── */
+html.light {
+  --navy-900: 245 246 248;   /* #F5F6F8 — soft brand-tinted page bg */
+  --navy-800: 255 255 255;   /* #FFFFFF — sidebar, header, cards */
+  --navy-700: 249 250 251;   /* #F9FAFB — secondary bg */
+  --navy-600: 229 231 235;   /* #E5E7EB — brand light gray, dividers */
+  --navy-500: 209 213 219;   /* #D1D5DB — subtle bg */
+  --card:     255 255 255;   /* #FFFFFF */
+  --card-hover:249 250 251;  /* #F9FAFB */
+}
+
+body {
+  font-family: 'Sora', 'Inter', system-ui, sans-serif;
+  background-color: rgb(var(--navy-900));
+  color: #E5E7EB;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+html.light body {
+  color: #1F2937;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* ── Scrollbar ───────────────────────────────────────────────────── */
+::-webkit-scrollbar        { width: 6px; }
+::-webkit-scrollbar-track  { background: #0B1320; }
+::-webkit-scrollbar-thumb  { background: #374151; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #E53935; }
+
+html.light ::-webkit-scrollbar-track { background: #E5E7EB; }
+html.light ::-webkit-scrollbar-thumb { background: #9CA3AF; border-radius: 3px; }
+html.light ::-webkit-scrollbar-thumb:hover { background: #E53935; }
+
+/* ── Utility classes ─────────────────────────────────────────────── */
+.glow-blue  { box-shadow: 0 0 20px rgb(var(--accent-500) / 0.22); }
+.card-border{ border: 1px solid rgb(var(--accent-500) / 0.14); }
+
+html.light .card-border { border: 1px solid #E5E7EB !important; }
+html.light .glow-blue   { box-shadow: 0 2px 8px rgba(11,19,32,0.06), 0 0 0 1px rgba(11,19,32,0.04) !important; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   LIGHT MODE OVERRIDES
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Text ────────────────────────────────────────────────────────── */
+html.light .text-white         { color: #0B1320 !important; }
+html.light .text-slate-50      { color: #0B1320 !important; }
+html.light .text-slate-100     { color: #1F2937 !important; }
+html.light .text-slate-200     { color: #374151 !important; }
+html.light .text-slate-300     { color: #4B5563 !important; }
+html.light .text-slate-400     { color: #6B7280 !important; }
+html.light .text-slate-500     { color: #9CA3AF !important; }
+html.light .text-slate-600     { color: #D1D5DB !important; }
+html.light .text-white\/60     { color: rgba(11,19,32,0.60) !important; }
+html.light .text-white\/40     { color: rgba(11,19,32,0.40) !important; }
+html.light .hover\:text-white:hover { color: #0B1320 !important; }
+
+/* ── Backgrounds (white-alpha) ───────────────────────────────────── */
+html.light .bg-white\/3        { background-color: rgba(11,19,32,0.025) !important; }
+html.light .bg-white\/4        { background-color: rgba(11,19,32,0.03)  !important; }
+html.light .bg-white\/5        { background-color: rgba(11,19,32,0.04)  !important; }
+html.light .bg-white\/6        { background-color: rgba(11,19,32,0.05)  !important; }
+html.light .bg-white\/8        { background-color: rgba(11,19,32,0.06)  !important; }
+html.light .bg-white\/10       { background-color: rgba(11,19,32,0.08)  !important; }
+html.light .bg-white\/15       { background-color: rgba(11,19,32,0.10)  !important; }
+html.light .bg-white\/20       { background-color: rgba(11,19,32,0.14)  !important; }
+
+html.light .hover\:bg-white\/3:hover  { background-color: rgba(11,19,32,0.025) !important; }
+html.light .hover\:bg-white\/5:hover  { background-color: rgba(11,19,32,0.04)  !important; }
+html.light .hover\:bg-white\/6:hover  { background-color: rgba(11,19,32,0.05)  !important; }
+html.light .hover\:bg-white\/8:hover  { background-color: rgba(11,19,32,0.06)  !important; }
+html.light .hover\:bg-white\/10:hover { background-color: rgba(11,19,32,0.08)  !important; }
+
+/* ── Backgrounds (dark overlays — reduce opacity) ────────────────── */
+html.light .bg-black\/40       { background-color: rgba(11,19,32,0.20) !important; }
+html.light .bg-black\/50       { background-color: rgba(11,19,32,0.25) !important; }
+html.light .bg-black\/60       { background-color: rgba(11,19,32,0.30) !important; }
+
+/* ── Borders (white-alpha) ───────────────────────────────────────── */
+html.light .border-white\/5    { border-color: rgba(11,19,32,0.07) !important; }
+html.light .border-white\/6    { border-color: rgba(11,19,32,0.08) !important; }
+html.light .border-white\/8    { border-color: #E5E7EB !important; }
+html.light .border-white\/10   { border-color: #E5E7EB !important; }
+html.light .border-white\/15   { border-color: rgba(11,19,32,0.13) !important; }
+html.light .border-white\/20   { border-color: rgba(11,19,32,0.16) !important; }
+
+html.light .hover\:border-white\/15:hover { border-color: rgba(229,57,53,0.30) !important; }
+html.light .hover\:border-white\/20:hover { border-color: rgba(229,57,53,0.40) !important; }
+
+/* ── Sidebar active + hover ──────────────────────────────────────── */
+html.light nav .text-slate-400 { color: #4B5563 !important; }
