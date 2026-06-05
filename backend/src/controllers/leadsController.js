@@ -30,6 +30,7 @@ const createSchema = z.object({
   agentId:     z.string().optional(),
   tags:        z.array(z.string()).optional().default([]),
   notes:       z.string().optional(),
+  project:     z.string().optional(),
   preApproved: z.boolean().optional().default(false),
 });
 
@@ -41,8 +42,9 @@ const interactionSchema = z.object({
 });
 
 const LEAD_INCLUDE = {
-  agent: { select: { id: true, name: true, avatar: true } },
-  tags:  { select: { tag: true } },
+  agent:     { select: { id: true, name: true, avatar: true } },
+  tags:      { select: { tag: true } },
+  createdBy: { select: { id: true, email: true, agent: { select: { id: true, name: true } } } },
 };
 
 function mapLead(l) {
@@ -110,6 +112,7 @@ exports.create = catchAsync(async (req, res) => {
       agentId,
       score,
       scoreBreakdown: breakdown,
+      createdById: req.user?.id || null,
       tags: { create: tags.map(tag => ({ tag })) },
     },
     include: LEAD_INCLUDE,

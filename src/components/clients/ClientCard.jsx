@@ -37,7 +37,7 @@ export default function ClientCard({ client, onClick }) {
     investor: t('leads.form.type') === 'النوع' ? 'مستثمر' : 'Investor',
     mixed: t('leads.form.type') === 'النوع' ? 'متعدد' : 'Mixed',
   }
-  const typeStr = client.type.map(tp => typeLabels[tp] || tp).join(' / ')
+  const typeStr = (client.type || []).map(tp => typeLabels[tp] || tp).join(' / ')
   const engagementLabels = {
     'very high': t('ui.engagementVeryHigh'),
     high:        t('ui.engagementHigh'),

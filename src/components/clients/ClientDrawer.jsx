@@ -46,7 +46,7 @@ export default function ClientDrawer({ client, onClose }) {
             </div>
             <div className="flex items-center gap-2 mt-0.5">
               <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full border ${tier.color}`}>{tier.label}</span>
-              <span className="text-slate-400 text-xs">{client.type.join(' / ')} · {client.location}</span>
+              <span className="text-slate-400 text-xs">{(client.type || []).join(' / ')} · {client.location}</span>
             </div>
           </div>
           <button onClick={onClose} className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-all">
@@ -74,7 +74,7 @@ export default function ClientDrawer({ client, onClose }) {
               { label: t('clients.drawer.repeatPct'),    value: `${client.repeatLikelihood}%`,                                                         icon: TrendingUp },
               { label: t('clients.drawer.satisfaction'), value: client.npsScore ?? '—',                                                                 icon: Star },
               { label: t('clients.drawer.lastContact'),  value: client.daysSinceContact === 0 ? t('clients.drawer.today') : `${client.daysSinceContact}d`, icon: Clock },
-              { label: t('clients.drawer.agent'),        value: client.agent.split(' ')[0],                                                             icon: CheckCircle },
+              { label: t('clients.drawer.agent'),        value: (client.agentName || '—').split(' ')[0],                                              icon: CheckCircle },
             ].map(({ label, value, icon: Icon }) => (
               <div key={label} className="bg-white/4 border border-white/8 rounded-xl p-3 text-center">
                 <Icon size={12} className="text-blue-400 mx-auto mb-1" />
@@ -148,18 +148,20 @@ export default function ClientDrawer({ client, onClose }) {
             </div>
           )}
 
-          <div className="bg-emerald-500/8 border border-emerald-500/20 rounded-2xl p-4">
-            <p className="text-emerald-300 text-xs font-semibold uppercase tracking-wider mb-2">
-              <CheckCircle size={12} className="inline mr-1.5" />{t('clients.drawer.keyValueDrivers')}
-            </p>
-            <ul className="space-y-1.5">
-              {client.strengths.map((s, i) => (
-                <li key={i} className="text-slate-300 text-xs flex items-start gap-2">
-                  <span className="text-emerald-400 flex-shrink-0">·</span>{s}
-                </li>
-              ))}
-            </ul>
-          </div>
+          {(client.strengths || []).length > 0 && (
+            <div className="bg-emerald-500/8 border border-emerald-500/20 rounded-2xl p-4">
+              <p className="text-emerald-300 text-xs font-semibold uppercase tracking-wider mb-2">
+                <CheckCircle size={12} className="inline mr-1.5" />{t('clients.drawer.keyValueDrivers')}
+              </p>
+              <ul className="space-y-1.5">
+                {(client.strengths || []).map((s, i) => (
+                  <li key={i} className="text-slate-300 text-xs flex items-start gap-2">
+                    <span className="text-emerald-400 flex-shrink-0">·</span>{s}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           <div className="bg-blue-500/8 border border-blue-500/20 rounded-2xl p-4">
             <p className="text-blue-300 text-xs font-semibold uppercase tracking-wider mb-2">
@@ -192,11 +194,11 @@ export default function ClientDrawer({ client, onClose }) {
               </div>
               <div>
                 <p className="text-slate-500 text-[10px]">{t('clients.drawer.budgetRange')}</p>
-                <p className="text-white font-medium">{fmt(client.budgetRange[0])} – {fmt(client.budgetRange[1])}</p>
+                <p className="text-white font-medium">{fmt(client.budgetMin || 0)} – {fmt(client.budgetMax || 0)}</p>
               </div>
               <div>
                 <p className="text-slate-500 text-[10px]">{t('clients.drawer.agent')}</p>
-                <p className="text-white font-medium">{client.agent}</p>
+                <p className="text-white font-medium">{client.agentName || '—'}</p>
               </div>
             </div>
           </div>

@@ -101,15 +101,15 @@ export default function DashboardPage() {
         <p className="text-slate-400 text-sm mt-0.5">{t('dashboard.subtitle')}</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-4">
-        <div className="lg:col-span-2">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-4 items-stretch">
+        <div className="lg:col-span-2 flex flex-col">
           <PortfolioHero
             value={kpis.portfolioValue || 0}
             returnPct={parseFloat(returnPct)}
             returnAbs={returnAbs}
           />
         </div>
-        <div className="lg:col-span-3">
+        <div className="lg:col-span-3 flex flex-col">
           <PropertyCards properties={properties} />
         </div>
       </div>
@@ -122,7 +122,7 @@ export default function DashboardPage() {
         <MetricCard label={t('dashboard.revenueYTD')}    value={kpis.revenueYTD     || 0}            trend={8.5}  icon={DollarSign}  accent="rose"   to="/analytics" />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4 items-start">
         <div className="lg:col-span-2">
           <PerformanceChart data={chartData} />
         </div>

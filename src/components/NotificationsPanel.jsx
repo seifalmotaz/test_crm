@@ -100,10 +100,17 @@ export default function NotificationsPanel() {
       {/* ── Bell button ─────────────────────────────────────────────────────── */}
       <button
         onClick={() => setOpen(v => !v)}
-        className={`w-9 h-9 rounded-xl flex items-center justify-center relative transition-all ${
-          open ? 'border border-[#E53935]/40 text-[#E53935]' : btnBase
-        }`}
-        style={open ? { background: 'rgba(229,57,53,0.10)' } : {}}
+        className="relative flex items-center justify-center transition-all"
+        style={{
+          width: 36, height: 36, borderRadius: '50%',
+          background: open
+            ? 'rgba(229,57,53,0.12)'
+            : (isLight ? '#f3f4f6' : '#1d1d26'),
+          color: open
+            ? '#E53935'
+            : (isLight ? '#6b7280' : 'rgba(255,255,255,0.65)'),
+          border: 'none',
+        }}
       >
         <Bell size={16} />
         {unreadCount > 0 && (

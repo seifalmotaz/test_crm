@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { X, Phone, Mail, Star, AlertTriangle, CheckCircle, Clock, Eye, TrendingUp, User, Flame, Calendar, MessageCircle, Zap, Send, ArrowRightCircle, UserCheck, Pencil, Trash2 } from 'lucide-react'
+import { X, Phone, Mail, Star, AlertTriangle, CheckCircle, Clock, Eye, TrendingUp, User, Flame, Calendar, MessageCircle, Zap, Send, ArrowRightCircle, UserCheck, Pencil, Trash2, Building2, UserPlus, ExternalLink } from 'lucide-react'
 import api from '../../lib/api'
 import { useLang } from '../../context/LanguageContext'
 import { useAuth } from '../../context/AuthContext'
@@ -232,7 +232,7 @@ export default function LeadDrawer({ lead, onClose, onUpdate, agents = [] }) {
       type: lead.type, source: lead.source,
       budget: lead.budget || '', interest: lead.interest,
       location: lead.location, timeline: lead.timeline,
-      notes: lead.notes || '',
+      notes: lead.notes || '', project: lead.project || '',
     })
     setEditError('')
     setShowEdit(true)
@@ -523,6 +523,45 @@ export default function LeadDrawer({ lead, onClose, onUpdate, agents = [] }) {
                 <div className="bg-white/3 border border-white/6 rounded-xl p-3">
                   <p className="text-slate-400 text-[10px] uppercase tracking-wider mb-1">{t('leads.drawer.agentNotes')}</p>
                   <p className="text-slate-300 text-xs leading-relaxed">{lead.notes}</p>
+                </div>
+              )}
+
+              {!isAgent && (
+                <div className="bg-white/3 border border-white/6 rounded-xl p-3 space-y-2.5">
+                  <p className="text-slate-400 text-[10px] uppercase tracking-wider">Lead Info</p>
+                  <div className="flex items-center gap-2">
+                    <Building2 size={11} className="text-blue-400 flex-shrink-0" />
+                    <span className="text-slate-400 text-[10px] w-16 flex-shrink-0">Project</span>
+                    <span className={`text-xs font-medium ${lead.project ? 'text-slate-200' : 'text-slate-500'}`}>
+                      {lead.project || '—'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <UserPlus size={11} className="text-emerald-400 flex-shrink-0" />
+                    <span className="text-slate-400 text-[10px] w-16 flex-shrink-0">Added by</span>
+                    {lead.createdByName ? (
+                      lead.createdByAgentId ? (
+                        <button
+                          onClick={() => { navigate('/agents'); onClose() }}
+                          className="flex items-center gap-1 text-xs text-emerald-300 hover:text-emerald-200 transition-colors"
+                        >
+                          {lead.createdByName}
+                          <ExternalLink size={9} />
+                        </button>
+                      ) : (
+                        <span className="text-slate-200 text-xs">{lead.createdByName}</span>
+                      )
+                    ) : (
+                      <span className="text-slate-500 text-xs">—</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Calendar size={11} className="text-amber-400 flex-shrink-0" />
+                    <span className="text-slate-400 text-[10px] w-16 flex-shrink-0">Added on</span>
+                    <span className="text-slate-200 text-xs">
+                      {lead.createdAt ? new Date(lead.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+                    </span>
+                  </div>
                 </div>
               )}
 
@@ -847,6 +886,16 @@ export default function LeadDrawer({ lead, onClose, onUpdate, agents = [] }) {
                         </select>
                       </div>
                     ))}
+                    <div>
+                      <label className="text-slate-500 text-[10px] uppercase tracking-wider mb-1 block">Project</label>
+                      <input
+                        type="text"
+                        value={editForm.project ?? ''}
+                        onChange={e => setEditForm(p => ({ ...p, project: e.target.value }))}
+                        placeholder="e.g. Marina Heights…"
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500/50 transition-all"
+                      />
+                    </div>
                     <div>
                       <label className="text-slate-500 text-[10px] uppercase tracking-wider mb-1 block">{t('leads.drawer.notes')}</label>
                       <textarea

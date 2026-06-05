@@ -114,6 +114,7 @@ model User {
   approvedAdjustments  CommissionAdjustment[] @relation("AdjustmentApprover")
   chatParticipations   ConversationParticipant[]
   chatMessages         ChatMessage[]
+  createdLeads         Lead[]                 @relation("LeadCreator")
 
   @@index([email])
   @@map("users")
@@ -279,6 +280,9 @@ model Lead {
   suggestedProperties   String[]
   recommendedAgent      String?
   previousAgentIds      String[]
+  project               String?
+  createdById           String?
+  createdBy             User?     @relation("LeadCreator", fields: [createdById], references: [id])
   isDeleted             Boolean   @default(false)
   version               Int       @default(1)
   createdAt             DateTime  @default(now())
@@ -294,6 +298,7 @@ model Lead {
   @@index([score])
   @@index([source])
   @@index([isDeleted])
+  @@index([createdById])
   @@map("leads")
 }
 
@@ -359,6 +364,7 @@ model Deal {
 
   milestones        DealMilestone[]
   documents         DealDocument[]
+  actions           DealAction[]
   tasks             Task[]          @relation("DealTasks")
   commissionRecord  CommissionRecord?
 
@@ -391,6 +397,18 @@ model DealDocument {
   uploadedAt DateTime @default(now())
 
   @@map("deal_documents")
+}
+
+model DealAction {
+  id        String   @id @default(cuid())
+  dealId    String
+  deal      Deal     @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  type      String   // negotiation | inspection | appraisal | closing
+  comment   String?
+  createdAt DateTime @default(now())
+
+  @@index([dealId])
+  @@map("deal_actions")
 }
 
 // ─── Client ───────────────────────────────────────────────────────────────────

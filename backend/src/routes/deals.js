@@ -16,5 +16,7 @@ r.patch('/:id/probability',   c.updateProbability);
 r.get('/:id/commission',      c.getCommission);
 r.post('/:id/documents',      uploadLimiter, c.uploadDocument);
 r.get('/:id/documents',       c.listDocuments);
+r.get('/:id/actions',         c.listActions);
+r.post('/:id/actions',        c.addAction);
 
 module.exports = r;

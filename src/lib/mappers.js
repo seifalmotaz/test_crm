@@ -3,6 +3,7 @@ export function mapLead(lead) {
     ...lead,
     stage: lead.stage || 'freshLead',
     agent: lead.agent?.name || lead.agentId || '',
+    agentPageId: lead.agent?.id || null,
     readinessFactors: lead.readinessFactors || [],
     suggestedProperties: lead.suggestedProperties || [],
     opportunities: lead.opportunities || [],
@@ -10,6 +11,10 @@ export function mapLead(lead) {
     scoreBreakdown: lead.scoreBreakdown || {},
     tags: lead.tags || [],
     previousAgentIds: lead.previousAgentIds || [],
+    project: lead.project || '',
+    createdAt: lead.createdAt || null,
+    createdByName: lead.createdBy?.agent?.name || lead.createdBy?.email || '',
+    createdByAgentId: lead.createdBy?.agent?.id || null,
     history: (lead.interactions || []).map(i => ({
       type: i.type || 'action',
       action: i.action || '',

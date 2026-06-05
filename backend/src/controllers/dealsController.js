@@ -299,6 +299,57 @@ exports.listDocuments = catchAsync(async (req, res) => {
   success(res, docs);
 });
 
+const ACTION_TYPES  = ['negotiation', 'inspection', 'appraisal', 'closing']
+const STAGE_ORDER_A = ['offer', 'negotiation', 'inspection', 'appraisal', 'closing', 'closed']
+
+exports.listActions = catchAsync(async (req, res) => {
+  const deal = await prisma.deal.findFirst({
+    where: { id: req.params.id, isDeleted: false, ...agentFilter(req) },
+  });
+  if (!deal) throw AppError.notFound('Deal');
+
+  const actions = await prisma.dealAction.findMany({
+    where:   { dealId: req.params.id },
+    orderBy: { createdAt: 'desc' },
+  });
+  success(res, actions);
+});
+
+exports.addAction = catchAsync(async (req, res) => {
+  const { type, comment } = req.body;
+  if (!ACTION_TYPES.includes(type)) throw AppError.badRequest('Invalid action type');
+
+  const deal = await prisma.deal.findFirst({
+    where:   { id: req.params.id, isDeleted: false, ...agentFilter(req) },
+    include: DEAL_INCLUDE,
+  });
+  if (!deal) throw AppError.notFound('Deal');
+
+  const currIdx    = STAGE_ORDER_A.indexOf(deal.stage);
+  const targetIdx  = STAGE_ORDER_A.indexOf(type);
+  const shouldAdvance = targetIdx > currIdx && !['closed', 'lost'].includes(deal.stage);
+
+  const [action, updatedDeal] = await prisma.$transaction(async (tx) => {
+    const act = await tx.dealAction.create({
+      data: { dealId: req.params.id, type, comment: comment || null },
+    });
+
+    let updated = deal;
+    if (shouldAdvance) {
+      updated = await tx.deal.update({
+        where:   { id: req.params.id },
+        data:    { stage: type, closingProbability: dealService.STAGE_PROBABILITY[type] ?? deal.closingProbability, version: { increment: 1 } },
+        include: DEAL_INCLUDE,
+      });
+    }
+
+    return [act, updated];
+  });
+
+  cache.invalidatePattern('dashboard:');
+  created(res, { action, deal: updatedDeal, stageAdvanced: shouldAdvance });
+});
+
 exports.getClosingSoon = catchAsync(async (req, res) => {
   const in30Days = new Date();
   in30Days.setDate(in30Days.getDate() + 30);

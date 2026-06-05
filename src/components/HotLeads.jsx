@@ -3,8 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import { useLang } from '../context/LanguageContext'
 
 function ScoreBadge({ score }) {
-  const color = score >= 90 ? 'text-red-400 bg-red-500/15' : score >= 80 ? 'text-amber-400 bg-amber-500/15' : 'text-blue-400 bg-blue-500/15'
-  return <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${color}`}>{score}</span>
+  const style = score >= 90
+    ? { background: 'rgba(192,128,144,0.14)', color: '#C08090' }
+    : score >= 80
+    ? { background: 'rgba(201,150,58,0.12)', color: '#C9963A' }
+    : { background: 'rgba(107,158,199,0.12)', color: '#6B9EC7' }
+  return <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={style}>{score}</span>
 }
 
 export default function HotLeads({ leads }) {
@@ -55,7 +59,7 @@ export default function HotLeads({ leads }) {
               </div>
               <div className="text-right flex-shrink-0">
                 <p className="text-white text-xs font-semibold mb-0.5"><ScoreBadge score={lead.score} /></p>
-                <p className={`text-[10px] font-medium ${isPos ? 'text-emerald-400' : 'text-red-400'}`}>{lead.change}</p>
+                <p className="text-[10px] font-medium" style={{ color: isPos ? '#6FBFA0' : '#C08090' }}>{lead.change}</p>
               </div>
             </div>
           )

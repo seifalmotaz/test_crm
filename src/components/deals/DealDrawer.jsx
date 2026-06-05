@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { X, CheckCircle, Circle, Clock, AlertTriangle, TrendingUp, DollarSign, Star, Phone, Calendar, FileText } from 'lucide-react'
+import { X, CheckCircle, Circle, Clock, AlertTriangle, TrendingUp, DollarSign, Star, Phone, Calendar, FileText, ChevronDown, Send, Activity } from 'lucide-react'
 import FileUploader from '../shared/FileUploader'
 import api from '../../lib/api'
 import { useLang } from '../../context/LanguageContext'
@@ -22,10 +22,33 @@ function fmtBytes(b) {
   return `${(b / (1024 * 1024)).toFixed(1)} MB`
 }
 
-export default function DealDrawer({ deal, onClose }) {
+const ACTION_TYPES = [
+  { key: 'negotiation', label: 'Negotiation', color: 'bg-amber-500/15 text-amber-300 border-amber-500/30 hover:bg-amber-500/25' },
+  { key: 'inspection',  label: 'Inspection',  color: 'bg-blue-500/15 text-blue-300 border-blue-500/30 hover:bg-blue-500/25' },
+  { key: 'appraisal',   label: 'Appraisal',   color: 'bg-purple-500/15 text-purple-300 border-purple-500/30 hover:bg-purple-500/25' },
+  { key: 'closing',     label: 'Closing',     color: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/25' },
+]
+
+const ACTION_BADGE = {
+  negotiation: 'bg-amber-500/15 text-amber-300 border-amber-500/25',
+  inspection:  'bg-blue-500/15 text-blue-300 border-blue-500/25',
+  appraisal:   'bg-purple-500/15 text-purple-300 border-purple-500/25',
+  closing:     'bg-emerald-500/15 text-emerald-300 border-emerald-500/25',
+}
+
+function fmtDate(iso) {
+  return new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+}
+
+export default function DealDrawer({ deal, onClose, onDealUpdate }) {
   const { t } = useLang()
-  const [files,       setFiles]       = useState([])
-  const [filesLoading, setFilesLoading] = useState(false)
+  const [files,         setFiles]         = useState([])
+  const [filesLoading,  setFilesLoading]  = useState(false)
+  const [actions,       setActions]       = useState([])
+  const [actionsLoading, setActionsLoading] = useState(false)
+  const [actionType,    setActionType]    = useState('')
+  const [actionComment, setActionComment] = useState('')
+  const [submitting,    setSubmitting]    = useState(false)
 
   const milestoneStatus = {
     done:        { icon: CheckCircle, color: 'text-emerald-400', label: t('deals.drawer.milestoneComplete') },
@@ -44,14 +67,38 @@ export default function DealDrawer({ deal, onClose }) {
   ]
 
   useEffect(() => {
-    if (!deal?.id) { setFiles([]); return }
+    if (!deal?.id) { setFiles([]); setActions([]); return }
     setFilesLoading(true)
     setFiles([])
     api.get(`/api/files?entityType=deal&entityId=${deal.id}`)
       .then(res => setFiles(res.data || []))
       .catch(() => {})
       .finally(() => setFilesLoading(false))
+
+    setActionsLoading(true)
+    setActions([])
+    api.get(`/api/deals/${deal.id}/actions`)
+      .then(res => setActions(res.data || []))
+      .catch(() => {})
+      .finally(() => setActionsLoading(false))
   }, [deal?.id])
+
+  async function handleAddAction() {
+    if (!actionType) return
+    setSubmitting(true)
+    try {
+      const res = await api.post(`/api/deals/${deal.id}/actions`, {
+        type:    actionType,
+        comment: actionComment.trim() || undefined,
+      })
+      const { action, deal: updatedDeal, stageAdvanced } = res.data
+      setActions(prev => [action, ...prev])
+      setActionComment('')
+      setActionType('')
+      if (stageAdvanced && onDealUpdate) onDealUpdate(updatedDeal)
+    } catch {}
+    setSubmitting(false)
+  }
 
   if (!deal) return null
   const commission = (deal.value * deal.commissionRate) / 100
@@ -248,6 +295,71 @@ export default function DealDrawer({ deal, onClose }) {
           <div className="bg-white/3 border border-white/6 rounded-xl p-3 pb-4">
             <p className="text-slate-400 text-[10px] uppercase tracking-wider mb-1">{t('deals.drawer.notes')}</p>
             <p className="text-slate-300 text-xs leading-relaxed">{deal.notes}</p>
+          </div>
+
+          {/* ── Deal Actions ─────────────────────────────── */}
+          <div>
+            <p className="text-white font-semibold text-xs mb-3 flex items-center gap-2">
+              <Activity size={13} className="text-blue-400" /> Actions
+            </p>
+
+            {/* Log new action */}
+            <div className="bg-white/3 border border-white/8 rounded-2xl p-4 mb-3 space-y-3">
+              <p className="text-slate-400 text-[10px] uppercase tracking-wider">Log Action</p>
+              <div className="grid grid-cols-2 gap-1.5">
+                {ACTION_TYPES.map(({ key, label, color }) => (
+                  <button
+                    key={key}
+                    onClick={() => setActionType(prev => prev === key ? '' : key)}
+                    className={`px-3 py-1.5 rounded-xl text-[11px] font-medium border transition-all ${
+                      actionType === key
+                        ? color + ' ring-1 ring-current/40'
+                        : 'bg-white/4 border-white/10 text-slate-400 hover:text-white hover:bg-white/8'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <textarea
+                value={actionComment}
+                onChange={e => setActionComment(e.target.value)}
+                placeholder="Add a comment (optional)..."
+                rows={3}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-slate-300 placeholder-slate-600 resize-none focus:outline-none focus:border-blue-500/50 transition-all"
+              />
+              <button
+                onClick={handleAddAction}
+                disabled={!actionType || submitting}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 rounded-xl text-xs font-medium text-white hover:bg-blue-600 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <Send size={11} />
+                {submitting ? 'Saving...' : 'Log Action'}
+              </button>
+            </div>
+
+            {/* Actions list */}
+            {actionsLoading ? (
+              <div className="flex justify-center py-3">
+                <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : actions.length === 0 ? (
+              <p className="text-slate-600 text-xs text-center py-2">No actions logged yet</p>
+            ) : (
+              <div className="space-y-2">
+                {actions.map(a => (
+                  <div key={a.id} className="flex gap-3 p-3 bg-white/3 border border-white/6 rounded-xl">
+                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border flex-shrink-0 self-start mt-0.5 ${ACTION_BADGE[a.type] || 'bg-slate-500/15 text-slate-300 border-slate-500/25'}`}>
+                      {a.type.charAt(0).toUpperCase() + a.type.slice(1)}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      {a.comment && <p className="text-slate-300 text-xs leading-relaxed">{a.comment}</p>}
+                      <p className="text-slate-600 text-[9px] mt-1">{fmtDate(a.createdAt)}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div>

@@ -224,7 +224,15 @@ export default function DealsPage() {
         </div>
       </div>
 
-      <DealDrawer deal={selected} onClose={() => setSelected(null)} />
+      <DealDrawer
+        deal={selected}
+        onClose={() => setSelected(null)}
+        onDealUpdate={updated => {
+          const mapped = mapDeal(updated)
+          setDeals(prev => prev.map(d => d.id === mapped.id ? mapped : d))
+          setSelected(mapped)
+        }}
+      />
     </div>
   )
 }

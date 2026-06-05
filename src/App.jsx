@@ -1,5 +1,6 @@
 import { Component, useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import './App.css'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { LanguageProvider } from './context/LanguageContext'
@@ -48,18 +49,55 @@ import TasksPage from './pages/TasksPage'
 import AnalyticsPage from './pages/AnalyticsPage'
 import SecurityPanel from './components/SecurityPanel'
 import HelpPage from './pages/HelpPage'
+import PropertyDashboard from './pages/PropertyDashboard'
 
 function Layout({ children }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [sidebarOpen,    setSidebarOpen]    = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+
   return (
-    <div className="flex h-screen bg-navy-900 overflow-hidden">
+    <div className="relative flex h-screen bg-navy-900 overflow-hidden">
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/60 md:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
+      {/* Sidebar wrapper — clips to 0 on desktop when collapsed */}
+      <div
+        className="overflow-hidden flex-shrink-0 transition-all duration-300 ease-in-out"
+        style={{ maxWidth: sidebarCollapsed ? 0 : 240 }}
+      >
+        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      </div>
+
+      {/* Collapse toggle — thin strip at the sidebar edge, desktop only */}
+      <button
+        onClick={() => setSidebarCollapsed(v => !v)}
+        className="hidden md:flex items-center justify-center"
+        style={{
+          position:   'absolute',
+          left:       sidebarCollapsed ? 0 : 232,
+          top:        '50%',
+          transform:  'translateY(-50%)',
+          transition: 'left 0.3s ease-in-out',
+          zIndex:     60,
+          width:      14,
+          height:     44,
+          background: 'rgb(var(--navy-800))',
+          border:     '1px solid rgba(255,255,255,0.08)',
+          borderLeft: sidebarCollapsed ? '1px solid rgba(255,255,255,0.08)' : 'none',
+          borderRadius: '0 5px 5px 0',
+          color:      'rgba(255,255,255,0.28)',
+          cursor:     'pointer',
+        }}
+        onMouseEnter={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.65)' }}
+        onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.28)' }}
+      >
+        {sidebarCollapsed ? <ChevronRight size={9} /> : <ChevronLeft size={9} />}
+      </button>
+
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
         <Header onMenuClick={() => setSidebarOpen(v => !v)} />
         <main className="flex-1 overflow-y-auto">{children}</main>
@@ -82,6 +120,19 @@ function ProtectedRoute({ children }) {
   return <Layout>{children}</Layout>
 }
 
+function BareProtectedRoute({ children }) {
+  const { user, loading } = useAuth()
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center" style={{ background: '#09090f' }}>
+        <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
+  if (!user) return <Navigate to="/login" replace />
+  return children
+}
+
 function AppRoutes() {
   const { user } = useAuth()
   return (
@@ -98,6 +149,7 @@ function AppRoutes() {
       <Route path="/analytics"   element={<ProtectedRoute><AnalyticsPage /></ProtectedRoute>} />
       <Route path="/security"    element={<ProtectedRoute><SecurityPanel /></ProtectedRoute>} />
       <Route path="/help"        element={<ProtectedRoute><HelpPage /></ProtectedRoute>} />
+      <Route path="/preview"      element={<BareProtectedRoute><PropertyDashboard /></BareProtectedRoute>} />
       <Route path="*"            element={<Navigate to="/dashboard" replace />} />
     </Routes>
   )

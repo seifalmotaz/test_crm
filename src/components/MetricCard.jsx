@@ -44,11 +44,11 @@ export default function MetricCard({ label, value, prefix = '$', suffix = '', tr
         {trend !== undefined ? (
           <div className="flex items-center gap-1.5">
             {isPositive ? (
-              <TrendingUp size={13} className="text-emerald-400" />
+              <TrendingUp size={13} style={{ color: '#6FBFA0' }} />
             ) : (
-              <TrendingDown size={13} className="text-red-400" />
+              <TrendingDown size={13} style={{ color: '#C08090' }} />
             )}
-            <span className={`text-xs font-medium ${isPositive ? 'text-emerald-400' : 'text-red-400'}`}>
+            <span className="text-xs font-medium" style={{ color: isPositive ? '#6FBFA0' : '#C08090' }}>
               {isPositive ? '+' : ''}{trend}%
             </span>
             <span className="text-slate-500 text-xs">{trendLabel ?? t('common.vsLastMonth')}</span>

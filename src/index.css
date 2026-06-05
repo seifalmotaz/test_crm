@@ -17,13 +17,13 @@
 /* ── Dark theme CSS variables (default) ──────────────────────────── */
 :root {
   /* RGB channel values — used as rgb(var(--navy-800) / 0.95) */
-  --navy-900:  11  19  32;   /* #0B1320 — page background */
-  --navy-800:  20  29  45;   /* slightly lighter than 900 — sidebar/header */
+  --navy-900:  14  14  19;   /* #0e0e13 — page background = header black */
+  --navy-800:  14  14  19;   /* #0e0e13 — sidebar matches too */
   --navy-700:  31  41  55;   /* #1F2937 — secondary surfaces */
   --navy-600:  55  65  81;   /* #374151 — dividers */
   --navy-500:  75  85  99;   /* subtle bg */
-  --card:      20  29  45;   /* cards */
-  --card-hover:31  41  55;   /* #1F2937 */
+  --card:      18  26  48;   /* #12183 — glass base (overridden by .card-border) */
+  --card-hover:26  36  62;   /* card hover */
 
   /* Accent — Brand Red (#E53935) is the default */
   --accent-300: 252 165 165;  /* red-300 — lightened brand red */
@@ -109,10 +109,43 @@ html.light ::-webkit-scrollbar-thumb { background: #9CA3AF; border-radius: 3px; 
 html.light ::-webkit-scrollbar-thumb:hover { background: #E53935; }
 
 /* ── Utility classes ─────────────────────────────────────────────── */
-.glow-blue  { box-shadow: 0 0 20px rgb(var(--accent-500) / 0.22); }
-.card-border{ border: 1px solid rgb(var(--accent-500) / 0.14); }
+/* Dark: glass card — outer glow + inner top highlight */
+.glow-blue  {
+  box-shadow:
+    0 12px 40px rgba(0,0,0,0.55),
+    0 2px 10px rgba(0,0,0,0.30),
+    inset 0 1px 0 rgba(255,255,255,0.12),
+    inset 0 -1px 0 rgba(0,0,0,0.20);
+}
+/* Dark: glass card — frosted, semi-transparent, subtle gradient shine */
+.card-border {
+  border: 1px solid rgba(255,255,255,0.13) !important;
+  border-bottom-color: rgba(255,255,255,0.05) !important;
+  background: linear-gradient(
+    155deg,
+    rgba(255,255,255,0.06) 0%,
+    rgba(18,26,48,0.38) 40%,
+    rgba(14,14,19,0.42) 100%
+  ) !important;
+  backdrop-filter: blur(22px) saturate(160%);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+}
 
-html.light .card-border { border: 1px solid #E5E7EB !important; }
+/* Page background — richer gradient so glass has color to blur through */
+html:not(.light) body {
+  background-image:
+    radial-gradient(ellipse at 10% 15%, rgba(59,130,246,0.13) 0%, transparent 50%),
+    radial-gradient(ellipse at 88% 80%, rgba(139,92,246,0.10) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(229,57,53,0.04) 0%, transparent 60%);
+  background-attachment: fixed;
+}
+
+html.light .card-border {
+  border: 1px solid #E5E7EB !important;
+  background: #ffffff !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
 html.light .glow-blue   { box-shadow: 0 2px 8px rgba(11,19,32,0.06), 0 0 0 1px rgba(11,19,32,0.04) !important; }
 
 /* ═══════════════════════════════════════════════════════════════════

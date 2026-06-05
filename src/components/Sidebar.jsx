@@ -45,13 +45,13 @@ export default function Sidebar({ isOpen, onClose }) {
   /* ── Light vs dark sidebar tokens ── */
   const sidebarBg     = isLight
     ? 'linear-gradient(180deg, #ffffff 0%, #f9fafb 100%)'
-    : 'linear-gradient(180deg, #101828 0%, #0B1320 100%)'
-  const sidebarBorder = isLight ? '1px solid #e5e7eb' : '1px solid rgba(229,57,53,0.08)'
+    : '#0e0e13'
+  const sidebarBorder = isLight ? '1px solid #e5e7eb' : '1px solid rgba(255,255,255,0.06)'
   const navTextBase   = isLight ? '#4b5563' : ''   // light: explicit gray; dark: via tailwind
   const navTextActive = '#ffffff'
   const navActiveBg   = isLight
     ? 'linear-gradient(135deg, rgba(229,57,53,0.12) 0%, rgba(229,57,53,0.06) 100%)'
-    : 'linear-gradient(135deg, rgba(229,57,53,0.25) 0%, rgba(229,57,53,0.10) 100%)'
+    : 'rgba(255,255,255,0.05)'
   const sectionLabel  = isLight ? '#9ca3af' : ''
   const footerText    = isLight ? '#9ca3af' : ''
 

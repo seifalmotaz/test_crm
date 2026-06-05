@@ -31,7 +31,7 @@ function AddLeadModal({ agents, onClose, onSaved }) {
   const [form, setForm] = useState({
     name: '', email: '', phone: '', type: 'Individual', source: 'Website',
     budget: '', interest: 'Apartment', location: '', timeline: 30,
-    stage: 'freshLead', agentId: agents[0]?.id || '', notes: '',
+    stage: 'freshLead', agentId: agents[0]?.id || '', notes: '', project: '',
   })
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
@@ -145,6 +145,12 @@ function AddLeadModal({ agents, onClose, onSaved }) {
               </div>
             )}
             <div className="col-span-2">
+              <label className="text-slate-400 text-xs mb-1 block">Project</label>
+              <input value={form.project} onChange={e => set('project', e.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-blue-500/50"
+                placeholder="e.g. Marina Heights, Blue Nile Compound…" />
+            </div>
+            <div className="col-span-2">
               <label className="text-slate-400 text-xs mb-1 block">Notes</label>
               <textarea value={form.notes} onChange={e => set('notes', e.target.value)} rows={3}
                 className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-blue-500/50 resize-none"
@@ -174,6 +180,8 @@ function AddLeadModal({ agents, onClose, onSaved }) {
 
 export default function LeadsPage() {
   const { t } = useLang()
+  const { user } = useAuth()
+  const isAgent = user?.role === 'agent'
   const [leads,      setLeads]      = useState([])
   const [agents,     setAgents]     = useState([])
   const [loading,    setLoading]    = useState(true)
