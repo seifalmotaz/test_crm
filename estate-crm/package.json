@@ -1,0 +1,39 @@
+{
+  "name": "estate-crm",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bun --watch src/main.ts",
+    "build": "bun build src/main.ts --outdir dist --target node",
+    "start:prod": "bun dist/main.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "bun src/db/migrate.ts",
+    "db:seed": "bun src/db/seed.ts",
+    "db:studio": "drizzle-kit studio",
+    "db:reset": "bun src/db/migrate.ts --reset && bun src/db/seed.ts"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.1.24",
+    "@nestjs/core": "^11.1.24",
+    "@nestjs/platform-express": "^11.1.24",
+    "@nestjs/swagger": "^11.4.4",
+    "drizzle-orm": "^0.45.2",
+    "postgres": "^3.4.9",
+    "zod": "^4.4.3",
+    "argon2": "^0.44.0",
+    "jose": "^6.2.3",
+    "ioredis": "^5.11.1",
+    "uuidv7": "^1.2.1"
+  },
+  "devDependencies": {
+    "@nestjs/testing": "^11.1.24",
+    "@types/bun": "latest",
+    "@types/node": "^25.9.2",
+    "drizzle-kit": "^0.31.10",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.8"
+  }
+}
