@@ -99,9 +99,8 @@ services:
       # --- Redis ---
       - REDIS_URL=redis://redis:6379
 
-      # --- JWT keys (base64-encoded single-line PEM) ---
-      - JWT_PRIVATE_KEY_B64=${JWT_PRIVATE_KEY_B64}
-      - JWT_PUBLIC_KEY_B64=${JWT_PUBLIC_KEY_B64}
+      # --- JWT secret (simple single-line string, used with HS256) ---
+      - JWT_SECRET=${JWT_SECRET}
 
       # --- S3 / MinIO ---
       - S3_BUCKET=${S3_BUCKET:-estate-crm}

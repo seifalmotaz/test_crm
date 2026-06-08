@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { SignJWT, importPKCS8 } from 'jose';
-import { config } from '@/config/app.config';
+import { SignJWT } from 'jose';
+import { jwtConfig } from '@/config/jwt.config';
 import { redis } from '@/db/redis';
 import { db } from '@/db/connection';
 import { users, organizations } from '@/db/schema';
@@ -14,19 +14,12 @@ import type { AuthenticatedUser } from '@/common/types/auth.types';
 export class AuthService {
   private readonly ACCESS_TOKEN_EXPIRY = '15m';
   private readonly REFRESH_TOKEN_EXPIRY = 7 * 24 * 60 * 60; // 7 days in seconds
-  private cachedPrivateKey: CryptoKey | null = null;
+  private cachedSecret: Uint8Array | null = null;
 
-  private async getPrivateKey(): Promise<CryptoKey> {
-    if (this.cachedPrivateKey) return this.cachedPrivateKey;
-    // Handle both actual newlines and escaped \n in .env
-    const pem = config.JWT_PRIVATE_KEY
-      .replace(/\\n/g, '\n')
-      .replace(/-----BEGIN PRIVATE KEY-----/, '')
-      .replace(/-----END PRIVATE KEY-----/, '')
-      .replace(/\s/g, '');
-    const formatted = `-----BEGIN PRIVATE KEY-----\n${pem}\n-----END PRIVATE KEY-----`;
-    this.cachedPrivateKey = await importPKCS8(formatted, 'RS256');
-    return this.cachedPrivateKey;
+  private getSecret(): Uint8Array {
+    if (this.cachedSecret) return this.cachedSecret;
+    this.cachedSecret = new TextEncoder().encode(jwtConfig.secret);
+    return this.cachedSecret;
   }
 
   /**
@@ -210,17 +203,17 @@ export class AuthService {
     tenantId: string;
     role: string;
   }): Promise<string> {
-    const privateKey = await this.getPrivateKey();
+    const secret = this.getSecret();
     return new SignJWT({
       sub: user.id,
       tenantId: user.tenantId,
       role: user.role,
     })
-      .setProtectedHeader({ alg: 'RS256' })
+      .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()
       .setExpirationTime(this.ACCESS_TOKEN_EXPIRY)
       .setSubject(user.id)
-      .sign(privateKey);
+      .sign(secret);
   }
 
   private async createRefreshToken(

@@ -3,8 +3,8 @@ import {
   CanActivate,
   ExecutionContext,
 } from '@nestjs/common';
-import { jwtVerify, decodeJwt, importSPKI } from 'jose';
-import { config } from '@/config/app.config';
+import { jwtVerify, decodeJwt } from 'jose';
+import { jwtConfig } from '@/config/jwt.config';
 import { redis } from '@/db/redis';
 import { db } from '@/db/connection';
 import { users } from '@/db/schema';
@@ -15,18 +15,8 @@ import { PUBLIC_KEY } from '@/common/decorators/decorator-keys';
 import { Reflector } from '@nestjs/core';
 import type { AuthenticatedUser } from '@/common/types/auth.types';
 
-let cachedPublicKey: CryptoKey | null = null;
-
-async function getPublicKey(): Promise<CryptoKey> {
-  if (cachedPublicKey) return cachedPublicKey;
-  const pem = config.JWT_PUBLIC_KEY
-    .replace(/\\n/g, '\n')
-    .replace(/-----BEGIN PUBLIC KEY-----/, '')
-    .replace(/-----END PUBLIC KEY-----/, '')
-    .replace(/\s/g, '');
-  const formatted = `-----BEGIN PUBLIC KEY-----\n${pem}\n-----END PUBLIC KEY-----`;
-  cachedPublicKey = await importSPKI(formatted, 'RS256');
-  return cachedPublicKey;
+function getSecret() {
+  return new TextEncoder().encode(jwtConfig.secret);
 }
 
 /**
@@ -55,9 +45,9 @@ export class JwtAuthGuard implements CanActivate {
     }
 
     try {
-      const publicKey = await getPublicKey();
-      const { payload } = await jwtVerify(token, publicKey, {
-        algorithms: ['RS256'],
+      const secretKey = getSecret();
+      const { payload } = await jwtVerify(token, secretKey, {
+        algorithms: ['HS256'],
         clockTolerance: 0,
       });
 
