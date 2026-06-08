@@ -1,0 +1,33 @@
+export default function PinLogo({ size = 40, className = '' }: { size?: number; className?: string }) {
+  const g1 = `plo-${size}`
+  const g2 = `pli-${size}`
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 64 64"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
+      <defs>
+        <linearGradient id={g1} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#FF4542" />
+          <stop offset="100%" stopColor="#BA1A1A" />
+        </linearGradient>
+        <linearGradient id={g2} x1="0.2" y1="0" x2="0.8" y2="1">
+          <stop offset="0%" stopColor="#182030" />
+          <stop offset="100%" stopColor="#0B1320" />
+        </linearGradient>
+      </defs>
+      <path d="M32 3 L56 16 L56 50 L32 62 L8 50 L8 16 Z" fill={`url(#${g1})`} />
+      <path d="M32 10 L50 20 L50 47 L40 58 L24 58 L14 47 L14 20 Z" fill={`url(#${g2})`} />
+      <rect x="18" y="25" width="10" height="25" fill="#E53935" />
+      <rect x="28" y="25" width="19" height="5" fill="#E53935" />
+      <rect x="42" y="25" width="5" height="20" fill="#E53935" />
+      <rect x="28" y="40" width="19" height="5" fill="#E53935" />
+      <rect x="28" y="30" width="14" height="10" fill="#0B1320" />
+      <polygon points="18,50 23,56 28,50" fill="#E53935" />
+    </svg>
+  )
+}

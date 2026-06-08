@@ -50,7 +50,7 @@ export class AuthController {
     response.cookie('access_token', result.accessToken, {
       httpOnly: true,
       secure: config.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'none',
       maxAge: 15 * 60 * 1000,
       path: '/',
       domain: config.COOKIE_DOMAIN,
@@ -59,7 +59,7 @@ export class AuthController {
     response.cookie('refresh_token', result.refreshToken, {
       httpOnly: true,
       secure: config.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'none',
       maxAge: 7 * 24 * 60 * 60 * 1000,
       path: '/',
       domain: config.COOKIE_DOMAIN,
@@ -89,7 +89,7 @@ export class AuthController {
     response.cookie('access_token', result.accessToken, {
       httpOnly: true,
       secure: config.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'none',
       maxAge: 15 * 60 * 1000,
       path: '/',
       domain: config.COOKIE_DOMAIN,
@@ -98,7 +98,7 @@ export class AuthController {
     response.cookie('refresh_token', result.refreshToken, {
       httpOnly: true,
       secure: config.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'none',
       maxAge: 7 * 24 * 60 * 60 * 1000,
       path: '/',
       domain: config.COOKIE_DOMAIN,
