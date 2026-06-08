@@ -5,7 +5,9 @@ export type { AuthResponseDto, ProblemDetailsDto };
 
 export { client };
 
+const baseUrl = import.meta.env.VITE_API_URL || window.location.origin;
+
 client.setConfig({
-  baseUrl: "https://estate-crm.localhost:1355",
+  baseUrl,
   credentials: "include",
 });

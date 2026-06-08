@@ -9,6 +9,7 @@ const envSchema = z.object({
   JWT_PRIVATE_KEY: z.string(),
   JWT_PUBLIC_KEY: z.string(),
   COOKIE_DOMAIN: z.string().default('localhost'),
+  CORS_ORIGIN: z.string().default('https://crm-web.localhost:1355'),
   S3_BUCKET: z.string(),
   S3_REGION: z.string(),
   S3_ACCESS_KEY: z.string(),

@@ -14,7 +14,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.enableCors({
-    origin: ['https://crm-web.localhost:1355'],
+    origin: config.CORS_ORIGIN.split(','),
     credentials: true,
   });
 
