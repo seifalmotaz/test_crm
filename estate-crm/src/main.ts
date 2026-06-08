@@ -59,6 +59,10 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('api/docs', app, document);
 
+  // Write Swagger JSON spec to project root using Bun's native API
+  await Bun.write('swagger.json', JSON.stringify(document, null, 2));
+  console.log('Swagger spec saved to: swagger.json');
+
   const port = config.PORT;
   await app.listen(port);
   console.log(`Server running on http://localhost:${port}`);
