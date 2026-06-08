@@ -1,15 +1,17 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { execSync } from 'child_process';
+import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import type * as schema from '../src/db/schema';
+import type Redis from 'ioredis';
 
 // Set test database URL before any imports
 process.env.DATABASE_URL = process.env.DATABASE_URL_TEST ||
   'postgresql://estate_crm:estate_crm@localhost:5433/estate_crm_test';
 
 describe('Database', () => {
-  let db;
+  let db: PostgresJsDatabase<typeof schema>;
 
   beforeAll(async () => {
-    // Dynamically import after setting env
     const { db: dbInstance } = await import('../src/db/connection');
     db = dbInstance;
   });
@@ -28,7 +30,7 @@ describe('Database', () => {
 });
 
 describe('Redis', () => {
-  let redis;
+  let redis: Redis;
 
   beforeAll(async () => {
     const { redis: redisInstance } = await import('../src/db/redis');

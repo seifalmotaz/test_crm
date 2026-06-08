@@ -1,0 +1,64 @@
+### Estate CRM Auth API — Manual HTTP Tests
+### Run with: VS Code REST Client, JetBrains HTTP Client, or httpie
+### Prerequisites: server running on localhost:3000, database seeded
+
+@baseUrl = http://localhost:3000/api
+
+### 1. Login as admin
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@test.com",
+  "password": "admin123!"
+}
+
+### 2. Get current user (copy access_token cookie from login response)
+GET {{baseUrl}}/auth/me
+Cookie: access_token=PASTE_TOKEN_HERE
+
+### 3. Login as agent
+# @name agentLogin
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "agent1@test.com",
+  "password": "agent123!"
+}
+
+### 4. Login with wrong password (should 401)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@test.com",
+  "password": "wrongpassword!"
+}
+
+### 5. Login with missing fields (should 400)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+}
+
+### 6. Login with short password (should 400)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@test.com",
+  "password": "short"
+}
+
+### 7. Get /me without cookie (should 401)
+GET {{baseUrl}}/auth/me
+
+### 8. Logout (copy cookie from login)
+POST {{baseUrl}}/auth/logout
+Cookie: access_token=PASTE_TOKEN_HERE
+
+### 9. Swagger docs
+GET http://localhost:3000/api/docs
