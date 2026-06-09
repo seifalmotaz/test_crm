@@ -1,6 +1,6 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
-import { superAdmins, organizations, users, commissionPlans, projects, properties } from './schema';
+import { superAdmins, organizations, users, commissionPlans, projects, properties, leads, leadTags, activities } from './schema';
 import { eq, and } from 'drizzle-orm';
 import * as argon2 from 'argon2';
 
@@ -395,9 +395,94 @@ async function main() {
     }
   }
 
+  // ── Seed Leads ──
+  const leadNames = [
+    'Ahmed Hassan', 'Fatima Ali', 'Mohamed Saeed', 'Layla Ibrahim',
+    'Omar Khaled', 'Nour El-Din', 'Yasmin Adel', 'Karim Farouk',
+    'Hala Mostafa', 'Tamer Nabil', 'Rana Saleh', 'Hisham Gamal',
+  ];
+  const sources = ['website', 'referral', 'social_media', 'walk_in', 'portal', 'cold_call'];
+  const leadTypes = ['buyer', 'seller', 'investor', 'renter'];
+  const leadStages = ['fresh', 'qualified', 'followUp', 'reservation', 'lost'];
+
+  for (let i = 0; i < leadNames.length; i++) {
+    const stage = leadStages[i % leadStages.length];
+    const agentIdx = i % createdAgentIds.length;
+    const email = `lead${i}@example.com`;
+
+    const existing = await db
+      .select()
+      .from(leads)
+      .where(eq(leads.tenantId, org.id))
+      .then((rows) => rows.find((l) => l.email === email));
+
+    if (!existing) {
+      const [created] = await db.insert(leads).values({
+        tenantId: org.id,
+        name: leadNames[i],
+        email,
+        phone: `+20100${String(1000000 + i).padStart(7, '0')}`,
+        source: sources[i % sources.length],
+        type: leadTypes[i % leadTypes.length],
+        budgetMin: 10000000 + i * 1000000,
+        budgetMax: 30000000 + i * 2000000,
+        timeline: [1, 3, 6, 12][i % 4],
+        preferredLocation: ['New Cairo', '6th October', 'North Coast', 'Heliopolis'][i % 4],
+        preferredType: leadTypes[i % leadTypes.length],
+        stage: stage,
+        score: 50 + (i * 7) % 50,
+        agentId: createdAgentIds[agentIdx] ?? null,
+        notes: `Lead ${i + 1} - interested in ${leadTypes[i % leadTypes.length]} opportunities`,
+        nextAction: ['Call back', 'Send listings', 'Schedule viewing'][i % 3],
+        nextActionDate: new Date(Date.now() + (i + 1) * 86400000),
+        isConverted: i === 11,
+        isDnc: i === 10,
+      }).returning();
+      console.log(`Created lead: ${created.name} (stage: ${created.stage})`);
+
+      // Add a tag
+      if (i % 3 === 0) {
+        await db.insert(leadTags).values({
+          leadId: created.id,
+          tag: 'Hot',
+          color: '#EF4444',
+        });
+      } else if (i % 3 === 1) {
+        await db.insert(leadTags).values({
+          leadId: created.id,
+          tag: 'Investor',
+          color: '#10B981',
+        });
+      }
+
+      // Add 1-2 activities
+      await db.insert(activities).values({
+        tenantId: org.id,
+        entityType: 'lead',
+        entityId: created.id,
+        type: 'call',
+        content: `Initial call with ${created.name}. Discussed requirements.`,
+        agentId: createdAgentIds[agentIdx],
+      });
+      if (i % 2 === 0) {
+        await db.insert(activities).values({
+          tenantId: org.id,
+          entityType: 'lead',
+          entityId: created.id,
+          type: 'note',
+          content: 'Sent property listings matching budget.',
+          agentId: createdAgentIds[agentIdx],
+        });
+      }
+    } else {
+      console.log(`Lead already exists: ${existing.name}`);
+    }
+  }
+
   console.log('Seed complete!');
   await client.end();
 }
+
 
 main().catch((err) => {
   console.error('Seed failed:', err);

@@ -1747,6 +1747,783 @@
           "Projects"
         ]
       }
+    },
+    "/api/leads": {
+      "post": {
+        "operationId": "LeadsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateLeadDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Lead created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error or invalid stage"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Agent not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Create a lead",
+        "tags": [
+          "Leads"
+        ]
+      },
+      "get": {
+        "operationId": "LeadsController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Page number",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Items per page",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Field to sort by",
+            "schema": {
+              "default": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Sort order",
+            "schema": {
+              "default": "desc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search by name, email, or phone",
+            "schema": {
+              "example": "Ahmed",
+              "type": "string"
+            }
+          },
+          {
+            "name": "stage",
+            "required": false,
+            "in": "query",
+            "description": "Filter by lead stage",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "fresh",
+                "qualified",
+                "followUp",
+                "reservation",
+                "lost"
+              ]
+            }
+          },
+          {
+            "name": "source",
+            "required": false,
+            "in": "query",
+            "description": "Filter by lead source",
+            "schema": {
+              "example": "website",
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "description": "Filter by lead type",
+            "schema": {
+              "example": "buyer",
+              "type": "string"
+            }
+          },
+          {
+            "name": "agentId",
+            "required": false,
+            "in": "query",
+            "description": "Filter by assigned agent ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "isDnc",
+            "required": false,
+            "in": "query",
+            "description": "Filter by DNC status (true|false)",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "isConverted",
+            "required": false,
+            "in": "query",
+            "description": "Filter by converted status (true|false)",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated lead list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedLeadResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "List leads with filters and pagination",
+        "tags": [
+          "Leads"
+        ]
+      }
+    },
+    "/api/leads/{id}": {
+      "get": {
+        "operationId": "LeadsController_findById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lead details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Lead not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Get lead by ID",
+        "tags": [
+          "Leads"
+        ]
+      },
+      "patch": {
+        "operationId": "LeadsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateLeadDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated lead",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden (e.g., agent setting score)"
+          },
+          "404": {
+            "description": "Lead or agent not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Update a lead",
+        "tags": [
+          "Leads"
+        ]
+      },
+      "delete": {
+        "operationId": "LeadsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lead deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Lead not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Soft delete a lead",
+        "tags": [
+          "Leads"
+        ]
+      }
+    },
+    "/api/leads/{id}/stage": {
+      "post": {
+        "operationId": "LeadsController_changeStage",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeLeadStageDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Stage updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid transition"
+          },
+          "404": {
+            "description": "Lead not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Change lead stage (FSM transition)",
+        "tags": [
+          "Leads"
+        ]
+      }
+    },
+    "/api/leads/{id}/convert": {
+      "post": {
+        "operationId": "LeadsController_convert",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConvertLeadDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Lead converted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Already converted or not assigned"
+          },
+          "404": {
+            "description": "Lead not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Convert lead to client (sets isConverted=true, no new record created)",
+        "tags": [
+          "Leads"
+        ]
+      }
+    },
+    "/api/leads/{id}/dnc": {
+      "post": {
+        "operationId": "LeadsController_setDnc",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetDncDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "DNC updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden (agent)"
+          },
+          "404": {
+            "description": "Lead not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Set or clear Do-Not-Contact flag",
+        "tags": [
+          "Leads"
+        ]
+      }
+    },
+    "/api/leads/{id}/activities": {
+      "post": {
+        "operationId": "LeadsController_addActivity",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddActivityDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Activity recorded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadActivityResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "403": {
+            "description": "Forbidden (DNC active)"
+          },
+          "404": {
+            "description": "Lead not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Add an activity to a lead (rejected if DNC is active)",
+        "tags": [
+          "Leads"
+        ]
+      },
+      "get": {
+        "operationId": "LeadsController_findActivities",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Page number",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Items per page",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Field to sort by",
+            "schema": {
+              "default": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Sort order",
+            "schema": {
+              "default": "desc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search in activity content",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "description": "Filter by activity type",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "call",
+                "email",
+                "meeting",
+                "note",
+                "stage_change",
+                "assignment",
+                "dnc_set",
+                "dnc_unset",
+                "convert"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated activities",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedLeadActivityResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Lead not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "List activities for a lead (paginated, sorted by createdAt DESC)",
+        "tags": [
+          "Leads"
+        ]
+      }
+    },
+    "/api/leads/{id}/tags": {
+      "get": {
+        "operationId": "LeadsController_findTags",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tags list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LeadTagResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Lead not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "List tags for a lead",
+        "tags": [
+          "Leads"
+        ]
+      },
+      "post": {
+        "operationId": "LeadsController_addTag",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddTagDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Tag added",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadTagResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid color format"
+          },
+          "404": {
+            "description": "Lead not found"
+          },
+          "409": {
+            "description": "Tag already exists"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Add a tag to a lead",
+        "tags": [
+          "Leads"
+        ]
+      }
+    },
+    "/api/leads/{id}/tags/{tagId}": {
+      "delete": {
+        "operationId": "LeadsController_removeTag",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tagId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tag removed"
+          },
+          "404": {
+            "description": "Tag or lead not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Remove a tag from a lead",
+        "tags": [
+          "Leads"
+        ]
+      }
     }
   },
   "info": {
@@ -2836,6 +3613,548 @@
         },
         "required": [
           "status"
+        ]
+      },
+      "CreateLeadDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Ahmed Hassan",
+            "description": "Lead full name",
+            "minLength": 1
+          },
+          "email": {
+            "type": "string",
+            "example": "ahmed@example.com",
+            "description": "Lead email address"
+          },
+          "phone": {
+            "type": "string",
+            "example": "+201001234567",
+            "description": "Lead phone number",
+            "minLength": 5
+          },
+          "source": {
+            "type": "string",
+            "example": "website",
+            "description": "Lead source (e.g., website, referral, social_media, walk_in, cold_call, advertisement, portal, other)"
+          },
+          "type": {
+            "type": "string",
+            "example": "buyer",
+            "description": "Lead type (e.g., buyer, seller, renter, investor)"
+          },
+          "budgetMin": {
+            "type": "number",
+            "example": 10000000,
+            "description": "Minimum budget in cents"
+          },
+          "budgetMax": {
+            "type": "number",
+            "example": 30000000,
+            "description": "Maximum budget in cents"
+          },
+          "timeline": {
+            "type": "number",
+            "example": 3,
+            "description": "Timeline in months"
+          },
+          "preferredLocation": {
+            "type": "string",
+            "example": "New Cairo",
+            "description": "Preferred location"
+          },
+          "preferredType": {
+            "type": "string",
+            "example": "apartment",
+            "description": "Preferred property type"
+          },
+          "stage": {
+            "type": "string",
+            "example": "fresh",
+            "enum": [
+              "fresh",
+              "qualified",
+              "followUp",
+              "reservation",
+              "lost"
+            ],
+            "description": "Initial stage (defaults to fresh)"
+          },
+          "agentId": {
+            "type": "string",
+            "example": "01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a3",
+            "description": "Assigned agent ID"
+          },
+          "notes": {
+            "type": "string",
+            "example": "Looking for 3BR in New Cairo",
+            "description": "Internal notes"
+          },
+          "nextAction": {
+            "type": "string",
+            "example": "Call back tomorrow",
+            "description": "Next action label"
+          },
+          "nextActionDate": {
+            "type": "string",
+            "example": "2026-06-15T10:00:00Z",
+            "description": "Next action due date"
+          },
+          "score": {
+            "type": "number",
+            "example": 75,
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Lead score (0-100)"
+          }
+        },
+        "required": [
+          "name",
+          "phone",
+          "source",
+          "type"
+        ]
+      },
+      "LeadResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a3"
+          },
+          "tenantId": {
+            "type": "string",
+            "example": "01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a4"
+          },
+          "name": {
+            "type": "string",
+            "example": "Ahmed Hassan"
+          },
+          "email": {
+            "type": "string",
+            "example": "ahmed@example.com",
+            "nullable": true
+          },
+          "phone": {
+            "type": "string",
+            "example": "+201001234567"
+          },
+          "source": {
+            "type": "string",
+            "example": "website"
+          },
+          "type": {
+            "type": "string",
+            "example": "buyer"
+          },
+          "budgetMin": {
+            "type": "number",
+            "example": 10000000,
+            "nullable": true
+          },
+          "budgetMax": {
+            "type": "number",
+            "example": 30000000,
+            "nullable": true
+          },
+          "timeline": {
+            "type": "number",
+            "example": 3,
+            "nullable": true
+          },
+          "preferredLocation": {
+            "type": "string",
+            "example": "New Cairo",
+            "nullable": true
+          },
+          "preferredType": {
+            "type": "string",
+            "example": "apartment",
+            "nullable": true
+          },
+          "stage": {
+            "type": "string",
+            "example": "fresh"
+          },
+          "score": {
+            "type": "number",
+            "example": 75
+          },
+          "agentId": {
+            "type": "string",
+            "example": "01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a5",
+            "nullable": true
+          },
+          "previousAgentIds": {
+            "example": [],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "notes": {
+            "type": "string",
+            "example": "Looking for 3BR",
+            "nullable": true
+          },
+          "nextAction": {
+            "type": "string",
+            "example": "Call back tomorrow",
+            "nullable": true
+          },
+          "nextActionDate": {
+            "type": "string",
+            "example": "2026-06-15T10:00:00.000Z",
+            "nullable": true
+          },
+          "isConverted": {
+            "type": "boolean",
+            "example": false
+          },
+          "isDnc": {
+            "type": "boolean",
+            "example": false
+          },
+          "dncReason": {
+            "type": "string",
+            "example": "Asked to stop contact",
+            "nullable": true
+          },
+          "dncSetAt": {
+            "type": "string",
+            "example": "2026-06-10T10:00:00.000Z",
+            "nullable": true
+          },
+          "dncSetById": {
+            "type": "string",
+            "example": "01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a6",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-06-01T10:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2026-06-09T10:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "tenantId",
+          "name",
+          "phone",
+          "source",
+          "type",
+          "stage",
+          "score",
+          "previousAgentIds",
+          "isConverted",
+          "isDnc",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "PaginatedLeadResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LeadResponseDto"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginatedMetaDto"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "UpdateLeadDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Ahmed Hassan Updated",
+            "description": "Lead full name"
+          },
+          "email": {
+            "type": "string",
+            "example": "new@example.com",
+            "description": "Lead email address"
+          },
+          "phone": {
+            "type": "string",
+            "example": "+201009876543",
+            "description": "Lead phone number"
+          },
+          "source": {
+            "type": "string",
+            "example": "referral",
+            "description": "Lead source"
+          },
+          "type": {
+            "type": "string",
+            "example": "investor",
+            "description": "Lead type"
+          },
+          "budgetMin": {
+            "type": "number",
+            "example": 15000000,
+            "description": "Minimum budget in cents"
+          },
+          "budgetMax": {
+            "type": "number",
+            "example": 35000000,
+            "description": "Maximum budget in cents"
+          },
+          "timeline": {
+            "type": "number",
+            "example": 6,
+            "description": "Timeline in months"
+          },
+          "preferredLocation": {
+            "type": "string",
+            "example": "6th October",
+            "description": "Preferred location"
+          },
+          "preferredType": {
+            "type": "string",
+            "example": "villa",
+            "description": "Preferred property type"
+          },
+          "agentId": {
+            "type": "string",
+            "example": "01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a3",
+            "description": "Assigned agent ID"
+          },
+          "notes": {
+            "type": "string",
+            "example": "Updated notes",
+            "description": "Internal notes"
+          },
+          "nextAction": {
+            "type": "string",
+            "example": "Send listings",
+            "description": "Next action label"
+          },
+          "nextActionDate": {
+            "type": "string",
+            "example": "2026-06-20T10:00:00Z",
+            "description": "Next action due date"
+          },
+          "score": {
+            "type": "number",
+            "example": 85,
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Lead score (0-100). Manager/admin only."
+          }
+        }
+      },
+      "ChangeLeadStageDto": {
+        "type": "object",
+        "properties": {
+          "stage": {
+            "type": "string",
+            "enum": [
+              "fresh",
+              "qualified",
+              "followUp",
+              "reservation",
+              "lost"
+            ],
+            "example": "qualified",
+            "description": "Target lead stage"
+          }
+        },
+        "required": [
+          "stage"
+        ]
+      },
+      "ConvertLeadDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "SetDncDto": {
+        "type": "object",
+        "properties": {
+          "isDnc": {
+            "type": "boolean",
+            "example": true,
+            "description": "Whether the lead is on Do-Not-Contact list"
+          },
+          "reason": {
+            "type": "string",
+            "example": "Asked to stop all contact",
+            "description": "Reason for setting DNC"
+          }
+        },
+        "required": [
+          "isDnc"
+        ]
+      },
+      "AddActivityDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "call",
+              "email",
+              "meeting",
+              "note",
+              "stage_change",
+              "assignment",
+              "dnc_set",
+              "dnc_unset",
+              "convert"
+            ],
+            "example": "call",
+            "description": "Activity type"
+          },
+          "content": {
+            "type": "string",
+            "example": "Discussed budget and timeline. Follow up next week.",
+            "description": "Activity content",
+            "minLength": 1
+          },
+          "metadata": {
+            "type": "object",
+            "example": {
+              "duration": 15,
+              "outcome": "positive"
+            },
+            "description": "Type-specific metadata"
+          }
+        },
+        "required": [
+          "type",
+          "content"
+        ]
+      },
+      "LeadActivityResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a3"
+          },
+          "tenantId": {
+            "type": "string",
+            "example": "01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a4"
+          },
+          "entityType": {
+            "type": "string",
+            "example": "lead"
+          },
+          "entityId": {
+            "type": "string",
+            "example": "01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a5"
+          },
+          "type": {
+            "type": "string",
+            "example": "call"
+          },
+          "content": {
+            "type": "string",
+            "example": "Discussed budget. Follow up next week."
+          },
+          "metadata": {
+            "type": "object",
+            "example": {
+              "duration": 15
+            },
+            "nullable": true
+          },
+          "agentId": {
+            "type": "string",
+            "example": "01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a6"
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-06-09T10:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "tenantId",
+          "entityType",
+          "entityId",
+          "type",
+          "content",
+          "agentId",
+          "createdAt"
+        ]
+      },
+      "PaginatedLeadActivityResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LeadActivityResponseDto"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginatedMetaDto"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "LeadTagResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a3"
+          },
+          "leadId": {
+            "type": "string",
+            "example": "01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a5"
+          },
+          "tag": {
+            "type": "string",
+            "example": "Hot"
+          },
+          "color": {
+            "type": "string",
+            "example": "#EF4444"
+          }
+        },
+        "required": [
+          "id",
+          "leadId",
+          "tag",
+          "color"
+        ]
+      },
+      "AddTagDto": {
+        "type": "object",
+        "properties": {
+          "tag": {
+            "type": "string",
+            "example": "Hot",
+            "description": "Tag label",
+            "minLength": 1
+          },
+          "color": {
+            "type": "string",
+            "example": "#EF4444",
+            "description": "Hex color (e.g., #FF0000)"
+          }
+        },
+        "required": [
+          "tag",
+          "color"
         ]
       }
     }
