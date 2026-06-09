@@ -1,4 +1,4 @@
-import { Link, useRouter } from "@tanstack/react-router";
+import { Link, useLocation } from "@tanstack/react-router";
 import { useAuth } from "../../contexts/AuthContext";
 import { useTheme } from "../../contexts/ThemeContext";
 import {
@@ -31,7 +31,7 @@ const NAV_ITEMS = [
 export function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const { user, logout } = useAuth();
   const { theme } = useTheme();
-  const router = useRouter();
+  const location = useLocation();
   const isLight = theme === "light";
 
   const displayName = user?.name
@@ -80,7 +80,7 @@ export function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
         <p className="px-2 mb-3" style={{ color: isLight ? "#9ca3af" : "#4B5563", fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase" }}>Main Menu</p>
         <nav className="space-y-0.5">
           {NAV_ITEMS.map(({ icon: Icon, to, label }) => {
-            const isActive = router.state.location.pathname === to;
+          const isActive = location.pathname === to;
             return (
               <Link
                 key={to}
