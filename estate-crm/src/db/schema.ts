@@ -115,7 +115,6 @@ export const leads = pgTable('leads', {
   nextAction: varchar('next_action', { length: 255 }),
   nextActionDate: timestamp('next_action_date', { withTimezone: true }),
   isConverted: boolean('is_converted').default(false),
-  convertedToClientId: uuid('converted_to_client_id'),
   isDnc: boolean('is_dnc').default(false),
   dncReason: varchar('dnc_reason', { length: 500 }),
   dncSetAt: timestamp('dnc_set_at', { withTimezone: true }),
@@ -125,6 +124,9 @@ export const leads = pgTable('leads', {
   deletedAt: timestamp('deleted_at', { withTimezone: true }),
 }, (t) => [
   index('leads_tenant_id_idx').on(t.tenantId),
+  index('leads_tenant_stage_idx').on(t.tenantId, t.stage),
+  index('leads_tenant_agent_idx').on(t.tenantId, t.agentId),
+  index('leads_tenant_stage_agent_idx').on(t.tenantId, t.stage, t.agentId),
 ]);
 
 // 6. activities (polymorphic, append-only — NO deletedAt, NO updatedAt)
@@ -140,37 +142,15 @@ export const activities = pgTable('activities', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 }, (t) => [
   index('activities_tenant_id_idx').on(t.tenantId),
+  index('activities_tenant_entity_idx').on(t.tenantId, t.entityType, t.entityId),
 ]);
 
-// 7. clients
-export const clients = pgTable('clients', {
-  id: uuid('id').primaryKey().$defaultFn(() => uuidv7()),
-  tenantId: uuid('tenant_id').notNull().references(() => organizations.id, { onDelete: 'cascade' }),
-  name: varchar('name', { length: 255 }).notNull(),
-  email: varchar('email', { length: 255 }),
-  phone: varchar('phone', { length: 50 }).notNull(),
-  type: varchar('type', { length: 20 }).notNull(),
-  isVip: boolean('is_vip').default(false),
-  vipSetById: uuid('vip_set_by_id').references(() => users.id),
-  vipSetAt: timestamp('vip_set_at', { withTimezone: true }),
-  lifetimeValue: integer('lifetime_value').default(0),
-  agentId: uuid('agent_id').notNull().references(() => users.id),
-  convertedFromLeadId: uuid('converted_from_lead_id').references(() => leads.id),
-  notes: text('notes'),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
-  deletedAt: timestamp('deleted_at', { withTimezone: true }),
-}, (t) => [
-  index('clients_tenant_id_idx').on(t.tenantId),
-]);
-
-// 8. deals
+// 7. deals
 export const deals = pgTable('deals', {
   id: uuid('id').primaryKey().$defaultFn(() => uuidv7()),
   tenantId: uuid('tenant_id').notNull().references(() => organizations.id, { onDelete: 'cascade' }),
   propertyId: uuid('property_id').references(() => properties.id),
   leadId: uuid('lead_id').references(() => leads.id),
-  clientId: uuid('client_id').references(() => clients.id),
   agentId: uuid('agent_id').notNull().references(() => users.id),
   type: varchar('type', { length: 20 }).notNull(),
   value: integer('value').notNull(),
@@ -189,7 +169,7 @@ export const deals = pgTable('deals', {
   index('deals_tenant_id_idx').on(t.tenantId),
 ]);
 
-// 9. commissionPlans
+// 8. commissionPlans
 export const commissionPlans = pgTable('commission_plans', {
   id: uuid('id').primaryKey().$defaultFn(() => uuidv7()),
   tenantId: uuid('tenant_id').notNull().references(() => organizations.id, { onDelete: 'cascade' }),
@@ -207,7 +187,7 @@ export const commissionPlans = pgTable('commission_plans', {
   index('commission_plans_tenant_id_idx').on(t.tenantId),
 ]);
 
-// 10. commissionRecords (NO deletedAt, NO updatedAt — immutable)
+// 9. commissionRecords (NO deletedAt, NO updatedAt — immutable)
 export const commissionRecords = pgTable('commission_records', {
   id: uuid('id').primaryKey().$defaultFn(() => uuidv7()),
   tenantId: uuid('tenant_id').notNull().references(() => organizations.id, { onDelete: 'cascade' }),
@@ -225,7 +205,7 @@ export const commissionRecords = pgTable('commission_records', {
   index('commission_records_tenant_id_idx').on(t.tenantId),
 ]);
 
-// 11. tasks
+// 10. tasks
 export const tasks = pgTable('tasks', {
   id: uuid('id').primaryKey().$defaultFn(() => uuidv7()),
   tenantId: uuid('tenant_id').notNull().references(() => organizations.id, { onDelete: 'cascade' }),
@@ -245,7 +225,7 @@ export const tasks = pgTable('tasks', {
   index('tasks_tenant_id_idx').on(t.tenantId),
 ]);
 
-// 12. notifications (NO deletedAt)
+// 11. notifications (NO deletedAt)
 export const notifications = pgTable('notifications', {
   id: uuid('id').primaryKey().$defaultFn(() => uuidv7()),
   tenantId: uuid('tenant_id').notNull().references(() => organizations.id, { onDelete: 'cascade' }),
@@ -261,7 +241,7 @@ export const notifications = pgTable('notifications', {
   index('notifications_tenant_id_idx').on(t.tenantId),
 ]);
 
-// 13. auditLogs (NO deletedAt, NO updatedAt — immutable)
+// 12. auditLogs (NO deletedAt, NO updatedAt — immutable)
 export const auditLogs = pgTable('audit_logs', {
   id: uuid('id').primaryKey().$defaultFn(() => uuidv7()),
   tenantId: uuid('tenant_id').notNull().references(() => organizations.id, { onDelete: 'cascade' }),
@@ -277,27 +257,32 @@ export const auditLogs = pgTable('audit_logs', {
   index('audit_logs_tenant_id_idx').on(t.tenantId),
 ]);
 
-// 14. leadTags
+// 13. leadTags
 export const leadTags = pgTable('lead_tags', {
   id: uuid('id').primaryKey().$defaultFn(() => uuidv7()),
+  tenantId: uuid('tenant_id').notNull().references(() => organizations.id, { onDelete: 'cascade' }),
   leadId: uuid('lead_id').notNull().references(() => leads.id),
   tag: varchar('tag', { length: 100 }).notNull(),
   color: varchar('color', { length: 7 }).notNull(),
 }, (t) => [
   uniqueIndex('lead_tags_lead_tag_idx').on(t.leadId, t.tag),
+  index('lead_tags_tenant_lead_idx').on(t.tenantId, t.leadId),
 ]);
 
-// 15. leadDocuments
+// 14. leadDocuments
 export const leadDocuments = pgTable('lead_documents', {
   id: uuid('id').primaryKey().$defaultFn(() => uuidv7()),
+  tenantId: uuid('tenant_id').notNull().references(() => organizations.id, { onDelete: 'cascade' }),
   leadId: uuid('lead_id').notNull().references(() => leads.id),
   name: varchar('name', { length: 255 }).notNull(),
   url: varchar('url', { length: 1000 }).notNull(),
   type: varchar('type', { length: 20 }).notNull(),
   uploadedAt: timestamp('uploaded_at', { withTimezone: true }).notNull(),
-});
+}, (t) => [
+  index('lead_documents_tenant_lead_idx').on(t.tenantId, t.leadId),
+]);
 
-// 16. dealTags
+// 15. dealTags
 export const dealTags = pgTable('deal_tags', {
   id: uuid('id').primaryKey().$defaultFn(() => uuidv7()),
   dealId: uuid('deal_id').notNull().references(() => deals.id),
@@ -307,7 +292,7 @@ export const dealTags = pgTable('deal_tags', {
   uniqueIndex('deal_tags_deal_tag_idx').on(t.dealId, t.tag),
 ]);
 
-// 17. dealDocuments
+// 16. dealDocuments
 export const dealDocuments = pgTable('deal_documents', {
   id: uuid('id').primaryKey().$defaultFn(() => uuidv7()),
   dealId: uuid('deal_id').notNull().references(() => deals.id),
@@ -317,7 +302,7 @@ export const dealDocuments = pgTable('deal_documents', {
   uploadedAt: timestamp('uploaded_at', { withTimezone: true }).notNull(),
 });
 
-// 18. dealMilestones
+// 17. dealMilestones
 export const dealMilestones = pgTable('deal_milestones', {
   id: uuid('id').primaryKey().$defaultFn(() => uuidv7()),
   dealId: uuid('deal_id').notNull().references(() => deals.id),
@@ -327,7 +312,7 @@ export const dealMilestones = pgTable('deal_milestones', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 });
 
-// 19. conversations
+// 18. conversations
 export const conversations = pgTable('conversations', {
   id: uuid('id').primaryKey().$defaultFn(() => uuidv7()),
   tenantId: uuid('tenant_id').notNull().references(() => organizations.id, { onDelete: 'cascade' }),
@@ -341,7 +326,7 @@ export const conversations = pgTable('conversations', {
   index('conversations_tenant_id_idx').on(t.tenantId),
 ]);
 
-// 20. conversationParticipants
+// 19. conversationParticipants
 export const conversationParticipants = pgTable('conversation_participants', {
   id: uuid('id').primaryKey().$defaultFn(() => uuidv7()),
   conversationId: uuid('conversation_id').notNull().references(() => conversations.id),
@@ -352,7 +337,7 @@ export const conversationParticipants = pgTable('conversation_participants', {
   uniqueIndex('conv_participants_conv_user_idx').on(t.conversationId, t.userId),
 ]);
 
-// 21. chatMessages (append-only — NO deletedAt, NO updatedAt)
+// 20. chatMessages (append-only — NO deletedAt, NO updatedAt)
 export const chatMessages = pgTable('chat_messages', {
   id: uuid('id').primaryKey().$defaultFn(() => uuidv7()),
   conversationId: uuid('conversation_id').notNull().references(() => conversations.id),
