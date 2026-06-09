@@ -1,0 +1,26 @@
+# ────────────────────────────────────────────
+# Estate CRM Backend — Local Development
+# ────────────────────────────────────────────
+# Runs the NestJS API with `bun --watch` for hot reload.
+# Entrypoint runs migrations + seed before starting the server.
+# ────────────────────────────────────────────
+
+FROM oven/bun:1
+
+WORKDIR /app
+
+# Install dependencies (cached layer)
+COPY package.json bun.lock ./
+RUN bun install
+
+# Copy source (in dev, the source is also bind-mounted for live edits)
+COPY . .
+
+# Entrypoint runs migrations + seeds, then starts the dev server
+COPY docker-entrypoint.dev.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.dev.sh
+
+EXPOSE 3000
+
+ENTRYPOINT ["docker-entrypoint.dev.sh"]
+CMD ["bun", "--watch", "run", "src/main.ts"]

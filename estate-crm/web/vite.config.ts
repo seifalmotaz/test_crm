@@ -15,7 +15,7 @@ export default defineConfig({
     port: Number(process.env.PORT || 5173),
     proxy: {
       '/api': {
-        target: 'https://estate-crm.localhost',
+        target: process.env.VITE_API_PROXY_TARGET || 'http://localhost:3000',
         changeOrigin: true,
         secure: false,
       },

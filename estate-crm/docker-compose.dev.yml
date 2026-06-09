@@ -1,0 +1,179 @@
+# ────────────────────────────────────────────
+# Estate CRM — Local Development Stack
+# ────────────────────────────────────────────
+# Run with:   docker compose -f docker-compose.dev.yml up
+# Reset all:  docker compose -f docker-compose.dev.yml down -v
+# ────────────────────────────────────────────
+# This file is hand-tuned for a new dev to clone + run with no .env editing.
+# It:
+#   • Spins up Postgres, Redis, MinIO + MinIO init
+#   • Runs the backend in dev mode (bun --watch) so file edits hot-reload
+#   • Runs the web app in dev mode (vite) so the browser hot-reloads
+#   • Auto-runs migrations + seeds test data on every start
+#   • Maps all ports to localhost so cookies / browser / swagger Just Work
+# ────────────────────────────────────────────
+
+services:
+  # ────────────────────────────────────────────
+  # PostgreSQL
+  # ────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: estate-crm-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=devpass
+      - POSTGRES_DB=estate_crm
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d estate_crm"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - estate-crm
+
+  # ────────────────────────────────────────────
+  # Redis
+  # ────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: estate-crm-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks:
+      - estate-crm
+
+  # ────────────────────────────────────────────
+  # MinIO (S3-compatible object storage)
+  # ────────────────────────────────────────────
+  minio:
+    image: minio/minio:latest
+    container_name: estate-crm-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    ports:
+      - "9000:9000"   # S3 API
+      - "9001:9001"   # Web console
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - estate-crm
+
+  # ────────────────────────────────────────────
+  # MinIO Init — create bucket + public download policy
+  # ────────────────────────────────────────────
+  minio-init:
+    image: minio/mc:latest
+    container_name: estate-crm-minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+        echo 'Waiting for MinIO...';
+        sleep 5;
+        mc alias set local http://minio:9000 minioadmin minioadmin;
+        mc mb --ignore-existing local/estate-crm-dev;
+        mc anonymous set download local/estate-crm-dev;
+        echo 'MinIO bucket ready';
+      "
+    networks:
+      - estate-crm
+
+  # ────────────────────────────────────────────
+  # Estate CRM Backend (NestJS, dev mode w/ --watch)
+  # ────────────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: estate-crm-app
+    restart: unless-stopped
+    environment:
+      # --- App ---
+      - NODE_ENV=development
+      - PORT=3000
+      - CORS_ORIGIN=http://localhost:5173,http://localhost:3000
+      - COOKIE_DOMAIN=localhost
+      - COOKIE_SECURE=false
+
+      # --- DB ---
+      - DATABASE_URL=postgresql://postgres:devpass@postgres:5432/estate_crm?sslmode=disable
+
+      # --- Redis ---
+      - REDIS_URL=redis://redis:6379
+
+      # --- JWT ---
+      - JWT_SECRET=dev-only-change-in-production-please-1234567890
+
+      # --- S3 / MinIO ---
+      - S3_BUCKET=estate-crm-dev
+      - S3_REGION=us-east-1
+      - S3_ACCESS_KEY=minioadmin
+      - S3_SECRET_KEY=minioadmin
+      - S3_ENDPOINT=http://minio:9000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    ports:
+      - "3000:3000"   # API + Swagger
+    networks:
+      - estate-crm
+
+  # ────────────────────────────────────────────
+  # Estate CRM Web (Vite + React, dev mode with HMR)
+  # ────────────────────────────────────────────
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile.dev
+    container_name: estate-crm-web
+    restart: unless-stopped
+    environment:
+      - PORT=5173
+      - VITE_API_URL=
+      - VITE_API_PROXY_TARGET=http://app:3000
+    depends_on:
+      - app
+    ports:
+      - "5173:5173"   # Vite dev server (open this in your browser)
+    volumes:
+      - ./web/src:/app/src
+      - ./web/public:/app/public
+      - ./web/index.html:/app/index.html
+    networks:
+      - estate-crm
+
+volumes:
+  postgres_data:
+  minio_data:
+
+networks:
+  estate-crm:
+    driver: bridge

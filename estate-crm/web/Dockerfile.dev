@@ -1,0 +1,27 @@
+# ────────────────────────────────────────────
+# Estate CRM Web — Local Development
+# ────────────────────────────────────────────
+# Runs the Vite dev server so file edits hot-reload in the browser.
+# Source is bind-mounted in docker-compose.dev.yml for live editing.
+# ────────────────────────────────────────────
+
+FROM oven/bun:1
+
+WORKDIR /app
+
+# Install deps (cached)
+COPY package.json bun.lock ./
+RUN bun install
+
+# Copy config + static assets that aren't in the bind-mount.
+# Source code in /app/src IS bind-mounted at runtime (see docker-compose.dev.yml).
+# The bind-mount overlays these files at runtime, so we only need them at build
+# time so that the image is runnable on its own (useful for `docker run`).
+COPY vite.config.ts ./
+COPY tsconfig.json tsconfig.app.json tsconfig.node.json ./
+COPY index.html ./
+COPY public ./public
+
+EXPOSE 5173
+
+CMD ["bun", "run", "dev", "--host", "0.0.0.0"]
