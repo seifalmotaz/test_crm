@@ -76,7 +76,7 @@ export const properties = pgTable('properties', {
   baths: integer('baths'),
   sqft: integer('sqft'),
   yearBuilt: integer('year_built'),
-  attributes: jsonb('attributes'),
+  attributes: jsonb('attributes').notNull().default({}),
   images: text('images').array().default([]),
   videos: text('videos').array().default([]),
   tags: text('tags').array().default([]),
@@ -87,6 +87,10 @@ export const properties = pgTable('properties', {
   deletedAt: timestamp('deleted_at', { withTimezone: true }),
 }, (t) => [
   index('properties_tenant_id_idx').on(t.tenantId),
+  index('idx_properties_tenant_status_created').on(t.tenantId, t.status, t.createdAt),
+  index('idx_properties_tenant_project').on(t.tenantId, t.projectId),
+  index('idx_properties_tenant_type_price').on(t.tenantId, t.type, t.price),
+  index('idx_properties_attributes').on(t.attributes),
 ]);
 
 // 5. leads

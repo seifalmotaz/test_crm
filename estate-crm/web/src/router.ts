@@ -23,6 +23,12 @@ const dashboardRoute = createRoute({
   component: lazy(() => import("./routes/_authenticated/dashboard")),
 });
 
+const projectsRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "/projects",
+  component: lazy(() => import("./routes/_authenticated/projects")),
+});
+
 const propertiesRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "/properties",
@@ -81,6 +87,7 @@ const routeTree = rootRoute.addChildren([
   loginRoute,
   authenticatedRoute.addChildren([
     dashboardRoute,
+    projectsRoute,
     propertiesRoute,
     leadsRoute,
     dealsRoute,

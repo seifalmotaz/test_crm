@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { AdminAuthControllerLoginData, AdminAuthControllerLoginErrors, AdminAuthControllerLoginResponses, AdminAuthControllerMeData, AdminAuthControllerMeErrors, AdminAuthControllerMeResponses, AuthControllerLoginData, AuthControllerLoginErrors, AuthControllerLoginResponses, AuthControllerLogoutData, AuthControllerLogoutErrors, AuthControllerLogoutResponses, AuthControllerMeData, AuthControllerMeErrors, AuthControllerMeResponses, AuthControllerRefreshData, AuthControllerRefreshErrors, AuthControllerRefreshResponses, OrganizationsAdminControllerActivateData, OrganizationsAdminControllerActivateResponses, OrganizationsAdminControllerCreateData, OrganizationsAdminControllerCreateErrors, OrganizationsAdminControllerCreateResponses, OrganizationsAdminControllerFindAllData, OrganizationsAdminControllerFindAllResponses, OrganizationsAdminControllerFindOneData, OrganizationsAdminControllerFindOneErrors, OrganizationsAdminControllerFindOneResponses, OrganizationsAdminControllerRemoveData, OrganizationsAdminControllerRemoveResponses, OrganizationsAdminControllerSuspendData, OrganizationsAdminControllerSuspendResponses, OrganizationsAdminControllerUpdateData, OrganizationsAdminControllerUpdateResponses, OrganizationsControllerGetMyOrganizationData, OrganizationsControllerGetMyOrganizationErrors, OrganizationsControllerGetMyOrganizationResponses, UsersAdminControllerFindAllData, UsersAdminControllerFindAllResponses, UsersControllerChangeRoleData, UsersControllerChangeRoleErrors, UsersControllerChangeRoleResponses, UsersControllerCreateData, UsersControllerCreateErrors, UsersControllerCreateResponses, UsersControllerDeactivateData, UsersControllerDeactivateErrors, UsersControllerDeactivateResponses, UsersControllerFindAllData, UsersControllerFindAllResponses, UsersControllerFindByIdData, UsersControllerFindByIdErrors, UsersControllerFindByIdResponses, UsersControllerReactivateData, UsersControllerReactivateResponses, UsersControllerUpdateData, UsersControllerUpdateResponses } from './types.gen';
+import type { AdminAuthControllerLoginData, AdminAuthControllerLoginErrors, AdminAuthControllerLoginResponses, AdminAuthControllerMeData, AdminAuthControllerMeErrors, AdminAuthControllerMeResponses, AuthControllerLoginData, AuthControllerLoginErrors, AuthControllerLoginResponses, AuthControllerLogoutData, AuthControllerLogoutErrors, AuthControllerLogoutResponses, AuthControllerMeData, AuthControllerMeErrors, AuthControllerMeResponses, AuthControllerRefreshData, AuthControllerRefreshErrors, AuthControllerRefreshResponses, OrganizationsAdminControllerActivateData, OrganizationsAdminControllerActivateResponses, OrganizationsAdminControllerCreateData, OrganizationsAdminControllerCreateErrors, OrganizationsAdminControllerCreateResponses, OrganizationsAdminControllerFindAllData, OrganizationsAdminControllerFindAllResponses, OrganizationsAdminControllerFindOneData, OrganizationsAdminControllerFindOneErrors, OrganizationsAdminControllerFindOneResponses, OrganizationsAdminControllerRemoveData, OrganizationsAdminControllerRemoveResponses, OrganizationsAdminControllerSuspendData, OrganizationsAdminControllerSuspendResponses, OrganizationsAdminControllerUpdateData, OrganizationsAdminControllerUpdateResponses, OrganizationsControllerGetMyOrganizationData, OrganizationsControllerGetMyOrganizationErrors, OrganizationsControllerGetMyOrganizationResponses, ProjectsControllerChangeStatusData, ProjectsControllerChangeStatusErrors, ProjectsControllerChangeStatusResponses, ProjectsControllerCreateData, ProjectsControllerCreateErrors, ProjectsControllerCreateResponses, ProjectsControllerFindAllData, ProjectsControllerFindAllResponses, ProjectsControllerFindByIdData, ProjectsControllerFindByIdErrors, ProjectsControllerFindByIdResponses, ProjectsControllerRemoveData, ProjectsControllerRemoveErrors, ProjectsControllerRemoveResponses, ProjectsControllerUpdateData, ProjectsControllerUpdateErrors, ProjectsControllerUpdateResponses, PropertiesControllerChangeStatusData, PropertiesControllerChangeStatusErrors, PropertiesControllerChangeStatusResponses, PropertiesControllerCreateData, PropertiesControllerCreateErrors, PropertiesControllerCreateResponses, PropertiesControllerFindAllData, PropertiesControllerFindAllResponses, PropertiesControllerFindByIdData, PropertiesControllerFindByIdErrors, PropertiesControllerFindByIdResponses, PropertiesControllerGetPresignedUploadUrlData, PropertiesControllerGetPresignedUploadUrlErrors, PropertiesControllerGetPresignedUploadUrlResponses, PropertiesControllerRemoveData, PropertiesControllerRemoveErrors, PropertiesControllerRemoveResponses, PropertiesControllerUpdateData, PropertiesControllerUpdateErrors, PropertiesControllerUpdateResponses, UsersAdminControllerFindAllData, UsersAdminControllerFindAllResponses, UsersControllerChangeRoleData, UsersControllerChangeRoleErrors, UsersControllerChangeRoleResponses, UsersControllerCreateData, UsersControllerCreateErrors, UsersControllerCreateResponses, UsersControllerDeactivateData, UsersControllerDeactivateErrors, UsersControllerDeactivateResponses, UsersControllerFindAllData, UsersControllerFindAllResponses, UsersControllerFindByIdData, UsersControllerFindByIdErrors, UsersControllerFindByIdResponses, UsersControllerReactivateData, UsersControllerReactivateResponses, UsersControllerUpdateData, UsersControllerUpdateResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -176,3 +176,117 @@ export const usersControllerReactivate = <ThrowOnError extends boolean = false>(
  * List users across all tenants
  */
 export const usersAdminControllerFindAll = <ThrowOnError extends boolean = false>(options?: Options<UsersAdminControllerFindAllData, ThrowOnError>): RequestResult<UsersAdminControllerFindAllResponses, unknown, ThrowOnError> => (options?.client ?? client).get<UsersAdminControllerFindAllResponses, unknown, ThrowOnError>({ url: '/api/admin/users', ...options });
+
+/**
+ * List properties with filters and pagination
+ */
+export const propertiesControllerFindAll = <ThrowOnError extends boolean = false>(options?: Options<PropertiesControllerFindAllData, ThrowOnError>): RequestResult<PropertiesControllerFindAllResponses, unknown, ThrowOnError> => (options?.client ?? client).get<PropertiesControllerFindAllResponses, unknown, ThrowOnError>({ url: '/api/properties', ...options });
+
+/**
+ * Create a property
+ */
+export const propertiesControllerCreate = <ThrowOnError extends boolean = false>(options: Options<PropertiesControllerCreateData, ThrowOnError>): RequestResult<PropertiesControllerCreateResponses, PropertiesControllerCreateErrors, ThrowOnError> => (options.client ?? client).post<PropertiesControllerCreateResponses, PropertiesControllerCreateErrors, ThrowOnError>({
+    url: '/api/properties',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Soft delete a property
+ */
+export const propertiesControllerRemove = <ThrowOnError extends boolean = false>(options: Options<PropertiesControllerRemoveData, ThrowOnError>): RequestResult<PropertiesControllerRemoveResponses, PropertiesControllerRemoveErrors, ThrowOnError> => (options.client ?? client).delete<PropertiesControllerRemoveResponses, PropertiesControllerRemoveErrors, ThrowOnError>({ url: '/api/properties/{id}', ...options });
+
+/**
+ * Get property by ID
+ */
+export const propertiesControllerFindById = <ThrowOnError extends boolean = false>(options: Options<PropertiesControllerFindByIdData, ThrowOnError>): RequestResult<PropertiesControllerFindByIdResponses, PropertiesControllerFindByIdErrors, ThrowOnError> => (options.client ?? client).get<PropertiesControllerFindByIdResponses, PropertiesControllerFindByIdErrors, ThrowOnError>({ url: '/api/properties/{id}', ...options });
+
+/**
+ * Update a property
+ */
+export const propertiesControllerUpdate = <ThrowOnError extends boolean = false>(options: Options<PropertiesControllerUpdateData, ThrowOnError>): RequestResult<PropertiesControllerUpdateResponses, PropertiesControllerUpdateErrors, ThrowOnError> => (options.client ?? client).patch<PropertiesControllerUpdateResponses, PropertiesControllerUpdateErrors, ThrowOnError>({
+    url: '/api/properties/{id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Change property status (FSM transition)
+ */
+export const propertiesControllerChangeStatus = <ThrowOnError extends boolean = false>(options: Options<PropertiesControllerChangeStatusData, ThrowOnError>): RequestResult<PropertiesControllerChangeStatusResponses, PropertiesControllerChangeStatusErrors, ThrowOnError> => (options.client ?? client).post<PropertiesControllerChangeStatusResponses, PropertiesControllerChangeStatusErrors, ThrowOnError>({
+    url: '/api/properties/{id}/status',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Generate a pre-signed upload URL for property media
+ */
+export const propertiesControllerGetPresignedUploadUrl = <ThrowOnError extends boolean = false>(options: Options<PropertiesControllerGetPresignedUploadUrlData, ThrowOnError>): RequestResult<PropertiesControllerGetPresignedUploadUrlResponses, PropertiesControllerGetPresignedUploadUrlErrors, ThrowOnError> => (options.client ?? client).post<PropertiesControllerGetPresignedUploadUrlResponses, PropertiesControllerGetPresignedUploadUrlErrors, ThrowOnError>({
+    url: '/api/properties/{id}/media',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * List projects with filters and pagination
+ */
+export const projectsControllerFindAll = <ThrowOnError extends boolean = false>(options?: Options<ProjectsControllerFindAllData, ThrowOnError>): RequestResult<ProjectsControllerFindAllResponses, unknown, ThrowOnError> => (options?.client ?? client).get<ProjectsControllerFindAllResponses, unknown, ThrowOnError>({ url: '/api/projects', ...options });
+
+/**
+ * Create a project
+ */
+export const projectsControllerCreate = <ThrowOnError extends boolean = false>(options: Options<ProjectsControllerCreateData, ThrowOnError>): RequestResult<ProjectsControllerCreateResponses, ProjectsControllerCreateErrors, ThrowOnError> => (options.client ?? client).post<ProjectsControllerCreateResponses, ProjectsControllerCreateErrors, ThrowOnError>({
+    url: '/api/projects',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Soft delete a project
+ */
+export const projectsControllerRemove = <ThrowOnError extends boolean = false>(options: Options<ProjectsControllerRemoveData, ThrowOnError>): RequestResult<ProjectsControllerRemoveResponses, ProjectsControllerRemoveErrors, ThrowOnError> => (options.client ?? client).delete<ProjectsControllerRemoveResponses, ProjectsControllerRemoveErrors, ThrowOnError>({ url: '/api/projects/{id}', ...options });
+
+/**
+ * Get project by ID
+ */
+export const projectsControllerFindById = <ThrowOnError extends boolean = false>(options: Options<ProjectsControllerFindByIdData, ThrowOnError>): RequestResult<ProjectsControllerFindByIdResponses, ProjectsControllerFindByIdErrors, ThrowOnError> => (options.client ?? client).get<ProjectsControllerFindByIdResponses, ProjectsControllerFindByIdErrors, ThrowOnError>({ url: '/api/projects/{id}', ...options });
+
+/**
+ * Update a project
+ */
+export const projectsControllerUpdate = <ThrowOnError extends boolean = false>(options: Options<ProjectsControllerUpdateData, ThrowOnError>): RequestResult<ProjectsControllerUpdateResponses, ProjectsControllerUpdateErrors, ThrowOnError> => (options.client ?? client).patch<ProjectsControllerUpdateResponses, ProjectsControllerUpdateErrors, ThrowOnError>({
+    url: '/api/projects/{id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Change project status (FSM transition)
+ */
+export const projectsControllerChangeStatus = <ThrowOnError extends boolean = false>(options: Options<ProjectsControllerChangeStatusData, ThrowOnError>): RequestResult<ProjectsControllerChangeStatusResponses, ProjectsControllerChangeStatusErrors, ThrowOnError> => (options.client ?? client).post<ProjectsControllerChangeStatusResponses, ProjectsControllerChangeStatusErrors, ThrowOnError>({
+    url: '/api/projects/{id}/status',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});

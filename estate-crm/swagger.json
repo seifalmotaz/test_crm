@@ -1013,6 +1013,740 @@
           "Super Admin"
         ]
       }
+    },
+    "/api/properties": {
+      "post": {
+        "operationId": "PropertiesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePropertyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Property created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PropertyResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error or invalid attributes"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Project or agent not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Create a property",
+        "tags": [
+          "Properties"
+        ]
+      },
+      "get": {
+        "operationId": "PropertiesController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Page number",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Items per page",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Field to sort by",
+            "schema": {
+              "default": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Sort order",
+            "schema": {
+              "default": "desc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search by title or address",
+            "schema": {
+              "example": "Palm Hills",
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "description": "Filter by property status",
+            "schema": {
+              "example": "active",
+              "type": "string",
+              "enum": [
+                "active",
+                "pending",
+                "sold",
+                "withdrawn"
+              ]
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "description": "Filter by property type",
+            "schema": {
+              "example": "apartment",
+              "type": "string",
+              "enum": [
+                "apartment",
+                "villa",
+                "commercial",
+                "land",
+                "townhouse"
+              ]
+            }
+          },
+          {
+            "name": "projectId",
+            "required": false,
+            "in": "query",
+            "description": "Filter by project ID",
+            "schema": {
+              "example": "01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a3",
+              "type": "string"
+            }
+          },
+          {
+            "name": "minPrice",
+            "required": false,
+            "in": "query",
+            "description": "Minimum price filter",
+            "schema": {
+              "example": 100000,
+              "type": "number"
+            }
+          },
+          {
+            "name": "maxPrice",
+            "required": false,
+            "in": "query",
+            "description": "Maximum price filter",
+            "schema": {
+              "example": 500000,
+              "type": "number"
+            }
+          },
+          {
+            "name": "beds",
+            "required": false,
+            "in": "query",
+            "description": "Filter by minimum number of bedrooms",
+            "schema": {
+              "example": 2,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated property list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedPropertyResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "List properties with filters and pagination",
+        "tags": [
+          "Properties"
+        ]
+      }
+    },
+    "/api/properties/{id}": {
+      "get": {
+        "operationId": "PropertiesController_findById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Property details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PropertyResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Property not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Get property by ID",
+        "tags": [
+          "Properties"
+        ]
+      },
+      "patch": {
+        "operationId": "PropertiesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePropertyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated property",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PropertyResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Property not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Update a property",
+        "tags": [
+          "Properties"
+        ]
+      },
+      "delete": {
+        "operationId": "PropertiesController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Property deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PropertyResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Property not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Soft delete a property",
+        "tags": [
+          "Properties"
+        ]
+      }
+    },
+    "/api/properties/{id}/status": {
+      "post": {
+        "operationId": "PropertiesController_changeStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePropertyStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Status updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PropertyResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid transition"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Change property status (FSM transition)",
+        "tags": [
+          "Properties"
+        ]
+      }
+    },
+    "/api/properties/{id}/media": {
+      "post": {
+        "operationId": "PropertiesController_getPresignedUploadUrl",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MediaUploadDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Pre-signed upload URL generated"
+          },
+          "404": {
+            "description": "Property not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Generate a pre-signed upload URL for property media",
+        "tags": [
+          "Properties"
+        ]
+      }
+    },
+    "/api/projects": {
+      "post": {
+        "operationId": "ProjectsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProjectDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Project created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Create a project",
+        "tags": [
+          "Projects"
+        ]
+      },
+      "get": {
+        "operationId": "ProjectsController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Page number",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Items per page",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Field to sort by",
+            "schema": {
+              "default": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Sort order",
+            "schema": {
+              "default": "desc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search by name or location",
+            "schema": {
+              "example": "Sunset",
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "description": "Filter by project status",
+            "schema": {
+              "example": "active",
+              "type": "string",
+              "enum": [
+                "planning",
+                "preLaunch",
+                "active",
+                "soldOut",
+                "delivered"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated project list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedProjectResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "List projects with filters and pagination",
+        "tags": [
+          "Projects"
+        ]
+      }
+    },
+    "/api/projects/{id}": {
+      "get": {
+        "operationId": "ProjectsController_findById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Project details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Get project by ID",
+        "tags": [
+          "Projects"
+        ]
+      },
+      "patch": {
+        "operationId": "ProjectsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProjectDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated project",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Update a project",
+        "tags": [
+          "Projects"
+        ]
+      },
+      "delete": {
+        "operationId": "ProjectsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Project deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Soft delete a project",
+        "tags": [
+          "Projects"
+        ]
+      }
+    },
+    "/api/projects/{id}/status": {
+      "post": {
+        "operationId": "ProjectsController_changeStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeProjectStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Status updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid transition"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Change project status (FSM transition)",
+        "tags": [
+          "Projects"
+        ]
+      }
     }
   },
   "info": {
@@ -1501,6 +2235,607 @@
           "userId",
           "unassignedLeads",
           "departedAt"
+        ]
+      },
+      "CreatePropertyDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "example": "Modern 2BR Apartment in Palm Hills",
+            "description": "Property title",
+            "minLength": 1
+          },
+          "address": {
+            "type": "string",
+            "example": "123 Main St, New Cairo",
+            "description": "Property address"
+          },
+          "type": {
+            "type": "string",
+            "example": "apartment",
+            "enum": [
+              "apartment",
+              "villa",
+              "commercial",
+              "land",
+              "townhouse"
+            ],
+            "description": "Property type"
+          },
+          "price": {
+            "type": "number",
+            "example": 250000,
+            "minimum": 0,
+            "description": "Property price in cents"
+          },
+          "status": {
+            "type": "string",
+            "example": "active",
+            "enum": [
+              "active",
+              "pending",
+              "sold",
+              "withdrawn"
+            ],
+            "description": "Initial property status"
+          },
+          "beds": {
+            "type": "number",
+            "example": 2,
+            "description": "Number of bedrooms"
+          },
+          "baths": {
+            "type": "number",
+            "example": 2,
+            "description": "Number of bathrooms"
+          },
+          "sqft": {
+            "type": "number",
+            "example": 1500,
+            "description": "Square footage"
+          },
+          "yearBuilt": {
+            "type": "number",
+            "example": 2020,
+            "description": "Year built"
+          },
+          "attributes": {
+            "type": "object",
+            "example": {
+              "amenities": [
+                "pool",
+                "gym"
+              ],
+              "furnishing": "fully"
+            },
+            "description": "Type-specific attributes"
+          },
+          "projectId": {
+            "type": "string",
+            "example": "01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a3",
+            "description": "Associated project ID"
+          },
+          "agentId": {
+            "type": "string",
+            "example": "01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a3",
+            "description": "Assigned agent ID"
+          },
+          "description": {
+            "type": "string",
+            "example": "Beautiful apartment with a view",
+            "description": "Property description"
+          }
+        },
+        "required": [
+          "title",
+          "address",
+          "type",
+          "price"
+        ]
+      },
+      "PropertyResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a3"
+          },
+          "tenantId": {
+            "type": "string",
+            "example": "01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a3"
+          },
+          "projectId": {
+            "type": "string",
+            "example": "01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a3"
+          },
+          "title": {
+            "type": "string",
+            "example": "Modern 2BR Apartment in Palm Hills"
+          },
+          "address": {
+            "type": "string",
+            "example": "123 Main St, New Cairo"
+          },
+          "type": {
+            "type": "string",
+            "example": "apartment",
+            "enum": [
+              "apartment",
+              "villa",
+              "commercial",
+              "land",
+              "townhouse"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "example": "active",
+            "enum": [
+              "active",
+              "pending",
+              "sold",
+              "withdrawn"
+            ]
+          },
+          "price": {
+            "type": "number",
+            "example": 250000
+          },
+          "beds": {
+            "type": "number",
+            "example": 2
+          },
+          "baths": {
+            "type": "number",
+            "example": 2
+          },
+          "sqft": {
+            "type": "number",
+            "example": 1500
+          },
+          "yearBuilt": {
+            "type": "number",
+            "example": 2020
+          },
+          "attributes": {
+            "type": "object",
+            "example": {
+              "amenities": [
+                "pool",
+                "gym"
+              ],
+              "furnishing": "fully"
+            }
+          },
+          "images": {
+            "example": [
+              "https://images.example.com/prop1.jpg"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "videos": {
+            "example": [
+              "https://videos.example.com/prop1.mp4"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "tags": {
+            "example": [
+              "luxury",
+              "pool"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "agentId": {
+            "type": "string",
+            "example": "01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a3"
+          },
+          "commissionPlanId": {
+            "type": "string",
+            "example": "01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a3"
+          },
+          "description": {
+            "type": "string",
+            "example": "Beautiful apartment with a view"
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2025-01-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2025-01-15T10:30:00Z"
+          },
+          "deletedAt": {
+            "type": "string",
+            "example": null
+          }
+        },
+        "required": [
+          "id",
+          "tenantId",
+          "title",
+          "address",
+          "type",
+          "status",
+          "price",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "PaginatedPropertyResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PropertyResponseDto"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginatedMetaDto"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "UpdatePropertyDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "example": "Modern 2BR Apartment in Palm Hills",
+            "description": "Property title",
+            "minLength": 1
+          },
+          "address": {
+            "type": "string",
+            "example": "123 Main St, New Cairo",
+            "description": "Property address"
+          },
+          "type": {
+            "type": "string",
+            "example": "apartment",
+            "enum": [
+              "apartment",
+              "villa",
+              "commercial",
+              "land",
+              "townhouse"
+            ],
+            "description": "Property type"
+          },
+          "price": {
+            "type": "number",
+            "example": 250000,
+            "minimum": 0,
+            "description": "Property price in cents"
+          },
+          "beds": {
+            "type": "number",
+            "example": 2,
+            "description": "Number of bedrooms"
+          },
+          "baths": {
+            "type": "number",
+            "example": 2,
+            "description": "Number of bathrooms"
+          },
+          "sqft": {
+            "type": "number",
+            "example": 1500,
+            "description": "Square footage"
+          },
+          "yearBuilt": {
+            "type": "number",
+            "example": 2020,
+            "description": "Year built"
+          },
+          "attributes": {
+            "type": "object",
+            "example": {
+              "amenities": [
+                "pool",
+                "gym"
+              ],
+              "furnishing": "fully"
+            },
+            "description": "Type-specific attributes"
+          },
+          "projectId": {
+            "type": "string",
+            "example": "01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a3",
+            "description": "Associated project ID"
+          },
+          "agentId": {
+            "type": "string",
+            "example": "01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a3",
+            "description": "Assigned agent ID"
+          },
+          "description": {
+            "type": "string",
+            "example": "Beautiful apartment with a view",
+            "description": "Property description"
+          },
+          "images": {
+            "example": [
+              "https://bucket.s3.region.amazonaws.com/properties/..."
+            ],
+            "description": "Property image URLs",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "ChangePropertyStatusDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "pending",
+            "enum": [
+              "active",
+              "pending",
+              "sold",
+              "withdrawn"
+            ],
+            "description": "Target status to transition to"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "MediaUploadDto": {
+        "type": "object",
+        "properties": {
+          "filename": {
+            "type": "string",
+            "example": "photo.jpg",
+            "description": "File name with extension"
+          },
+          "contentType": {
+            "type": "string",
+            "example": "image/jpeg",
+            "description": "MIME content type"
+          }
+        },
+        "required": [
+          "filename",
+          "contentType"
+        ]
+      },
+      "CreateProjectDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Sunset Heights",
+            "description": "Project name",
+            "minLength": 2
+          },
+          "status": {
+            "type": "string",
+            "example": "planning",
+            "enum": [
+              "planning",
+              "preLaunch",
+              "active",
+              "soldOut",
+              "delivered"
+            ],
+            "description": "Initial project status"
+          },
+          "description": {
+            "type": "string",
+            "example": "A luxury residential complex in Palm Hills",
+            "description": "Project description"
+          },
+          "location": {
+            "type": "string",
+            "example": "Palm Hills, New Cairo",
+            "description": "Project location"
+          },
+          "developerName": {
+            "type": "string",
+            "example": "Sunset Development Co.",
+            "description": "Developer name"
+          },
+          "launchDate": {
+            "type": "string",
+            "example": "2026-06-01",
+            "description": "Launch date (ISO 8601 date string)"
+          },
+          "completionDate": {
+            "type": "string",
+            "example": "2028-12-31",
+            "description": "Completion date (ISO 8601 date string)"
+          },
+          "totalUnits": {
+            "type": "number",
+            "example": 200,
+            "description": "Total number of units",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "name",
+          "location"
+        ]
+      },
+      "ProjectResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a3"
+          },
+          "tenantId": {
+            "type": "string",
+            "example": "01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a3"
+          },
+          "name": {
+            "type": "string",
+            "example": "Sunset Heights"
+          },
+          "description": {
+            "type": "string",
+            "example": "A luxury residential complex in Palm Hills"
+          },
+          "location": {
+            "type": "string",
+            "example": "Palm Hills, New Cairo"
+          },
+          "developerName": {
+            "type": "string",
+            "example": "Sunset Development Co."
+          },
+          "status": {
+            "type": "string",
+            "example": "active",
+            "enum": [
+              "planning",
+              "preLaunch",
+              "active",
+              "soldOut",
+              "delivered"
+            ]
+          },
+          "launchDate": {
+            "type": "string",
+            "example": "2026-06-01T00:00:00Z"
+          },
+          "completionDate": {
+            "type": "string",
+            "example": "2028-12-31T00:00:00Z"
+          },
+          "totalUnits": {
+            "type": "number",
+            "example": 200
+          },
+          "soldUnits": {
+            "type": "number",
+            "example": 0
+          },
+          "commissionPlanId": {
+            "type": "string",
+            "example": "01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a3"
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2025-01-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2025-01-15T10:30:00Z"
+          },
+          "deletedAt": {
+            "type": "string",
+            "example": null
+          }
+        },
+        "required": [
+          "id",
+          "tenantId",
+          "name",
+          "location",
+          "status",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "PaginatedProjectResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectResponseDto"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginatedMetaDto"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "UpdateProjectDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Sunset Heights",
+            "description": "Project name",
+            "minLength": 2
+          },
+          "description": {
+            "type": "string",
+            "example": "A luxury residential complex in Palm Hills",
+            "description": "Project description"
+          },
+          "location": {
+            "type": "string",
+            "example": "Palm Hills, New Cairo",
+            "description": "Project location"
+          },
+          "developerName": {
+            "type": "string",
+            "example": "Sunset Development Co.",
+            "description": "Developer name"
+          },
+          "launchDate": {
+            "type": "string",
+            "example": "2026-06-01",
+            "description": "Launch date (ISO 8601 date string)"
+          },
+          "completionDate": {
+            "type": "string",
+            "example": "2028-12-31",
+            "description": "Completion date (ISO 8601 date string)"
+          },
+          "totalUnits": {
+            "type": "number",
+            "example": 200,
+            "description": "Total number of units",
+            "minimum": 1
+          }
+        }
+      },
+      "ChangeProjectStatusDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "active",
+            "enum": [
+              "planning",
+              "preLaunch",
+              "active",
+              "soldOut",
+              "delivered"
+            ],
+            "description": "Target status to transition to"
+          }
+        },
+        "required": [
+          "status"
         ]
       }
     }

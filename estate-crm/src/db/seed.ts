@@ -1,7 +1,7 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
-import { superAdmins, organizations, users, commissionPlans } from './schema';
-import { eq } from 'drizzle-orm';
+import { superAdmins, organizations, users, commissionPlans, projects, properties } from './schema';
+import { eq, and } from 'drizzle-orm';
 import * as argon2 from 'argon2';
 
 async function main() {
@@ -115,7 +115,7 @@ async function main() {
 
   // ── Agents ──
   const agentEmails = ['agent1@test.com', 'agent2@test.com'];
-  const createdAgents: string[] = [];
+  const createdAgentIds: string[] = [];
 
   for (const email of agentEmails) {
     let agent = await db
@@ -136,18 +136,18 @@ async function main() {
         tenantId: org.id,
         email,
         passwordHash: agentHash,
-        name: `Test Agent ${createdAgents.length + 1}`,
+        name: `Test Agent ${createdAgentIds.length + 1}`,
         role: 'agent',
         status: 'active',
-        commissionSplit: createdAgents.length === 0 ? '0.6000' : '0.6500',
+        commissionSplit: createdAgentIds.length === 0 ? '0.6000' : '0.6500',
       }).returning();
-      createdAgents.push(created.email);
+      createdAgentIds.push(created.id);
     } else {
-      createdAgents.push(agent.email);
+      createdAgentIds.push(agent.id);
     }
   }
 
-  console.log(`Agents: ${createdAgents.join(', ')}`);
+  console.log(`Agents: ${agentEmails.join(', ')}`);
 
   // ── Default commission plan ──
   let plan = await db
@@ -168,6 +168,231 @@ async function main() {
     console.log(`Created commission plan: ${plan.name} (${plan.id})`);
   } else {
     console.log(`Commission plan already exists: ${plan.name} (${plan.id})`);
+  }
+
+  // ── Seed Projects ──
+  const projectNames = ['Sunset Residences', 'Marina Heights', 'Palm Vista', 'Green Valley', 'Skyline Penthouse', 'Harbor View'];
+  const createdProjectIds: string[] = [];
+
+  for (const name of projectNames) {
+    const slug = name.toLowerCase().replace(/\s+/g, '-');
+    const existing = await db
+      .select()
+      .from(projects)
+      .where(eq(projects.tenantId, org.id))
+      .then((rows) => rows.find((p) => p.name === name));
+
+    if (!existing) {
+      const [created] = await db.insert(projects).values({
+        tenantId: org.id,
+        name,
+        location: `${name} Blvd, Downtown`,
+        developerName: 'Triple Shield Development',
+        status: 'planning',
+        launchDate: new Date('2025-03-01'),
+        completionDate: new Date('2026-12-01'),
+        totalUnits: 100 + Math.floor(Math.random() * 200),
+        soldUnits: 0,
+      }).returning();
+      createdProjectIds.push(created.id);
+      console.log(`Created project: ${created.name} (${created.id})`);
+    } else {
+      createdProjectIds.push(existing.id);
+      console.log(`Project already exists: ${existing.name} (${existing.id})`);
+    }
+  }
+
+  // ── Seed Properties ──
+  type PropertySeed = {
+    title: string;
+    address: string;
+    type: 'apartment' | 'villa' | 'commercial' | 'land' | 'townhouse';
+    price: number;
+    beds?: number;
+    baths?: number;
+    sqft?: number;
+    yearBuilt?: number;
+    projectIdx?: number;
+    attributes?: Record<string, unknown>;
+  };
+
+  const propertySeeds: PropertySeed[] = [
+    {
+      title: '245 Marina Heights #12B',
+      address: '245 Marina Heights Dr, Downtown',
+      type: 'apartment',
+      price: 245000000,
+      beds: 3,
+      baths: 2,
+      sqft: 1800,
+      yearBuilt: 2022,
+      projectIdx: 1,
+      attributes: {
+        floor: 12,
+        totalFloors: 24,
+        hasElevator: true,
+        maintenanceFee: 85000,
+        amenities: ['Pool', 'Gym', 'Concierge'],
+        parkingSpots: 1,
+      },
+    },
+    {
+      title: '18 Palm Villa',
+      address: '18 Palm Vista Lane, North Hills',
+      type: 'villa',
+      price: 180000000,
+      beds: 5,
+      baths: 4,
+      sqft: 4200,
+      yearBuilt: 2021,
+      projectIdx: 2,
+      attributes: {
+        plotSize: 6000,
+        gardenArea: 1500,
+        floors: 2,
+        hasPool: true,
+        hasGarden: true,
+        parkingSpots: 3,
+      },
+    },
+    {
+      title: '92 Skyline Penthouse',
+      address: '92 Skyline Ave, Midtown',
+      type: 'apartment',
+      price: 520000000,
+      beds: 4,
+      baths: 4,
+      sqft: 3500,
+      yearBuilt: 2023,
+      projectIdx: 4,
+      attributes: {
+        floor: 45,
+        totalFloors: 45,
+        hasElevator: true,
+        maintenanceFee: 150000,
+        amenities: ['Private Pool', 'Rooftop Terrace', '24h Security'],
+        parkingSpots: 3,
+      },
+    },
+    {
+      title: '7 Green Valley Villa',
+      address: '7 Green Valley Rd, Westside',
+      type: 'villa',
+      price: 98000000,
+      beds: 4,
+      baths: 3,
+      sqft: 3100,
+      yearBuilt: 2020,
+      projectIdx: 3,
+      attributes: {
+        plotSize: 4500,
+        gardenArea: 1200,
+        floors: 2,
+        hasPool: true,
+        hasGarden: true,
+        parkingSpots: 2,
+      },
+    },
+    {
+      title: 'Harbor View Office #402',
+      address: 'Harbor View Tower, 400 Commerce St',
+      type: 'commercial',
+      price: 340000000,
+      sqft: 2800,
+      yearBuilt: 2021,
+      projectIdx: 5,
+      attributes: {
+        frontage: 40,
+        ceilingHeight: 3.5,
+        licenseType: 'Office',
+        footTraffic: 'high',
+        utilities: ['Fiber', 'HVAC', 'Backup Power'],
+      },
+    },
+    {
+      title: 'Plot 15 North Hills',
+      address: '15 North Hills Estate, Plot 15',
+      type: 'land',
+      price: 125000000,
+      sqft: 10000,
+      projectIdx: undefined,
+      attributes: {
+        zoningType: 'Residential',
+        buildableArea: 8000,
+        roadAccess: true,
+        utilitiesAvailable: ['Water', 'Electricity', 'Sewer'],
+        topography: 'flat',
+      },
+    },
+    {
+      title: 'Townhouse 8B Sunset Residences',
+      address: '8B Sunset Residences, Downtown',
+      type: 'townhouse',
+      price: 89000000,
+      beds: 3,
+      baths: 2,
+      sqft: 1650,
+      yearBuilt: 2022,
+      projectIdx: 0,
+      attributes: {
+        plotSize: 2200,
+        sharedWalls: 1,
+        floors: 2,
+        hasGarden: true,
+        parkingSpots: 1,
+      },
+    },
+    {
+      title: '33 Midtown Condo',
+      address: '33 Midtown Circle, Apt 5C',
+      type: 'apartment',
+      price: 135000000,
+      beds: 2,
+      baths: 1,
+      sqft: 950,
+      yearBuilt: 2021,
+      projectIdx: 4,
+      attributes: {
+        floor: 5,
+        totalFloors: 18,
+        hasElevator: true,
+        maintenanceFee: 45000,
+        amenities: ['Gym', 'Rooftop'],
+        parkingSpots: 1,
+      },
+    },
+  ];
+
+  for (const seed of propertySeeds) {
+    const existing = await db
+      .select()
+      .from(properties)
+      .where(eq(properties.tenantId, org.id))
+      .then((rows) => rows.find((p) => p.title === seed.title && p.address === seed.address));
+
+    if (!existing) {
+      const [created] = await db.insert(properties).values({
+        tenantId: org.id,
+        projectId: seed.projectIdx !== undefined ? createdProjectIds[seed.projectIdx] : null,
+        title: seed.title,
+        address: seed.address,
+        type: seed.type,
+        status: 'active',
+        price: seed.price,
+        beds: seed.beds ?? null,
+        baths: seed.baths ?? null,
+        sqft: seed.sqft ?? null,
+        yearBuilt: seed.yearBuilt ?? null,
+        attributes: seed.attributes ?? {},
+        images: [],
+        videos: [],
+        tags: seed.type === 'villa' ? ['Luxury', 'Pool'] : seed.type === 'apartment' ? ['City View'] : [],
+        agentId: createdAgentIds.length > 0 ? createdAgentIds[0] : null,
+      }).returning();
+      console.log(`Created property: ${created.title} ($${created.price / 100})`);
+    } else {
+      console.log(`Property already exists: ${existing.title}`);
+    }
   }
 
   console.log('Seed complete!');

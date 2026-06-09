@@ -4,6 +4,7 @@ import { useTheme } from "../../contexts/ThemeContext";
 import {
   LayoutDashboard,
   Building2,
+  FolderKanban,
   Users,
   TrendingUp,
   Heart,
@@ -17,6 +18,7 @@ import PinLogo from "../shared/PinLogo";
 
 const NAV_ITEMS = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/projects", label: "Projects", icon: FolderKanban },
   { to: "/properties", label: "Properties", icon: Building2 },
   { to: "/leads", label: "Leads", icon: Users },
   { to: "/deals", label: "Deals", icon: TrendingUp },

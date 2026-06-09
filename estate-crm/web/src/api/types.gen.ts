@@ -176,6 +176,266 @@ export type UserDeactivatedResponseDto = {
     departedAt: string;
 };
 
+export type CreatePropertyDto = {
+    /**
+     * Property title
+     */
+    title: string;
+    /**
+     * Property address
+     */
+    address: string;
+    /**
+     * Property type
+     */
+    type: 'apartment' | 'villa' | 'commercial' | 'land' | 'townhouse';
+    /**
+     * Property price in cents
+     */
+    price: number;
+    /**
+     * Initial property status
+     */
+    status?: 'active' | 'pending' | 'sold' | 'withdrawn';
+    /**
+     * Number of bedrooms
+     */
+    beds?: number;
+    /**
+     * Number of bathrooms
+     */
+    baths?: number;
+    /**
+     * Square footage
+     */
+    sqft?: number;
+    /**
+     * Year built
+     */
+    yearBuilt?: number;
+    /**
+     * Type-specific attributes
+     */
+    attributes?: {
+        [key: string]: unknown;
+    };
+    /**
+     * Associated project ID
+     */
+    projectId?: string;
+    /**
+     * Assigned agent ID
+     */
+    agentId?: string;
+    /**
+     * Property description
+     */
+    description?: string;
+};
+
+export type PropertyResponseDto = {
+    id: string;
+    tenantId: string;
+    projectId?: string;
+    title: string;
+    address: string;
+    type: 'apartment' | 'villa' | 'commercial' | 'land' | 'townhouse';
+    status: 'active' | 'pending' | 'sold' | 'withdrawn';
+    price: number;
+    beds?: number;
+    baths?: number;
+    sqft?: number;
+    yearBuilt?: number;
+    attributes?: {
+        [key: string]: unknown;
+    };
+    images?: Array<string>;
+    videos?: Array<string>;
+    tags?: Array<string>;
+    agentId?: string;
+    commissionPlanId?: string;
+    description?: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt?: string;
+};
+
+export type PaginatedPropertyResponseDto = {
+    data: Array<PropertyResponseDto>;
+    meta: PaginatedMetaDto;
+};
+
+export type UpdatePropertyDto = {
+    /**
+     * Property title
+     */
+    title?: string;
+    /**
+     * Property address
+     */
+    address?: string;
+    /**
+     * Property type
+     */
+    type?: 'apartment' | 'villa' | 'commercial' | 'land' | 'townhouse';
+    /**
+     * Property price in cents
+     */
+    price?: number;
+    /**
+     * Number of bedrooms
+     */
+    beds?: number;
+    /**
+     * Number of bathrooms
+     */
+    baths?: number;
+    /**
+     * Square footage
+     */
+    sqft?: number;
+    /**
+     * Year built
+     */
+    yearBuilt?: number;
+    /**
+     * Type-specific attributes
+     */
+    attributes?: {
+        [key: string]: unknown;
+    };
+    /**
+     * Associated project ID
+     */
+    projectId?: string;
+    /**
+     * Assigned agent ID
+     */
+    agentId?: string;
+    /**
+     * Property description
+     */
+    description?: string;
+    /**
+     * Property image URLs
+     */
+    images?: Array<string>;
+};
+
+export type ChangePropertyStatusDto = {
+    /**
+     * Target status to transition to
+     */
+    status: 'active' | 'pending' | 'sold' | 'withdrawn';
+};
+
+export type MediaUploadDto = {
+    /**
+     * File name with extension
+     */
+    filename: string;
+    /**
+     * MIME content type
+     */
+    contentType: string;
+};
+
+export type CreateProjectDto = {
+    /**
+     * Project name
+     */
+    name: string;
+    /**
+     * Initial project status
+     */
+    status?: 'planning' | 'preLaunch' | 'active' | 'soldOut' | 'delivered';
+    /**
+     * Project description
+     */
+    description?: string;
+    /**
+     * Project location
+     */
+    location: string;
+    /**
+     * Developer name
+     */
+    developerName?: string;
+    /**
+     * Launch date (ISO 8601 date string)
+     */
+    launchDate?: string;
+    /**
+     * Completion date (ISO 8601 date string)
+     */
+    completionDate?: string;
+    /**
+     * Total number of units
+     */
+    totalUnits?: number;
+};
+
+export type ProjectResponseDto = {
+    id: string;
+    tenantId: string;
+    name: string;
+    description?: string;
+    location: string;
+    developerName?: string;
+    status: 'planning' | 'preLaunch' | 'active' | 'soldOut' | 'delivered';
+    launchDate?: string;
+    completionDate?: string;
+    totalUnits?: number;
+    soldUnits?: number;
+    commissionPlanId?: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt?: string;
+};
+
+export type PaginatedProjectResponseDto = {
+    data: Array<ProjectResponseDto>;
+    meta: PaginatedMetaDto;
+};
+
+export type UpdateProjectDto = {
+    /**
+     * Project name
+     */
+    name?: string;
+    /**
+     * Project description
+     */
+    description?: string;
+    /**
+     * Project location
+     */
+    location?: string;
+    /**
+     * Developer name
+     */
+    developerName?: string;
+    /**
+     * Launch date (ISO 8601 date string)
+     */
+    launchDate?: string;
+    /**
+     * Completion date (ISO 8601 date string)
+     */
+    completionDate?: string;
+    /**
+     * Total number of units
+     */
+    totalUnits?: number;
+};
+
+export type ChangeProjectStatusDto = {
+    /**
+     * Target status to transition to
+     */
+    status: 'planning' | 'preLaunch' | 'active' | 'soldOut' | 'delivered';
+};
+
 export type AuthControllerLoginData = {
     body: LoginDto;
     path?: never;
@@ -735,3 +995,390 @@ export type UsersAdminControllerFindAllResponses = {
 };
 
 export type UsersAdminControllerFindAllResponse = UsersAdminControllerFindAllResponses[keyof UsersAdminControllerFindAllResponses];
+
+export type PropertiesControllerFindAllData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Page number
+         */
+        page?: number;
+        /**
+         * Items per page
+         */
+        limit?: number;
+        /**
+         * Field to sort by
+         */
+        sortBy?: string;
+        /**
+         * Sort order
+         */
+        sortOrder?: 'asc' | 'desc';
+        /**
+         * Search by title or address
+         */
+        search?: string;
+        /**
+         * Filter by property status
+         */
+        status?: 'active' | 'pending' | 'sold' | 'withdrawn';
+        /**
+         * Filter by property type
+         */
+        type?: 'apartment' | 'villa' | 'commercial' | 'land' | 'townhouse';
+        /**
+         * Filter by project ID
+         */
+        projectId?: string;
+        /**
+         * Minimum price filter
+         */
+        minPrice?: number;
+        /**
+         * Maximum price filter
+         */
+        maxPrice?: number;
+        /**
+         * Filter by minimum number of bedrooms
+         */
+        beds?: number;
+    };
+    url: '/api/properties';
+};
+
+export type PropertiesControllerFindAllResponses = {
+    /**
+     * Paginated property list
+     */
+    200: PaginatedPropertyResponseDto;
+};
+
+export type PropertiesControllerFindAllResponse = PropertiesControllerFindAllResponses[keyof PropertiesControllerFindAllResponses];
+
+export type PropertiesControllerCreateData = {
+    body: CreatePropertyDto;
+    path?: never;
+    query?: never;
+    url: '/api/properties';
+};
+
+export type PropertiesControllerCreateErrors = {
+    /**
+     * Validation error or invalid attributes
+     */
+    400: unknown;
+    /**
+     * Forbidden
+     */
+    403: unknown;
+    /**
+     * Project or agent not found
+     */
+    404: unknown;
+};
+
+export type PropertiesControllerCreateResponses = {
+    /**
+     * Property created
+     */
+    201: PropertyResponseDto;
+};
+
+export type PropertiesControllerCreateResponse = PropertiesControllerCreateResponses[keyof PropertiesControllerCreateResponses];
+
+export type PropertiesControllerRemoveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/properties/{id}';
+};
+
+export type PropertiesControllerRemoveErrors = {
+    /**
+     * Property not found
+     */
+    404: unknown;
+};
+
+export type PropertiesControllerRemoveResponses = {
+    /**
+     * Property deleted
+     */
+    200: PropertyResponseDto;
+};
+
+export type PropertiesControllerRemoveResponse = PropertiesControllerRemoveResponses[keyof PropertiesControllerRemoveResponses];
+
+export type PropertiesControllerFindByIdData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/properties/{id}';
+};
+
+export type PropertiesControllerFindByIdErrors = {
+    /**
+     * Property not found
+     */
+    404: unknown;
+};
+
+export type PropertiesControllerFindByIdResponses = {
+    /**
+     * Property details
+     */
+    200: PropertyResponseDto;
+};
+
+export type PropertiesControllerFindByIdResponse = PropertiesControllerFindByIdResponses[keyof PropertiesControllerFindByIdResponses];
+
+export type PropertiesControllerUpdateData = {
+    body: UpdatePropertyDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/properties/{id}';
+};
+
+export type PropertiesControllerUpdateErrors = {
+    /**
+     * Property not found
+     */
+    404: unknown;
+};
+
+export type PropertiesControllerUpdateResponses = {
+    /**
+     * Updated property
+     */
+    200: PropertyResponseDto;
+};
+
+export type PropertiesControllerUpdateResponse = PropertiesControllerUpdateResponses[keyof PropertiesControllerUpdateResponses];
+
+export type PropertiesControllerChangeStatusData = {
+    body: ChangePropertyStatusDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/properties/{id}/status';
+};
+
+export type PropertiesControllerChangeStatusErrors = {
+    /**
+     * Invalid transition
+     */
+    400: unknown;
+    /**
+     * Forbidden
+     */
+    403: unknown;
+};
+
+export type PropertiesControllerChangeStatusResponses = {
+    /**
+     * Status updated
+     */
+    200: PropertyResponseDto;
+};
+
+export type PropertiesControllerChangeStatusResponse = PropertiesControllerChangeStatusResponses[keyof PropertiesControllerChangeStatusResponses];
+
+export type PropertiesControllerGetPresignedUploadUrlData = {
+    body: MediaUploadDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/properties/{id}/media';
+};
+
+export type PropertiesControllerGetPresignedUploadUrlErrors = {
+    /**
+     * Property not found
+     */
+    404: unknown;
+};
+
+export type PropertiesControllerGetPresignedUploadUrlResponses = {
+    /**
+     * Pre-signed upload URL generated
+     */
+    200: unknown;
+};
+
+export type ProjectsControllerFindAllData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Page number
+         */
+        page?: number;
+        /**
+         * Items per page
+         */
+        limit?: number;
+        /**
+         * Field to sort by
+         */
+        sortBy?: string;
+        /**
+         * Sort order
+         */
+        sortOrder?: 'asc' | 'desc';
+        /**
+         * Search by name or location
+         */
+        search?: string;
+        /**
+         * Filter by project status
+         */
+        status?: 'planning' | 'preLaunch' | 'active' | 'soldOut' | 'delivered';
+    };
+    url: '/api/projects';
+};
+
+export type ProjectsControllerFindAllResponses = {
+    /**
+     * Paginated project list
+     */
+    200: PaginatedProjectResponseDto;
+};
+
+export type ProjectsControllerFindAllResponse = ProjectsControllerFindAllResponses[keyof ProjectsControllerFindAllResponses];
+
+export type ProjectsControllerCreateData = {
+    body: CreateProjectDto;
+    path?: never;
+    query?: never;
+    url: '/api/projects';
+};
+
+export type ProjectsControllerCreateErrors = {
+    /**
+     * Forbidden
+     */
+    403: unknown;
+};
+
+export type ProjectsControllerCreateResponses = {
+    /**
+     * Project created
+     */
+    201: ProjectResponseDto;
+};
+
+export type ProjectsControllerCreateResponse = ProjectsControllerCreateResponses[keyof ProjectsControllerCreateResponses];
+
+export type ProjectsControllerRemoveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/projects/{id}';
+};
+
+export type ProjectsControllerRemoveErrors = {
+    /**
+     * Project not found
+     */
+    404: unknown;
+};
+
+export type ProjectsControllerRemoveResponses = {
+    /**
+     * Project deleted
+     */
+    200: ProjectResponseDto;
+};
+
+export type ProjectsControllerRemoveResponse = ProjectsControllerRemoveResponses[keyof ProjectsControllerRemoveResponses];
+
+export type ProjectsControllerFindByIdData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/projects/{id}';
+};
+
+export type ProjectsControllerFindByIdErrors = {
+    /**
+     * Project not found
+     */
+    404: unknown;
+};
+
+export type ProjectsControllerFindByIdResponses = {
+    /**
+     * Project details
+     */
+    200: ProjectResponseDto;
+};
+
+export type ProjectsControllerFindByIdResponse = ProjectsControllerFindByIdResponses[keyof ProjectsControllerFindByIdResponses];
+
+export type ProjectsControllerUpdateData = {
+    body: UpdateProjectDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/projects/{id}';
+};
+
+export type ProjectsControllerUpdateErrors = {
+    /**
+     * Project not found
+     */
+    404: unknown;
+};
+
+export type ProjectsControllerUpdateResponses = {
+    /**
+     * Updated project
+     */
+    200: ProjectResponseDto;
+};
+
+export type ProjectsControllerUpdateResponse = ProjectsControllerUpdateResponses[keyof ProjectsControllerUpdateResponses];
+
+export type ProjectsControllerChangeStatusData = {
+    body: ChangeProjectStatusDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/projects/{id}/status';
+};
+
+export type ProjectsControllerChangeStatusErrors = {
+    /**
+     * Invalid transition
+     */
+    400: unknown;
+    /**
+     * Forbidden
+     */
+    403: unknown;
+};
+
+export type ProjectsControllerChangeStatusResponses = {
+    /**
+     * Status updated
+     */
+    200: ProjectResponseDto;
+};
+
+export type ProjectsControllerChangeStatusResponse = ProjectsControllerChangeStatusResponses[keyof ProjectsControllerChangeStatusResponses];
