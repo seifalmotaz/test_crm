@@ -42,6 +42,140 @@ export type LogoutResponseDto = {
     success: boolean;
 };
 
+export type AdminLoginDto = {
+    /**
+     * Super admin email address
+     */
+    email: string;
+    /**
+     * Super admin password
+     */
+    password: string;
+};
+
+export type CreateOrganizationDto = {
+    /**
+     * Organization name
+     */
+    name: string;
+    /**
+     * URL-safe unique slug
+     */
+    slug: string;
+    plan?: 'basic' | 'pro' | 'enterprise';
+    /**
+     * Initial admin email
+     */
+    adminEmail: string;
+    /**
+     * Initial admin name
+     */
+    adminName: string;
+    /**
+     * Initial admin password
+     */
+    adminPassword: string;
+};
+
+export type UpdateOrganizationDto = {
+    name?: string;
+    slug?: string;
+    status?: 'active' | 'suspended' | 'inactive';
+    plan?: 'basic' | 'pro' | 'enterprise';
+    /**
+     * Organization settings
+     */
+    settings?: {
+        [key: string]: unknown;
+    };
+};
+
+export type UserResponseDto = {
+    id: string;
+    tenantId: string;
+    email: string;
+    name: string;
+    role: 'admin' | 'manager' | 'agent';
+    status: 'active' | 'inactive';
+    departedAt?: string;
+    commissionSplit?: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt?: string;
+};
+
+export type PaginatedMetaDto = {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+};
+
+export type PaginatedUserResponseDto = {
+    data: Array<UserResponseDto>;
+    meta: PaginatedMetaDto;
+};
+
+export type CreateUserDto = {
+    /**
+     * User email address
+     */
+    email: string;
+    /**
+     * Full name
+     */
+    name: string;
+    /**
+     * User role
+     */
+    role: 'admin' | 'manager' | 'agent';
+    /**
+     * Initial password (auto-generated if omitted)
+     */
+    password?: string;
+    /**
+     * Commission split (required when role is agent)
+     */
+    commissionSplit?: number;
+};
+
+export type UserCreatedResponseDto = {
+    user: UserResponseDto;
+    generatedPassword?: string;
+};
+
+export type UpdateUserDto = {
+    /**
+     * User email address
+     */
+    email?: string;
+    /**
+     * Full name
+     */
+    name?: string;
+    /**
+     * Commission split
+     */
+    commissionSplit?: number;
+    /**
+     * User status
+     */
+    status?: 'active' | 'inactive';
+};
+
+export type UpdateRoleDto = {
+    /**
+     * New role
+     */
+    role: 'manager' | 'agent';
+};
+
+export type UserDeactivatedResponseDto = {
+    userId: string;
+    unassignedLeads: number;
+    departedAt: string;
+};
+
 export type AuthControllerLoginData = {
     body: LoginDto;
     path?: never;
@@ -145,3 +279,459 @@ export type AuthControllerMeResponses = {
 };
 
 export type AuthControllerMeResponse = AuthControllerMeResponses[keyof AuthControllerMeResponses];
+
+export type AdminAuthControllerLoginData = {
+    body: AdminLoginDto;
+    path?: never;
+    query?: never;
+    url: '/api/admin/auth/login';
+};
+
+export type AdminAuthControllerLoginErrors = {
+    /**
+     * Validation error
+     */
+    400: ProblemDetailsDto;
+    /**
+     * Invalid credentials
+     */
+    401: ProblemDetailsDto;
+};
+
+export type AdminAuthControllerLoginError = AdminAuthControllerLoginErrors[keyof AdminAuthControllerLoginErrors];
+
+export type AdminAuthControllerLoginResponses = {
+    /**
+     * Login successful
+     */
+    200: unknown;
+};
+
+export type AdminAuthControllerMeData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/admin/auth/me';
+};
+
+export type AdminAuthControllerMeErrors = {
+    /**
+     * Not authenticated
+     */
+    401: ProblemDetailsDto;
+};
+
+export type AdminAuthControllerMeError = AdminAuthControllerMeErrors[keyof AdminAuthControllerMeErrors];
+
+export type AdminAuthControllerMeResponses = {
+    /**
+     * Current admin profile
+     */
+    200: unknown;
+};
+
+export type OrganizationsControllerGetMyOrganizationData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/organizations/me';
+};
+
+export type OrganizationsControllerGetMyOrganizationErrors = {
+    /**
+     * Not authenticated
+     */
+    401: unknown;
+    /**
+     * Organization not found
+     */
+    404: unknown;
+};
+
+export type OrganizationsControllerGetMyOrganizationResponses = {
+    /**
+     * Organization details with user count
+     */
+    200: unknown;
+};
+
+export type OrganizationsAdminControllerFindAllData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Page number
+         */
+        page?: number;
+        /**
+         * Items per page
+         */
+        limit?: number;
+        /**
+         * Field to sort by
+         */
+        sortBy?: string;
+        /**
+         * Sort order
+         */
+        sortOrder?: 'asc' | 'desc';
+        /**
+         * Search query string
+         */
+        search?: string;
+        /**
+         * Filter by status
+         */
+        status?: string;
+        /**
+         * Filter by plan
+         */
+        plan?: string;
+    };
+    url: '/api/admin/organizations';
+};
+
+export type OrganizationsAdminControllerFindAllResponses = {
+    /**
+     * Paginated list of organizations
+     */
+    200: unknown;
+};
+
+export type OrganizationsAdminControllerCreateData = {
+    body: CreateOrganizationDto;
+    path?: never;
+    query?: never;
+    url: '/api/admin/organizations';
+};
+
+export type OrganizationsAdminControllerCreateErrors = {
+    /**
+     * Slug or email already exists
+     */
+    409: unknown;
+};
+
+export type OrganizationsAdminControllerCreateResponses = {
+    /**
+     * Organization created
+     */
+    201: unknown;
+};
+
+export type OrganizationsAdminControllerRemoveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/organizations/{id}';
+};
+
+export type OrganizationsAdminControllerRemoveResponses = {
+    /**
+     * Organization deleted
+     */
+    204: void;
+};
+
+export type OrganizationsAdminControllerRemoveResponse = OrganizationsAdminControllerRemoveResponses[keyof OrganizationsAdminControllerRemoveResponses];
+
+export type OrganizationsAdminControllerFindOneData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/organizations/{id}';
+};
+
+export type OrganizationsAdminControllerFindOneErrors = {
+    /**
+     * Organization not found
+     */
+    404: unknown;
+};
+
+export type OrganizationsAdminControllerFindOneResponses = {
+    /**
+     * Organization details
+     */
+    200: unknown;
+};
+
+export type OrganizationsAdminControllerUpdateData = {
+    body: UpdateOrganizationDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/organizations/{id}';
+};
+
+export type OrganizationsAdminControllerUpdateResponses = {
+    /**
+     * Updated organization
+     */
+    200: unknown;
+};
+
+export type OrganizationsAdminControllerActivateData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/organizations/{id}/activate';
+};
+
+export type OrganizationsAdminControllerActivateResponses = {
+    /**
+     * Organization activated
+     */
+    200: unknown;
+};
+
+export type OrganizationsAdminControllerSuspendData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/organizations/{id}/suspend';
+};
+
+export type OrganizationsAdminControllerSuspendResponses = {
+    /**
+     * Organization suspended
+     */
+    200: unknown;
+};
+
+export type UsersControllerFindAllData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Page number
+         */
+        page?: number;
+        /**
+         * Items per page
+         */
+        limit?: number;
+        /**
+         * Field to sort by
+         */
+        sortBy?: string;
+        /**
+         * Sort order
+         */
+        sortOrder?: 'asc' | 'desc';
+        /**
+         * Search query string
+         */
+        search?: string;
+        /**
+         * Filter by status
+         */
+        status?: 'active' | 'inactive';
+        /**
+         * Filter by role
+         */
+        role?: 'admin' | 'manager' | 'agent';
+    };
+    url: '/api/users';
+};
+
+export type UsersControllerFindAllResponses = {
+    /**
+     * Paginated user list
+     */
+    200: PaginatedUserResponseDto;
+};
+
+export type UsersControllerFindAllResponse = UsersControllerFindAllResponses[keyof UsersControllerFindAllResponses];
+
+export type UsersControllerCreateData = {
+    body: CreateUserDto;
+    path?: never;
+    query?: never;
+    url: '/api/users';
+};
+
+export type UsersControllerCreateErrors = {
+    /**
+     * Insufficient permissions
+     */
+    403: unknown;
+    /**
+     * Email already exists
+     */
+    409: unknown;
+};
+
+export type UsersControllerCreateResponses = {
+    /**
+     * User created
+     */
+    201: UserCreatedResponseDto;
+};
+
+export type UsersControllerCreateResponse = UsersControllerCreateResponses[keyof UsersControllerCreateResponses];
+
+export type UsersControllerFindByIdData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/users/{id}';
+};
+
+export type UsersControllerFindByIdErrors = {
+    /**
+     * User not found
+     */
+    404: unknown;
+};
+
+export type UsersControllerFindByIdResponses = {
+    /**
+     * User details
+     */
+    200: UserResponseDto;
+};
+
+export type UsersControllerFindByIdResponse = UsersControllerFindByIdResponses[keyof UsersControllerFindByIdResponses];
+
+export type UsersControllerUpdateData = {
+    body: UpdateUserDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/users/{id}';
+};
+
+export type UsersControllerUpdateResponses = {
+    /**
+     * Updated user
+     */
+    200: UserResponseDto;
+};
+
+export type UsersControllerUpdateResponse = UsersControllerUpdateResponses[keyof UsersControllerUpdateResponses];
+
+export type UsersControllerChangeRoleData = {
+    body: UpdateRoleDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/users/{id}/role';
+};
+
+export type UsersControllerChangeRoleErrors = {
+    /**
+     * Cannot downgrade last admin
+     */
+    400: unknown;
+};
+
+export type UsersControllerChangeRoleResponses = {
+    /**
+     * Role changed
+     */
+    200: UserResponseDto;
+};
+
+export type UsersControllerChangeRoleResponse = UsersControllerChangeRoleResponses[keyof UsersControllerChangeRoleResponses];
+
+export type UsersControllerDeactivateData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/users/{id}/deactivate';
+};
+
+export type UsersControllerDeactivateErrors = {
+    /**
+     * Last admin / already inactive / self-deactivation
+     */
+    400: unknown;
+};
+
+export type UsersControllerDeactivateResponses = {
+    /**
+     * User deactivated with lead unassignment summary
+     */
+    200: UserDeactivatedResponseDto;
+};
+
+export type UsersControllerDeactivateResponse = UsersControllerDeactivateResponses[keyof UsersControllerDeactivateResponses];
+
+export type UsersControllerReactivateData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/users/{id}/activate';
+};
+
+export type UsersControllerReactivateResponses = {
+    /**
+     * User reactivated
+     */
+    200: UserResponseDto;
+};
+
+export type UsersControllerReactivateResponse = UsersControllerReactivateResponses[keyof UsersControllerReactivateResponses];
+
+export type UsersAdminControllerFindAllData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Page number
+         */
+        page?: number;
+        /**
+         * Items per page
+         */
+        limit?: number;
+        /**
+         * Field to sort by
+         */
+        sortBy?: string;
+        /**
+         * Sort order
+         */
+        sortOrder?: 'asc' | 'desc';
+        /**
+         * Search query string
+         */
+        search?: string;
+        /**
+         * Filter by status
+         */
+        status?: 'active' | 'inactive';
+        /**
+         * Filter by role
+         */
+        role?: 'admin' | 'manager' | 'agent';
+    };
+    url: '/api/admin/users';
+};
+
+export type UsersAdminControllerFindAllResponses = {
+    /**
+     * Paginated cross-tenant user list
+     */
+    200: PaginatedUserResponseDto;
+};
+
+export type UsersAdminControllerFindAllResponse = UsersAdminControllerFindAllResponses[keyof UsersAdminControllerFindAllResponses];

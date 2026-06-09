@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { AuthControllerLoginData, AuthControllerLoginErrors, AuthControllerLoginResponses, AuthControllerLogoutData, AuthControllerLogoutErrors, AuthControllerLogoutResponses, AuthControllerMeData, AuthControllerMeErrors, AuthControllerMeResponses, AuthControllerRefreshData, AuthControllerRefreshErrors, AuthControllerRefreshResponses } from './types.gen';
+import type { AdminAuthControllerLoginData, AdminAuthControllerLoginErrors, AdminAuthControllerLoginResponses, AdminAuthControllerMeData, AdminAuthControllerMeErrors, AdminAuthControllerMeResponses, AuthControllerLoginData, AuthControllerLoginErrors, AuthControllerLoginResponses, AuthControllerLogoutData, AuthControllerLogoutErrors, AuthControllerLogoutResponses, AuthControllerMeData, AuthControllerMeErrors, AuthControllerMeResponses, AuthControllerRefreshData, AuthControllerRefreshErrors, AuthControllerRefreshResponses, OrganizationsAdminControllerActivateData, OrganizationsAdminControllerActivateResponses, OrganizationsAdminControllerCreateData, OrganizationsAdminControllerCreateErrors, OrganizationsAdminControllerCreateResponses, OrganizationsAdminControllerFindAllData, OrganizationsAdminControllerFindAllResponses, OrganizationsAdminControllerFindOneData, OrganizationsAdminControllerFindOneErrors, OrganizationsAdminControllerFindOneResponses, OrganizationsAdminControllerRemoveData, OrganizationsAdminControllerRemoveResponses, OrganizationsAdminControllerSuspendData, OrganizationsAdminControllerSuspendResponses, OrganizationsAdminControllerUpdateData, OrganizationsAdminControllerUpdateResponses, OrganizationsControllerGetMyOrganizationData, OrganizationsControllerGetMyOrganizationErrors, OrganizationsControllerGetMyOrganizationResponses, UsersAdminControllerFindAllData, UsersAdminControllerFindAllResponses, UsersControllerChangeRoleData, UsersControllerChangeRoleErrors, UsersControllerChangeRoleResponses, UsersControllerCreateData, UsersControllerCreateErrors, UsersControllerCreateResponses, UsersControllerDeactivateData, UsersControllerDeactivateErrors, UsersControllerDeactivateResponses, UsersControllerFindAllData, UsersControllerFindAllResponses, UsersControllerFindByIdData, UsersControllerFindByIdErrors, UsersControllerFindByIdResponses, UsersControllerReactivateData, UsersControllerReactivateResponses, UsersControllerUpdateData, UsersControllerUpdateResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -44,3 +44,135 @@ export const authControllerLogout = <ThrowOnError extends boolean = false>(optio
  * Get current authenticated user
  */
 export const authControllerMe = <ThrowOnError extends boolean = false>(options?: Options<AuthControllerMeData, ThrowOnError>): RequestResult<AuthControllerMeResponses, AuthControllerMeErrors, ThrowOnError> => (options?.client ?? client).get<AuthControllerMeResponses, AuthControllerMeErrors, ThrowOnError>({ url: '/api/auth/me', ...options });
+
+/**
+ * Super admin login
+ */
+export const adminAuthControllerLogin = <ThrowOnError extends boolean = false>(options: Options<AdminAuthControllerLoginData, ThrowOnError>): RequestResult<AdminAuthControllerLoginResponses, AdminAuthControllerLoginErrors, ThrowOnError> => (options.client ?? client).post<AdminAuthControllerLoginResponses, AdminAuthControllerLoginErrors, ThrowOnError>({
+    url: '/api/admin/auth/login',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Get current super admin profile
+ */
+export const adminAuthControllerMe = <ThrowOnError extends boolean = false>(options?: Options<AdminAuthControllerMeData, ThrowOnError>): RequestResult<AdminAuthControllerMeResponses, AdminAuthControllerMeErrors, ThrowOnError> => (options?.client ?? client).get<AdminAuthControllerMeResponses, AdminAuthControllerMeErrors, ThrowOnError>({ url: '/api/admin/auth/me', ...options });
+
+/**
+ * Get current organization details
+ */
+export const organizationsControllerGetMyOrganization = <ThrowOnError extends boolean = false>(options?: Options<OrganizationsControllerGetMyOrganizationData, ThrowOnError>): RequestResult<OrganizationsControllerGetMyOrganizationResponses, OrganizationsControllerGetMyOrganizationErrors, ThrowOnError> => (options?.client ?? client).get<OrganizationsControllerGetMyOrganizationResponses, OrganizationsControllerGetMyOrganizationErrors, ThrowOnError>({ url: '/api/organizations/me', ...options });
+
+/**
+ * List all organizations
+ */
+export const organizationsAdminControllerFindAll = <ThrowOnError extends boolean = false>(options?: Options<OrganizationsAdminControllerFindAllData, ThrowOnError>): RequestResult<OrganizationsAdminControllerFindAllResponses, unknown, ThrowOnError> => (options?.client ?? client).get<OrganizationsAdminControllerFindAllResponses, unknown, ThrowOnError>({ url: '/api/admin/organizations', ...options });
+
+/**
+ * Create organization with initial admin
+ */
+export const organizationsAdminControllerCreate = <ThrowOnError extends boolean = false>(options: Options<OrganizationsAdminControllerCreateData, ThrowOnError>): RequestResult<OrganizationsAdminControllerCreateResponses, OrganizationsAdminControllerCreateErrors, ThrowOnError> => (options.client ?? client).post<OrganizationsAdminControllerCreateResponses, OrganizationsAdminControllerCreateErrors, ThrowOnError>({
+    url: '/api/admin/organizations',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Delete organization (hard delete, cascades)
+ */
+export const organizationsAdminControllerRemove = <ThrowOnError extends boolean = false>(options: Options<OrganizationsAdminControllerRemoveData, ThrowOnError>): RequestResult<OrganizationsAdminControllerRemoveResponses, unknown, ThrowOnError> => (options.client ?? client).delete<OrganizationsAdminControllerRemoveResponses, unknown, ThrowOnError>({ url: '/api/admin/organizations/{id}', ...options });
+
+/**
+ * Get organization by ID
+ */
+export const organizationsAdminControllerFindOne = <ThrowOnError extends boolean = false>(options: Options<OrganizationsAdminControllerFindOneData, ThrowOnError>): RequestResult<OrganizationsAdminControllerFindOneResponses, OrganizationsAdminControllerFindOneErrors, ThrowOnError> => (options.client ?? client).get<OrganizationsAdminControllerFindOneResponses, OrganizationsAdminControllerFindOneErrors, ThrowOnError>({ url: '/api/admin/organizations/{id}', ...options });
+
+/**
+ * Update organization
+ */
+export const organizationsAdminControllerUpdate = <ThrowOnError extends boolean = false>(options: Options<OrganizationsAdminControllerUpdateData, ThrowOnError>): RequestResult<OrganizationsAdminControllerUpdateResponses, unknown, ThrowOnError> => (options.client ?? client).patch<OrganizationsAdminControllerUpdateResponses, unknown, ThrowOnError>({
+    url: '/api/admin/organizations/{id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Activate organization
+ */
+export const organizationsAdminControllerActivate = <ThrowOnError extends boolean = false>(options: Options<OrganizationsAdminControllerActivateData, ThrowOnError>): RequestResult<OrganizationsAdminControllerActivateResponses, unknown, ThrowOnError> => (options.client ?? client).post<OrganizationsAdminControllerActivateResponses, unknown, ThrowOnError>({ url: '/api/admin/organizations/{id}/activate', ...options });
+
+/**
+ * Suspend organization
+ */
+export const organizationsAdminControllerSuspend = <ThrowOnError extends boolean = false>(options: Options<OrganizationsAdminControllerSuspendData, ThrowOnError>): RequestResult<OrganizationsAdminControllerSuspendResponses, unknown, ThrowOnError> => (options.client ?? client).post<OrganizationsAdminControllerSuspendResponses, unknown, ThrowOnError>({ url: '/api/admin/organizations/{id}/suspend', ...options });
+
+/**
+ * List users
+ */
+export const usersControllerFindAll = <ThrowOnError extends boolean = false>(options?: Options<UsersControllerFindAllData, ThrowOnError>): RequestResult<UsersControllerFindAllResponses, unknown, ThrowOnError> => (options?.client ?? client).get<UsersControllerFindAllResponses, unknown, ThrowOnError>({ url: '/api/users', ...options });
+
+/**
+ * Create user
+ */
+export const usersControllerCreate = <ThrowOnError extends boolean = false>(options: Options<UsersControllerCreateData, ThrowOnError>): RequestResult<UsersControllerCreateResponses, UsersControllerCreateErrors, ThrowOnError> => (options.client ?? client).post<UsersControllerCreateResponses, UsersControllerCreateErrors, ThrowOnError>({
+    url: '/api/users',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Get user by ID
+ */
+export const usersControllerFindById = <ThrowOnError extends boolean = false>(options: Options<UsersControllerFindByIdData, ThrowOnError>): RequestResult<UsersControllerFindByIdResponses, UsersControllerFindByIdErrors, ThrowOnError> => (options.client ?? client).get<UsersControllerFindByIdResponses, UsersControllerFindByIdErrors, ThrowOnError>({ url: '/api/users/{id}', ...options });
+
+/**
+ * Update user
+ */
+export const usersControllerUpdate = <ThrowOnError extends boolean = false>(options: Options<UsersControllerUpdateData, ThrowOnError>): RequestResult<UsersControllerUpdateResponses, unknown, ThrowOnError> => (options.client ?? client).patch<UsersControllerUpdateResponses, unknown, ThrowOnError>({
+    url: '/api/users/{id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Change user role
+ */
+export const usersControllerChangeRole = <ThrowOnError extends boolean = false>(options: Options<UsersControllerChangeRoleData, ThrowOnError>): RequestResult<UsersControllerChangeRoleResponses, UsersControllerChangeRoleErrors, ThrowOnError> => (options.client ?? client).patch<UsersControllerChangeRoleResponses, UsersControllerChangeRoleErrors, ThrowOnError>({
+    url: '/api/users/{id}/role',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Deactivate user (departure flow)
+ */
+export const usersControllerDeactivate = <ThrowOnError extends boolean = false>(options: Options<UsersControllerDeactivateData, ThrowOnError>): RequestResult<UsersControllerDeactivateResponses, UsersControllerDeactivateErrors, ThrowOnError> => (options.client ?? client).post<UsersControllerDeactivateResponses, UsersControllerDeactivateErrors, ThrowOnError>({ url: '/api/users/{id}/deactivate', ...options });
+
+/**
+ * Reactivate departed user
+ */
+export const usersControllerReactivate = <ThrowOnError extends boolean = false>(options: Options<UsersControllerReactivateData, ThrowOnError>): RequestResult<UsersControllerReactivateResponses, unknown, ThrowOnError> => (options.client ?? client).post<UsersControllerReactivateResponses, unknown, ThrowOnError>({ url: '/api/users/{id}/activate', ...options });
+
+/**
+ * List users across all tenants
+ */
+export const usersAdminControllerFindAll = <ThrowOnError extends boolean = false>(options?: Options<UsersAdminControllerFindAllData, ThrowOnError>): RequestResult<UsersAdminControllerFindAllResponses, unknown, ThrowOnError> => (options?.client ?? client).get<UsersAdminControllerFindAllResponses, unknown, ThrowOnError>({ url: '/api/admin/users', ...options });
