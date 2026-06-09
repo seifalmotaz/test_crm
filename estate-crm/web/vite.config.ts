@@ -13,5 +13,12 @@ export default defineConfig({
   server: {
     host: true,
     port: Number(process.env.PORT || 5173),
+    proxy: {
+      '/api': {
+        target: 'https://estate-crm.localhost',
+        changeOrigin: true,
+        secure: false,
+      },
+    },
   },
 });

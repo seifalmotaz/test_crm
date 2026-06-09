@@ -8,6 +8,7 @@ const envSchema = z.object({
   REDIS_URL: z.string().url().default('redis://localhost:6379'),
   JWT_SECRET: z.string(),
   COOKIE_DOMAIN: z.string().default('localhost'),
+  COOKIE_SECURE: z.coerce.boolean().default(true),
   CORS_ORIGIN: z.string().default('https://crm-web.localhost:1355'),
   S3_BUCKET: z.string(),
   S3_REGION: z.string(),

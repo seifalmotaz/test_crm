@@ -49,20 +49,18 @@ export class AuthController {
 
     response.cookie('access_token', result.accessToken, {
       httpOnly: true,
-      secure: config.NODE_ENV === 'production',
-      sameSite: 'none',
+      secure: config.COOKIE_SECURE,
+      sameSite: 'lax',
       maxAge: 15 * 60 * 1000,
       path: '/',
-      domain: config.COOKIE_DOMAIN,
     });
 
     response.cookie('refresh_token', result.refreshToken, {
       httpOnly: true,
-      secure: config.NODE_ENV === 'production',
-      sameSite: 'none',
+      secure: config.COOKIE_SECURE,
+      sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000,
       path: '/',
-      domain: config.COOKIE_DOMAIN,
     });
 
     return result.user;
@@ -88,20 +86,18 @@ export class AuthController {
 
     response.cookie('access_token', result.accessToken, {
       httpOnly: true,
-      secure: config.NODE_ENV === 'production',
-      sameSite: 'none',
+      secure: config.COOKIE_SECURE,
+      sameSite: 'lax',
       maxAge: 15 * 60 * 1000,
       path: '/',
-      domain: config.COOKIE_DOMAIN,
     });
 
     response.cookie('refresh_token', result.refreshToken, {
       httpOnly: true,
-      secure: config.NODE_ENV === 'production',
-      sameSite: 'none',
+      secure: config.COOKIE_SECURE,
+      sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000,
       path: '/',
-      domain: config.COOKIE_DOMAIN,
     });
 
     return result.user;
@@ -119,8 +115,16 @@ export class AuthController {
   ) {
     await this.authService.logout(user.tenantId, user.id);
 
-    response.clearCookie('access_token', { path: '/' });
-    response.clearCookie('refresh_token', { path: '/' });
+    response.clearCookie('access_token', {
+      path: '/',
+      secure: config.COOKIE_SECURE,
+      sameSite: 'lax',
+    });
+    response.clearCookie('refresh_token', {
+      path: '/',
+      secure: config.COOKIE_SECURE,
+      sameSite: 'lax',
+    });
 
     return { success: true };
   }
