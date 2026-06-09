@@ -17,7 +17,6 @@ const TENANT_TABLES = [
   'commission_records',
   'commission_plans',
   'deals',
-  'clients',
   'activities',
   'leads',
   'properties',
