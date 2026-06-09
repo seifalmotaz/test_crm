@@ -436,6 +436,246 @@ export type ChangeProjectStatusDto = {
     status: 'planning' | 'preLaunch' | 'active' | 'soldOut' | 'delivered';
 };
 
+export type CreateLeadDto = {
+    /**
+     * Lead full name
+     */
+    name: string;
+    /**
+     * Lead email address
+     */
+    email?: string;
+    /**
+     * Lead phone number
+     */
+    phone: string;
+    /**
+     * Lead source (e.g., website, referral, social_media, walk_in, cold_call, advertisement, portal, other)
+     */
+    source: string;
+    /**
+     * Lead type (e.g., buyer, seller, renter, investor)
+     */
+    type: string;
+    /**
+     * Minimum budget in cents
+     */
+    budgetMin?: number;
+    /**
+     * Maximum budget in cents
+     */
+    budgetMax?: number;
+    /**
+     * Timeline in months
+     */
+    timeline?: number;
+    /**
+     * Preferred location
+     */
+    preferredLocation?: string;
+    /**
+     * Preferred property type
+     */
+    preferredType?: string;
+    /**
+     * Initial stage (defaults to fresh)
+     */
+    stage?: 'fresh' | 'qualified' | 'followUp' | 'reservation' | 'lost';
+    /**
+     * Assigned agent ID
+     */
+    agentId?: string;
+    /**
+     * Internal notes
+     */
+    notes?: string;
+    /**
+     * Next action label
+     */
+    nextAction?: string;
+    /**
+     * Next action due date
+     */
+    nextActionDate?: string;
+    /**
+     * Lead score (0-100)
+     */
+    score?: number;
+};
+
+export type LeadResponseDto = {
+    id: string;
+    tenantId: string;
+    name: string;
+    email?: string | null;
+    phone: string;
+    source: string;
+    type: string;
+    budgetMin?: number | null;
+    budgetMax?: number | null;
+    timeline?: number | null;
+    preferredLocation?: string | null;
+    preferredType?: string | null;
+    stage: string;
+    score: number;
+    agentId?: string | null;
+    previousAgentIds: Array<string>;
+    notes?: string | null;
+    nextAction?: string | null;
+    nextActionDate?: string | null;
+    isConverted: boolean;
+    isDnc: boolean;
+    dncReason?: string | null;
+    dncSetAt?: string | null;
+    dncSetById?: string | null;
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type PaginatedLeadResponseDto = {
+    data: Array<LeadResponseDto>;
+    meta: PaginatedMetaDto;
+};
+
+export type UpdateLeadDto = {
+    /**
+     * Lead full name
+     */
+    name?: string;
+    /**
+     * Lead email address
+     */
+    email?: string;
+    /**
+     * Lead phone number
+     */
+    phone?: string;
+    /**
+     * Lead source
+     */
+    source?: string;
+    /**
+     * Lead type
+     */
+    type?: string;
+    /**
+     * Minimum budget in cents
+     */
+    budgetMin?: number;
+    /**
+     * Maximum budget in cents
+     */
+    budgetMax?: number;
+    /**
+     * Timeline in months
+     */
+    timeline?: number;
+    /**
+     * Preferred location
+     */
+    preferredLocation?: string;
+    /**
+     * Preferred property type
+     */
+    preferredType?: string;
+    /**
+     * Assigned agent ID
+     */
+    agentId?: string;
+    /**
+     * Internal notes
+     */
+    notes?: string;
+    /**
+     * Next action label
+     */
+    nextAction?: string;
+    /**
+     * Next action due date
+     */
+    nextActionDate?: string;
+    /**
+     * Lead score (0-100). Manager/admin only.
+     */
+    score?: number;
+};
+
+export type ChangeLeadStageDto = {
+    /**
+     * Target lead stage
+     */
+    stage: 'fresh' | 'qualified' | 'followUp' | 'reservation' | 'lost';
+};
+
+export type ConvertLeadDto = {
+    [key: string]: unknown;
+};
+
+export type SetDncDto = {
+    /**
+     * Whether the lead is on Do-Not-Contact list
+     */
+    isDnc: boolean;
+    /**
+     * Reason for setting DNC
+     */
+    reason?: string;
+};
+
+export type AddActivityDto = {
+    /**
+     * Activity type
+     */
+    type: 'call' | 'email' | 'meeting' | 'note' | 'stage_change' | 'assignment' | 'dnc_set' | 'dnc_unset' | 'convert';
+    /**
+     * Activity content
+     */
+    content: string;
+    /**
+     * Type-specific metadata
+     */
+    metadata?: {
+        [key: string]: unknown;
+    };
+};
+
+export type LeadActivityResponseDto = {
+    id: string;
+    tenantId: string;
+    entityType: string;
+    entityId: string;
+    type: string;
+    content: string;
+    metadata?: {
+        [key: string]: unknown;
+    } | null;
+    agentId: string;
+    createdAt: string;
+};
+
+export type PaginatedLeadActivityResponseDto = {
+    data: Array<LeadActivityResponseDto>;
+    meta: PaginatedMetaDto;
+};
+
+export type LeadTagResponseDto = {
+    id: string;
+    leadId: string;
+    tag: string;
+    color: string;
+};
+
+export type AddTagDto = {
+    /**
+     * Tag label
+     */
+    tag: string;
+    /**
+     * Hex color (e.g., #FF0000)
+     */
+    color: string;
+};
+
 export type AuthControllerLoginData = {
     body: LoginDto;
     path?: never;
@@ -1382,3 +1622,426 @@ export type ProjectsControllerChangeStatusResponses = {
 };
 
 export type ProjectsControllerChangeStatusResponse = ProjectsControllerChangeStatusResponses[keyof ProjectsControllerChangeStatusResponses];
+
+export type LeadsControllerFindAllData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Page number
+         */
+        page?: number;
+        /**
+         * Items per page
+         */
+        limit?: number;
+        /**
+         * Field to sort by
+         */
+        sortBy?: string;
+        /**
+         * Sort order
+         */
+        sortOrder?: 'asc' | 'desc';
+        /**
+         * Search by name, email, or phone
+         */
+        search?: string;
+        /**
+         * Filter by lead stage
+         */
+        stage?: 'fresh' | 'qualified' | 'followUp' | 'reservation' | 'lost';
+        /**
+         * Filter by lead source
+         */
+        source?: string;
+        /**
+         * Filter by lead type
+         */
+        type?: string;
+        /**
+         * Filter by assigned agent ID
+         */
+        agentId?: string;
+        /**
+         * Filter by DNC status (true|false)
+         */
+        isDnc?: boolean;
+        /**
+         * Filter by converted status (true|false)
+         */
+        isConverted?: boolean;
+    };
+    url: '/api/leads';
+};
+
+export type LeadsControllerFindAllResponses = {
+    /**
+     * Paginated lead list
+     */
+    200: PaginatedLeadResponseDto;
+};
+
+export type LeadsControllerFindAllResponse = LeadsControllerFindAllResponses[keyof LeadsControllerFindAllResponses];
+
+export type LeadsControllerCreateData = {
+    body: CreateLeadDto;
+    path?: never;
+    query?: never;
+    url: '/api/leads';
+};
+
+export type LeadsControllerCreateErrors = {
+    /**
+     * Validation error or invalid stage
+     */
+    400: unknown;
+    /**
+     * Forbidden
+     */
+    403: unknown;
+    /**
+     * Agent not found
+     */
+    404: unknown;
+};
+
+export type LeadsControllerCreateResponses = {
+    /**
+     * Lead created
+     */
+    201: LeadResponseDto;
+};
+
+export type LeadsControllerCreateResponse = LeadsControllerCreateResponses[keyof LeadsControllerCreateResponses];
+
+export type LeadsControllerRemoveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/leads/{id}';
+};
+
+export type LeadsControllerRemoveErrors = {
+    /**
+     * Lead not found
+     */
+    404: unknown;
+};
+
+export type LeadsControllerRemoveResponses = {
+    /**
+     * Lead deleted
+     */
+    200: LeadResponseDto;
+};
+
+export type LeadsControllerRemoveResponse = LeadsControllerRemoveResponses[keyof LeadsControllerRemoveResponses];
+
+export type LeadsControllerFindByIdData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/leads/{id}';
+};
+
+export type LeadsControllerFindByIdErrors = {
+    /**
+     * Lead not found
+     */
+    404: unknown;
+};
+
+export type LeadsControllerFindByIdResponses = {
+    /**
+     * Lead details
+     */
+    200: LeadResponseDto;
+};
+
+export type LeadsControllerFindByIdResponse = LeadsControllerFindByIdResponses[keyof LeadsControllerFindByIdResponses];
+
+export type LeadsControllerUpdateData = {
+    body: UpdateLeadDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/leads/{id}';
+};
+
+export type LeadsControllerUpdateErrors = {
+    /**
+     * Forbidden (e.g., agent setting score)
+     */
+    403: unknown;
+    /**
+     * Lead or agent not found
+     */
+    404: unknown;
+};
+
+export type LeadsControllerUpdateResponses = {
+    /**
+     * Updated lead
+     */
+    200: LeadResponseDto;
+};
+
+export type LeadsControllerUpdateResponse = LeadsControllerUpdateResponses[keyof LeadsControllerUpdateResponses];
+
+export type LeadsControllerChangeStageData = {
+    body: ChangeLeadStageDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/leads/{id}/stage';
+};
+
+export type LeadsControllerChangeStageErrors = {
+    /**
+     * Invalid transition
+     */
+    400: unknown;
+    /**
+     * Lead not found
+     */
+    404: unknown;
+};
+
+export type LeadsControllerChangeStageResponses = {
+    /**
+     * Stage updated
+     */
+    200: LeadResponseDto;
+};
+
+export type LeadsControllerChangeStageResponse = LeadsControllerChangeStageResponses[keyof LeadsControllerChangeStageResponses];
+
+export type LeadsControllerConvertData = {
+    body: ConvertLeadDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/leads/{id}/convert';
+};
+
+export type LeadsControllerConvertErrors = {
+    /**
+     * Already converted or not assigned
+     */
+    400: unknown;
+    /**
+     * Lead not found
+     */
+    404: unknown;
+};
+
+export type LeadsControllerConvertResponses = {
+    /**
+     * Lead converted
+     */
+    200: LeadResponseDto;
+};
+
+export type LeadsControllerConvertResponse = LeadsControllerConvertResponses[keyof LeadsControllerConvertResponses];
+
+export type LeadsControllerSetDncData = {
+    body: SetDncDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/leads/{id}/dnc';
+};
+
+export type LeadsControllerSetDncErrors = {
+    /**
+     * Forbidden (agent)
+     */
+    403: unknown;
+    /**
+     * Lead not found
+     */
+    404: unknown;
+};
+
+export type LeadsControllerSetDncResponses = {
+    /**
+     * DNC updated
+     */
+    200: LeadResponseDto;
+};
+
+export type LeadsControllerSetDncResponse = LeadsControllerSetDncResponses[keyof LeadsControllerSetDncResponses];
+
+export type LeadsControllerFindActivitiesData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: {
+        /**
+         * Page number
+         */
+        page?: number;
+        /**
+         * Items per page
+         */
+        limit?: number;
+        /**
+         * Field to sort by
+         */
+        sortBy?: string;
+        /**
+         * Sort order
+         */
+        sortOrder?: 'asc' | 'desc';
+        /**
+         * Search in activity content
+         */
+        search?: string;
+        /**
+         * Filter by activity type
+         */
+        type?: 'call' | 'email' | 'meeting' | 'note' | 'stage_change' | 'assignment' | 'dnc_set' | 'dnc_unset' | 'convert';
+    };
+    url: '/api/leads/{id}/activities';
+};
+
+export type LeadsControllerFindActivitiesErrors = {
+    /**
+     * Lead not found
+     */
+    404: unknown;
+};
+
+export type LeadsControllerFindActivitiesResponses = {
+    /**
+     * Paginated activities
+     */
+    200: PaginatedLeadActivityResponseDto;
+};
+
+export type LeadsControllerFindActivitiesResponse = LeadsControllerFindActivitiesResponses[keyof LeadsControllerFindActivitiesResponses];
+
+export type LeadsControllerAddActivityData = {
+    body: AddActivityDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/leads/{id}/activities';
+};
+
+export type LeadsControllerAddActivityErrors = {
+    /**
+     * Validation error
+     */
+    400: unknown;
+    /**
+     * Forbidden (DNC active)
+     */
+    403: unknown;
+    /**
+     * Lead not found
+     */
+    404: unknown;
+};
+
+export type LeadsControllerAddActivityResponses = {
+    /**
+     * Activity recorded
+     */
+    201: LeadActivityResponseDto;
+};
+
+export type LeadsControllerAddActivityResponse = LeadsControllerAddActivityResponses[keyof LeadsControllerAddActivityResponses];
+
+export type LeadsControllerFindTagsData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/leads/{id}/tags';
+};
+
+export type LeadsControllerFindTagsErrors = {
+    /**
+     * Lead not found
+     */
+    404: unknown;
+};
+
+export type LeadsControllerFindTagsResponses = {
+    /**
+     * Tags list
+     */
+    200: Array<LeadTagResponseDto>;
+};
+
+export type LeadsControllerFindTagsResponse = LeadsControllerFindTagsResponses[keyof LeadsControllerFindTagsResponses];
+
+export type LeadsControllerAddTagData = {
+    body: AddTagDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/leads/{id}/tags';
+};
+
+export type LeadsControllerAddTagErrors = {
+    /**
+     * Invalid color format
+     */
+    400: unknown;
+    /**
+     * Lead not found
+     */
+    404: unknown;
+    /**
+     * Tag already exists
+     */
+    409: unknown;
+};
+
+export type LeadsControllerAddTagResponses = {
+    /**
+     * Tag added
+     */
+    201: LeadTagResponseDto;
+};
+
+export type LeadsControllerAddTagResponse = LeadsControllerAddTagResponses[keyof LeadsControllerAddTagResponses];
+
+export type LeadsControllerRemoveTagData = {
+    body?: never;
+    path: {
+        id: string;
+        tagId: string;
+    };
+    query?: never;
+    url: '/api/leads/{id}/tags/{tagId}';
+};
+
+export type LeadsControllerRemoveTagErrors = {
+    /**
+     * Tag or lead not found
+     */
+    404: unknown;
+};
+
+export type LeadsControllerRemoveTagResponses = {
+    /**
+     * Tag removed
+     */
+    200: unknown;
+};
