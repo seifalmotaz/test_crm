@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { ErrorCodes } from '@/common/errors/error-codes';
 import { AppError } from '@/common/errors/app-error';
-import type { AuthenticatedUser } from '@/common/types/auth.types';
+import type { AuthenticatedUser, AdminAuthenticatedUser } from '@/common/types/auth.types';
 
 /**
  * Super Admin access guard.
@@ -16,7 +16,7 @@ import type { AuthenticatedUser } from '@/common/types/auth.types';
 export class SuperAdminGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest();
-    const user = request.user as AuthenticatedUser | undefined;
+    const user = request.user as AuthenticatedUser | AdminAuthenticatedUser | undefined;
 
     if (!user?.isSuperAdmin) {
       throw new AppError(ErrorCodes.FORBIDDEN, 403, 'Super admin access required');

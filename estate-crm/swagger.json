@@ -158,6 +158,387 @@
           "Auth"
         ]
       }
+    },
+    "/api/admin/auth/login": {
+      "post": {
+        "operationId": "AdminAuthController_login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminLoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful"
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Super admin login",
+        "tags": [
+          "Admin Auth"
+        ]
+      }
+    },
+    "/api/admin/auth/me": {
+      "get": {
+        "operationId": "AdminAuthController_me",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Current admin profile"
+          },
+          "401": {
+            "description": "Not authenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Get current super admin profile",
+        "tags": [
+          "Admin Auth"
+        ]
+      }
+    },
+    "/api/organizations/me": {
+      "get": {
+        "operationId": "OrganizationsController_getMyOrganization",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Organization details with user count"
+          },
+          "401": {
+            "description": "Not authenticated"
+          },
+          "404": {
+            "description": "Organization not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Get current organization details",
+        "tags": [
+          "Organization"
+        ]
+      }
+    },
+    "/api/admin/organizations": {
+      "get": {
+        "operationId": "OrganizationsAdminController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Page number",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Items per page",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Field to sort by",
+            "schema": {
+              "default": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Sort order",
+            "schema": {
+              "default": "desc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search query string",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "description": "Filter by status",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "plan",
+            "required": false,
+            "in": "query",
+            "description": "Filter by plan",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of organizations"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "List all organizations",
+        "tags": [
+          "Super Admin"
+        ]
+      },
+      "post": {
+        "operationId": "OrganizationsAdminController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrganizationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Organization created"
+          },
+          "409": {
+            "description": "Slug or email already exists"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Create organization with initial admin",
+        "tags": [
+          "Super Admin"
+        ]
+      }
+    },
+    "/api/admin/organizations/{id}": {
+      "get": {
+        "operationId": "OrganizationsAdminController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Organization details"
+          },
+          "404": {
+            "description": "Organization not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Get organization by ID",
+        "tags": [
+          "Super Admin"
+        ]
+      },
+      "patch": {
+        "operationId": "OrganizationsAdminController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOrganizationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated organization"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Update organization",
+        "tags": [
+          "Super Admin"
+        ]
+      },
+      "delete": {
+        "operationId": "OrganizationsAdminController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Organization deleted"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Delete organization (hard delete, cascades)",
+        "tags": [
+          "Super Admin"
+        ]
+      }
+    },
+    "/api/admin/organizations/{id}/activate": {
+      "post": {
+        "operationId": "OrganizationsAdminController_activate",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Organization activated"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Activate organization",
+        "tags": [
+          "Super Admin"
+        ]
+      }
+    },
+    "/api/admin/organizations/{id}/suspend": {
+      "post": {
+        "operationId": "OrganizationsAdminController_suspend",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Organization suspended"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Suspend organization",
+        "tags": [
+          "Super Admin"
+        ]
+      }
     }
   },
   "info": {
@@ -303,6 +684,107 @@
         "required": [
           "success"
         ]
+      },
+      "AdminLoginDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "super@admin.com",
+            "description": "Super admin email address"
+          },
+          "password": {
+            "type": "string",
+            "example": "SuperSecure123!",
+            "minLength": 8,
+            "description": "Super admin password"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "CreateOrganizationDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Sunset Realty",
+            "description": "Organization name"
+          },
+          "slug": {
+            "type": "string",
+            "example": "sunset-realty",
+            "description": "URL-safe unique slug"
+          },
+          "plan": {
+            "type": "string",
+            "example": "basic",
+            "enum": [
+              "basic",
+              "pro",
+              "enterprise"
+            ],
+            "default": "basic"
+          },
+          "adminEmail": {
+            "type": "string",
+            "example": "admin@sunset.com",
+            "description": "Initial admin email"
+          },
+          "adminName": {
+            "type": "string",
+            "example": "John Smith",
+            "description": "Initial admin name"
+          },
+          "adminPassword": {
+            "type": "string",
+            "example": "TempPass123!",
+            "minLength": 8,
+            "description": "Initial admin password"
+          }
+        },
+        "required": [
+          "name",
+          "slug",
+          "adminEmail",
+          "adminName",
+          "adminPassword"
+        ]
+      },
+      "UpdateOrganizationDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Sunset Realty"
+          },
+          "slug": {
+            "type": "string",
+            "example": "sunset-realty"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "suspended",
+              "inactive"
+            ]
+          },
+          "plan": {
+            "type": "string",
+            "enum": [
+              "basic",
+              "pro",
+              "enterprise"
+            ]
+          },
+          "settings": {
+            "type": "object",
+            "description": "Organization settings"
+          }
+        }
       }
     }
   }

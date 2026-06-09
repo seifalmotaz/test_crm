@@ -1,6 +1,6 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
-import { organizations, users, commissionPlans } from './schema';
+import { superAdmins, organizations, users, commissionPlans } from './schema';
 import { eq } from 'drizzle-orm';
 import * as argon2 from 'argon2';
 
@@ -10,6 +10,31 @@ async function main() {
   const db = drizzle(client);
 
   console.log('Seeding database...');
+
+  // ── Super Admin ──
+  let superAdmin = await db
+    .select()
+    .from(superAdmins)
+    .where(eq(superAdmins.email, 'super@admin.com'))
+    .limit(1)
+    .then((rows) => rows[0] ?? null);
+
+  if (!superAdmin) {
+    const saHash = await argon2.hash('super123!', {
+      type: argon2.argon2id,
+      memoryCost: 65536,
+      timeCost: 3,
+      parallelism: 4,
+    });
+    [superAdmin] = await db.insert(superAdmins).values({
+      email: 'super@admin.com',
+      passwordHash: saHash,
+      name: 'Super Admin',
+    }).returning();
+    console.log(`Created super admin: ${superAdmin.email} (${superAdmin.id})`);
+  } else {
+    console.log(`Super admin already exists: ${superAdmin.email} (${superAdmin.id})`);
+  }
 
   // ── Organization ──
   let org = await db

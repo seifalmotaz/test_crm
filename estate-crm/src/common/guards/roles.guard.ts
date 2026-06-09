@@ -7,13 +7,14 @@ import { Reflector } from '@nestjs/core';
 import { ROLES_KEY, PUBLIC_KEY } from '@/common/decorators/decorator-keys';
 import { ErrorCodes } from '@/common/errors/error-codes';
 import { AppError } from '@/common/errors/app-error';
-import type { AuthenticatedUser } from '@/common/types/auth.types';
+import type { AuthenticatedUser, AdminAuthenticatedUser } from '@/common/types/auth.types';
 
 /**
  * Role-based access control guard.
  * Checks @Roles() metadata against the authenticated user's role.
  * Must run AFTER JwtAuthGuard (needs request.user).
  * Skips public routes.
+ * Super admins bypass all role checks.
  */
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -34,13 +35,15 @@ export class RolesGuard implements CanActivate {
     if (!requiredRoles || requiredRoles.length === 0) return true;
 
     const request = context.switchToHttp().getRequest();
-    const user = request.user as AuthenticatedUser | undefined;
+    const user = request.user as AuthenticatedUser | AdminAuthenticatedUser | undefined;
 
     if (!user) {
       throw new AppError(ErrorCodes.UNAUTHORIZED, 401, 'Authentication required');
     }
 
-    if (!requiredRoles.includes(user.role)) {
+    if (user.isSuperAdmin) return true;
+
+    if (!requiredRoles.includes((user as AuthenticatedUser).role)) {
       throw new AppError(ErrorCodes.FORBIDDEN, 403, 'Insufficient permissions');
     }
 

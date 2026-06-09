@@ -10,13 +10,14 @@ import { eq } from 'drizzle-orm';
 import { ErrorCodes } from '@/common/errors/error-codes';
 import { AppError } from '@/common/errors/app-error';
 import { PUBLIC_KEY } from '@/common/decorators/decorator-keys';
-import type { AuthenticatedUser } from '@/common/types/auth.types';
+import type { AuthenticatedUser, AdminAuthenticatedUser } from '@/common/types/auth.types';
 
 /**
  * Tenant isolation guard.
  * Validates that the user's organization exists and is not suspended.
  * Must run AFTER JwtAuthGuard (needs request.user).
  * Skips public routes.
+ * Super admins bypass all tenant checks.
  */
 @Injectable()
 export class TenantGuard implements CanActivate {
@@ -30,16 +31,25 @@ export class TenantGuard implements CanActivate {
     if (isPublic) return true;
 
     const request = context.switchToHttp().getRequest();
-    const user = request.user as AuthenticatedUser | undefined;
+    const user = request.user as AuthenticatedUser | AdminAuthenticatedUser | undefined;
 
-    if (!user?.tenantId) {
+    if (!user) {
+      throw new AppError(ErrorCodes.TENANT_NOT_FOUND, 403, 'No user found in request');
+    }
+
+    if (user.isSuperAdmin) {
+      return true;
+    }
+
+    const tenantUser = user as AuthenticatedUser;
+    if (!tenantUser.tenantId) {
       throw new AppError(ErrorCodes.TENANT_NOT_FOUND, 403, 'No tenant associated with user');
     }
 
     const [org] = await db
       .select()
       .from(organizations)
-      .where(eq(organizations.id, user.tenantId))
+      .where(eq(organizations.id, tenantUser.tenantId))
       .limit(1);
 
     if (!org) {
@@ -50,7 +60,7 @@ export class TenantGuard implements CanActivate {
       throw new AppError(ErrorCodes.TENANT_SUSPENDED, 403, 'Organization is suspended');
     }
 
-    request.tenantId = user.tenantId;
+    request.tenantId = tenantUser.tenantId;
     return true;
   }
 }

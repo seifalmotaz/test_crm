@@ -1,6 +1,16 @@
 import { pgTable, uuid, varchar, text, integer, decimal, boolean, timestamp, jsonb, uniqueIndex, index } from 'drizzle-orm/pg-core';
 import { uuidv7 } from 'uuidv7';
 
+// 0. superAdmins (platform-level, NO tenantId, NO soft delete)
+export const superAdmins = pgTable('super_admins', {
+  id: uuid('id').primaryKey().$defaultFn(() => uuidv7()),
+  email: varchar('email', { length: 255 }).notNull().unique(),
+  passwordHash: varchar('password_hash', { length: 255 }).notNull(),
+  name: varchar('name', { length: 255 }).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
 // 1. organizations (NO tenantId, NO deletedAt)
 export const organizations = pgTable('organizations', {
   id: uuid('id').primaryKey().$defaultFn(() => uuidv7()),

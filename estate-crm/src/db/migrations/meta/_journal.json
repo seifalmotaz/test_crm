@@ -8,6 +8,13 @@
       "when": 1780875100895,
       "tag": "0000_lucky_sphinx",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1780986509709,
+      "tag": "0001_remarkable_sheva_callister",
+      "breakpoints": true
     }
   ]
 }
