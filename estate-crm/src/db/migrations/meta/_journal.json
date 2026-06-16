@@ -43,6 +43,13 @@
       "when": 1781610073072,
       "tag": "0005_unique_vivisector",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1781619263980,
+      "tag": "0006_add_is_client_and_vip_fields",
+      "breakpoints": true
     }
   ]
 }

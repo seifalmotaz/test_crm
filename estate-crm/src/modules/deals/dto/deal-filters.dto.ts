@@ -27,7 +27,7 @@ export class DealFiltersDto extends PaginationDto {
   @IsUUID()
   propertyId?: string;
 
-  @ApiPropertyOptional({ description: 'Filter by lead ID' })
+  @ApiPropertyOptional({ description: 'Filter by lead or client ID' })
   @IsOptional()
   @IsUUID()
   leadId?: string;

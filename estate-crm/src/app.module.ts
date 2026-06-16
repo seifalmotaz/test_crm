@@ -6,6 +6,7 @@ import { UsersModule } from './modules/users/users.module';
 import { PropertiesModule } from './modules/properties/properties.module';
 import { ProjectsModule } from './modules/projects/projects.module';
 import { LeadsModule } from './modules/leads/leads.module';
+import { ClientsModule } from './modules/clients/clients.module';
 import { DealsModule } from './modules/deals/deals.module';
 
 @Module({
@@ -17,6 +18,7 @@ import { DealsModule } from './modules/deals/deals.module';
     PropertiesModule,
     ProjectsModule,
     LeadsModule,
+    ClientsModule,
     DealsModule,
   ],
 })

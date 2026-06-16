@@ -1,35 +1,29 @@
-import { IsString, IsOptional, IsInt, IsUUID, IsEmail, Min, Max, MaxLength, MinLength, IsDateString } from 'class-validator';
+import { IsString, IsOptional, IsInt, IsUUID, IsEmail, Min, MaxLength, MinLength, IsDateString } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
-export class UpdateLeadDto {
-  @ApiPropertyOptional({ example: 'Ahmed Hassan Updated', description: 'Lead full name' })
+export class UpdateClientDto {
+  @ApiPropertyOptional({ example: 'Ahmed Hassan Updated', description: 'Client full name' })
   @IsOptional()
   @IsString()
   @MinLength(1)
   @MaxLength(255)
   name?: string;
 
-  @ApiPropertyOptional({ example: 'new@example.com', description: 'Lead email address' })
+  @ApiPropertyOptional({ example: 'new@example.com', description: 'Client email address' })
   @IsOptional()
   @IsEmail()
   @MaxLength(255)
   email?: string;
 
-  @ApiPropertyOptional({ example: '+201009876543', description: 'Lead phone number' })
+  @ApiPropertyOptional({ example: '+201009876543', description: 'Client phone number' })
   @IsOptional()
   @IsString()
   @MinLength(5)
   @MaxLength(50)
   phone?: string;
 
-  @ApiPropertyOptional({ example: 'referral', description: 'Lead source' })
-  @IsOptional()
-  @IsString()
-  @MaxLength(20)
-  source?: string;
-
-  @ApiPropertyOptional({ example: 'investor', description: 'Lead type' })
+  @ApiPropertyOptional({ example: 'investor', description: 'Client type' })
   @IsOptional()
   @IsString()
   @MaxLength(20)
@@ -85,13 +79,6 @@ export class UpdateLeadDto {
   @IsOptional()
   @IsDateString()
   nextActionDate?: string;
-
-  @ApiPropertyOptional({ example: 85, minimum: 0, maximum: 100, description: 'Lead score (0-100). Manager/admin only.' })
-  @IsOptional()
-  @IsInt()
-  @Min(0)
-  @Max(100)
-  score?: number;
 
   @ApiPropertyOptional({ description: 'VIP status (manager/admin only)', default: false })
   @IsOptional()

@@ -1,5 +1,6 @@
 import { IsString, IsOptional, IsInt, IsUUID, IsEmail, Min, Max, MaxLength, MinLength, IsDateString, IsIn, ValidateIf } from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
+import { ApiProperty, ApiPropertyOptional, ApiHideProperty } from '@nestjs/swagger';
 import { LEAD_STAGE_VALUES } from '../enums/lead-constants';
 
 export class CreateLeadDto {
@@ -93,4 +94,13 @@ export class CreateLeadDto {
   @Min(0)
   @Max(100)
   score?: number;
+
+  @ApiHideProperty()
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (value === 'true') return true;
+    if (value === 'false') return false;
+    return value;
+  })
+  isClient?: boolean;
 }

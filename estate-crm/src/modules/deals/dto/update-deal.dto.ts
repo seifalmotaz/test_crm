@@ -13,7 +13,7 @@ export class UpdateDealDto {
   @IsUUID()
   propertyId?: string;
 
-  @ApiPropertyOptional({ description: 'Lead ID' })
+  @ApiPropertyOptional({ description: 'Lead or Client ID' })
   @IsOptional()
   @IsUUID()
   leadId?: string;

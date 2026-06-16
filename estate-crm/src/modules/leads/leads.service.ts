@@ -68,7 +68,7 @@ export class LeadsService {
         notes: dto.notes ?? null,
         nextAction: dto.nextAction ?? null,
         nextActionDate: dto.nextActionDate ? new Date(dto.nextActionDate) : null,
-        isConverted: false,
+        isClient: dto.isClient ?? false,
         isDnc: false,
       })
       .returning();
@@ -90,7 +90,7 @@ export class LeadsService {
     filters: LeadFiltersDto,
     user: { id: string; role: string; tenantId: string },
   ) {
-    const { page, limit, sortBy, sortOrder, stage, source, type, agentId, isDnc, isConverted, search } = filters;
+    const { page, limit, sortBy, sortOrder, stage, source, type, agentId, isDnc, isClient, search } = filters;
     const offset = (page - 1) * limit;
 
     const conditions: ReturnType<typeof eq>[] = [
@@ -118,8 +118,8 @@ export class LeadsService {
     if (isDnc !== undefined) {
       conditions.push(eq(leads.isDnc, isDnc));
     }
-    if (isConverted !== undefined) {
-      conditions.push(eq(leads.isConverted, isConverted));
+    if (isClient !== undefined) {
+      conditions.push(eq(leads.isClient, isClient));
     }
     if (search) {
       conditions.push(
@@ -179,6 +179,14 @@ export class LeadsService {
       throw new AppError(ErrorCodes.FORBIDDEN, 403, 'Agents cannot set lead score');
     }
 
+    // Agents cannot set VIP fields
+    if (dto.isVip !== undefined && user.role === 'agent') {
+      throw new AppError(ErrorCodes.FORBIDDEN, 403, 'Agents cannot set VIP status');
+    }
+    if (dto.lifetimeValue !== undefined && user.role === 'agent') {
+      throw new AppError(ErrorCodes.FORBIDDEN, 403, 'Agents cannot set lifetime value');
+    }
+
     // Build update data
     const updateData: Record<string, unknown> = {};
     if (dto.name !== undefined) updateData.name = dto.name;
@@ -195,6 +203,8 @@ export class LeadsService {
     if (dto.nextAction !== undefined) updateData.nextAction = dto.nextAction;
     if (dto.nextActionDate !== undefined) updateData.nextActionDate = new Date(dto.nextActionDate);
     if (dto.score !== undefined) updateData.score = dto.score;
+    if (dto.isVip !== undefined) updateData.isVip = dto.isVip;
+    if (dto.lifetimeValue !== undefined) updateData.lifetimeValue = dto.lifetimeValue;
     updateData.updatedAt = new Date();
 
     // Handle agentId change: append old agentId to previousAgentIds
@@ -339,8 +349,8 @@ export class LeadsService {
   async convert(id: string, user: { id: string; role: string; tenantId: string }) {
     const lead = await this.findById(id, user.tenantId, user);
 
-    if (lead.isConverted) {
-      throw new AppError(ErrorCodes.LEAD_ALREADY_CONVERTED, 400, 'Lead is already converted');
+    if (lead.isClient) {
+      throw new AppError(ErrorCodes.LEAD_ALREADY_CLIENT, 400, 'Lead is already a client');
     }
 
     if (!lead.agentId) {
@@ -354,7 +364,7 @@ export class LeadsService {
     return db.transaction(async (tx) => {
       const [updated] = await tx
         .update(leads)
-        .set({ isConverted: true, updatedAt: new Date() })
+        .set({ isClient: true, updatedAt: new Date() })
         .where(eq(leads.id, id))
         .returning();
 
@@ -363,7 +373,7 @@ export class LeadsService {
         tenantId: user.tenantId,
         leadId: id,
         type: 'convert',
-        content: `Lead converted to client`,
+        content: `Lead promoted to client`,
         agentId: user.id,
       });
 
@@ -371,7 +381,7 @@ export class LeadsService {
       await tx.insert(auditLogs).values({
         tenantId: user.tenantId,
         actorId: user.id,
-        action: 'lead.convert',
+        action: 'lead.promote',
         targetType: 'lead',
         targetId: id,
         metadata: { agentId: lead.agentId, previousStage: lead.stage },

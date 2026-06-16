@@ -13,7 +13,7 @@ export class DealResponseDto {
   @ApiPropertyOptional({ example: '01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a5', nullable: true })
   propertyId: string | null;
 
-  @ApiPropertyOptional({ example: '01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a6', nullable: true })
+  @ApiPropertyOptional({ description: 'Lead or Client ID', example: '01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a6', nullable: true })
   leadId: string | null;
 
   @ApiProperty({ example: '01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a7' })

@@ -12,7 +12,7 @@ export class CreateDealDto {
   @IsUUID()
   propertyId?: string;
 
-  @ApiPropertyOptional({ description: 'Lead ID — at least one of propertyId or leadId is required' })
+  @ApiPropertyOptional({ description: 'Lead or Client ID — at least one of propertyId or leadId is required' })
   @IsOptional()
   @IsUUID()
   leadId?: string;
@@ -52,6 +52,7 @@ export class CreateDealDto {
 
   /**
    * Custom validation: at least one of propertyId or leadId must be provided.
+   * leadId accepts both Lead and Client IDs (clients are leads with isClient=true).
    * This is enforced at the service layer, not DTO level, because class-validator
    * cross-field validation is complex and we want a clean VALIDATION_ERROR response.
    */

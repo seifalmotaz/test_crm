@@ -138,7 +138,7 @@ export class LeadsController {
   @Post(':id/convert')
   @HttpCode(HttpStatus.OK)
   @Roles('admin', 'manager', 'agent')
-  @ApiOperation({ summary: 'Convert lead to client (sets isConverted=true, no new record created)' })
+  @ApiOperation({ summary: 'Promote lead to client (sets isClient=true, no new record created)' })
   @ApiCookieAuth('access_token')
   @ApiResponse({ status: 200, description: 'Lead converted', type: LeadResponseDto })
   @ApiResponse({ status: 400, description: 'Already converted or not assigned' })

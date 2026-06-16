@@ -60,7 +60,19 @@ export class LeadResponseDto {
   nextActionDate: string | null;
 
   @ApiProperty({ example: false })
-  isConverted: boolean;
+  isClient: boolean;
+
+  @ApiProperty({ example: false })
+  isVip: boolean;
+
+  @ApiPropertyOptional({ example: '01915d5e-...', nullable: true })
+  vipSetById: string | null;
+
+  @ApiPropertyOptional({ example: '2026-06-10T10:00:00.000Z', nullable: true })
+  vipSetAt: string | null;
+
+  @ApiPropertyOptional({ example: 50000000, nullable: true })
+  lifetimeValue: number | null;
 
   @ApiProperty({ example: false })
   isDnc: boolean;

@@ -36,14 +36,14 @@ export class LeadFiltersDto extends PaginationDto {
   })
   isDnc?: boolean;
 
-  @ApiPropertyOptional({ description: 'Filter by converted status (true|false)' })
+  @ApiPropertyOptional({ description: 'Filter by client status (true|false)' })
   @IsOptional()
   @Transform(({ value }) => {
     if (value === 'true') return true;
     if (value === 'false') return false;
     return value;
   })
-  isConverted?: boolean;
+  isClient?: boolean;
 
   @ApiPropertyOptional({ example: 'Ahmed', description: 'Search by name, email, or phone' })
   @IsOptional()

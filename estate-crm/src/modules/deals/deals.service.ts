@@ -61,6 +61,7 @@ export class DealsService {
       }
     }
 
+    // leadId accepts both Lead and Client IDs — clients are leads with isClient=true
     // If leadId provided, verify lead exists in tenant and not deleted
     if (dto.leadId) {
       const [existingLead] = await db

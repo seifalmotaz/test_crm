@@ -114,7 +114,7 @@ describe('Leads Module (Phase 6)', () => {
     expect(res.body.id).toBeDefined();
     expect(res.body.name).toContain('Lead');
     expect(res.body.stage).toBe('fresh');
-    expect(res.body.isConverted).toBe(false);
+    expect(res.body.isClient).toBe(false);
   });
 
   it('POST /api/leads — Missing required fields returns 400', async () => {
@@ -304,7 +304,7 @@ describe('Leads Module (Phase 6)', () => {
       .set('Cookie', `access_token=${adminCookie}`)
       .send({});
     expect(res.status).toBe(200);
-    expect(res.body.isConverted).toBe(true);
+    expect(res.body.isClient).toBe(true);
   });
 
   it('POST /api/leads/:id/convert — Already converted returns 400', async () => {
@@ -326,7 +326,7 @@ describe('Leads Module (Phase 6)', () => {
       .set('Cookie', `access_token=${adminCookie}`)
       .send({});
     expect(res.status).toBe(400);
-    expect(res.body.code).toBe('LEAD_ALREADY_CONVERTED');
+    expect(res.body.code).toBe('LEAD_ALREADY_CLIENT');
   });
 
   it('POST /api/leads/:id/convert — Unassigned lead returns 400', async () => {

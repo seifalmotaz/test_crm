@@ -435,7 +435,7 @@ async function main() {
         notes: `Lead ${i + 1} - interested in ${leadTypes[i % leadTypes.length]} opportunities`,
         nextAction: ['Call back', 'Send listings', 'Schedule viewing'][i % 3],
         nextActionDate: new Date(Date.now() + (i + 1) * 86400000),
-        isConverted: i === 11,
+        isClient: i === 11,
         isDnc: i === 10,
       }).returning();
       console.log(`Created lead: ${created.name} (stage: ${created.stage})`);
