@@ -1,5 +1,5 @@
 /**
- * Status Finite State Machine utilities for Properties, Projects, and Leads.
+ * Status Finite State Machine utilities for Properties, Projects, Leads, and Deals.
  *
  * Property Status Transitions (valid moves):
  *   active     → pending, withdrawn
@@ -20,6 +20,13 @@
  *   followUp    → qualified, reservation, lost
  *   reservation → followUp, lost
  *   lost        → (terminal — no outgoing transitions)
+ *
+ * Deal Stage Transitions (valid moves — forward pipeline with fallback to lost):
+ *   initialContact → negotiation, closedLost
+ *   negotiation    → contractPending, closedLost
+ *   contractPending → closedWon, closedLost
+ *   closedWon      → (terminal — no outgoing transitions)
+ *   closedLost     → (terminal — no outgoing transitions)
  */
 
 // ─── Property Status FSM ──────────────────────────────────────
@@ -65,6 +72,22 @@ const LEAD_TRANSITIONS: Record<string, Set<string>> = {
 
 export function canTransitionLeadStage(current: string, next: string): boolean {
   const allowed = LEAD_TRANSITIONS[current];
+  if (!allowed) return false;
+  return allowed.has(next);
+}
+
+// ─── Deal Stage FSM ───────────────────────────────────────
+
+const DEAL_TRANSITIONS: Record<string, Set<string>> = {
+  initialContact: new Set(['negotiation', 'closedLost']),
+  negotiation: new Set(['contractPending', 'closedLost']),
+  contractPending: new Set(['closedWon', 'closedLost']),
+  closedWon: new Set(), // terminal
+  closedLost: new Set(), // terminal
+};
+
+export function canTransitionDealStage(current: string, next: string): boolean {
+  const allowed = DEAL_TRANSITIONS[current];
   if (!allowed) return false;
   return allowed.has(next);
 }

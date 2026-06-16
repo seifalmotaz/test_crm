@@ -285,11 +285,13 @@ export const leadDocuments = pgTable('lead_documents', {
 // 15. dealTags
 export const dealTags = pgTable('deal_tags', {
   id: uuid('id').primaryKey().$defaultFn(() => uuidv7()),
+  tenantId: uuid('tenant_id').notNull().references(() => organizations.id, { onDelete: 'cascade' }),
   dealId: uuid('deal_id').notNull().references(() => deals.id),
   tag: varchar('tag', { length: 100 }).notNull(),
   color: varchar('color', { length: 7 }).notNull(),
 }, (t) => [
   uniqueIndex('deal_tags_deal_tag_idx').on(t.dealId, t.tag),
+  index('deal_tags_tenant_deal_idx').on(t.tenantId, t.dealId),
 ]);
 
 // 16. dealDocuments
