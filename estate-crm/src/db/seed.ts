@@ -443,12 +443,14 @@ async function main() {
       // Add a tag
       if (i % 3 === 0) {
         await db.insert(leadTags).values({
+          tenantId: org.id,
           leadId: created.id,
           tag: 'Hot',
           color: '#EF4444',
         });
       } else if (i % 3 === 1) {
         await db.insert(leadTags).values({
+          tenantId: org.id,
           leadId: created.id,
           tag: 'Investor',
           color: '#10B981',
