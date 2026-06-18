@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "bun --watch src/main.ts",
-    "build": "bun build src/main.ts --outdir dist --target node",
+    "build": "bun build src/main.ts --outdir dist --target node --external @nestjs/websockets --external @nestjs/microservices --external class-transformer",
     "start:prod": "bun dist/main.js",
     "test": "vitest run",
     "test:watch": "vitest",
