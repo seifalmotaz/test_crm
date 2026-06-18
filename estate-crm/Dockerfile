@@ -16,8 +16,7 @@ ENV NODE_ENV=production
 
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package.json /app/bun.lock ./
-COPY --from=builder /app/src/db/migrations ./src/db/migrations
-COPY --from=builder /app/src/db/migrate.ts ./src/db/migrate.ts
+COPY --from=builder /app/src/db ./src/db
 COPY --from=builder /app/docker-entrypoint.sh ./docker-entrypoint.sh
 RUN chmod +x ./docker-entrypoint.sh
 
