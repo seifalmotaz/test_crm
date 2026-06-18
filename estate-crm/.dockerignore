@@ -10,3 +10,5 @@ coverage
 .DS_Store
 *.md
 docs
+web
+web/node_modules
