@@ -117,6 +117,7 @@ services:
         condition: service_completed_successfully
     networks:
       - estate-crm
+      - dokploy-network
     expose:
       - "3000"
 
@@ -134,6 +135,7 @@ services:
       - app
     networks:
       - estate-crm
+      - dokploy-network
     expose:
       - "80"
 
@@ -144,3 +146,5 @@ volumes:
 networks:
   estate-crm:
     driver: bridge
+  dokploy-network:
+    external: true
