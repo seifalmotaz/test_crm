@@ -12,7 +12,7 @@ import type { AdminAuthenticatedUser } from '@/common/types/auth.types';
 
 @Injectable()
 export class AdminAuthService {
-  private readonly ACCESS_TOKEN_EXPIRY = '15m';
+  private readonly ACCESS_TOKEN_EXPIRY = '7d';
   private readonly REFRESH_TOKEN_EXPIRY = 7 * 24 * 60 * 60;
   private cachedSecret: Uint8Array | null = null;
 
@@ -46,7 +46,7 @@ export class AdminAuthService {
       name: admin.name,
       isSuperAdmin: true,
     };
-    await redis.setex(`session:admin:${admin.id}`, 900, JSON.stringify(sessionData));
+    await redis.setex(`session:admin:${admin.id}`, this.REFRESH_TOKEN_EXPIRY, JSON.stringify(sessionData));
 
     const refreshToken = await this.createRefreshToken(admin.id);
 

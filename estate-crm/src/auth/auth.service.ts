@@ -12,7 +12,7 @@ import type { AuthenticatedUser } from '@/common/types/auth.types';
 
 @Injectable()
 export class AuthService {
-  private readonly ACCESS_TOKEN_EXPIRY = '15m';
+  private readonly ACCESS_TOKEN_EXPIRY = '7d';
   private readonly REFRESH_TOKEN_EXPIRY = 7 * 24 * 60 * 60; // 7 days in seconds
   private cachedSecret: Uint8Array | null = null;
 
@@ -67,7 +67,7 @@ export class AuthService {
     };
     await redis.setex(
       `session:${user.tenantId}:${user.id}`,
-      900,
+      this.REFRESH_TOKEN_EXPIRY,
       JSON.stringify(sessionData),
     );
 
@@ -142,7 +142,7 @@ export class AuthService {
     };
     await redis.setex(
       `session:${tenantId}:${userId}`,
-      900,
+      this.REFRESH_TOKEN_EXPIRY,
       JSON.stringify(sessionData),
     );
 

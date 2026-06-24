@@ -80,7 +80,7 @@ export class JwtAuthGuard implements CanActivate {
             isSuperAdmin: true,
           };
 
-          await redis.setex(`session:admin:${userId}`, 900, JSON.stringify(admin));
+          await redis.setex(`session:admin:${userId}`, 7 * 24 * 60 * 60, JSON.stringify(admin));
         }
 
         request.user = admin;
@@ -117,8 +117,8 @@ export class JwtAuthGuard implements CanActivate {
           isSuperAdmin: false,
         };
 
-        // Cache in Redis for 15 minutes
-        await redis.setex(`session:${tenantId}:${userId}`, 900, JSON.stringify(user));
+        // Cache in Redis for 7 days
+        await redis.setex(`session:${tenantId}:${userId}`, 7 * 24 * 60 * 60, JSON.stringify(user));
       }
 
       request.user = user;

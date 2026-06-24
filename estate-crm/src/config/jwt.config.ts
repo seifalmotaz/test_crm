@@ -7,7 +7,7 @@ import { config } from './app.config';
 export const jwtConfig = {
   secret: config.JWT_SECRET,
   algorithm: 'HS256' as const,
-  accessTokenExpiry: '15m',
+  accessTokenExpiry: '7d',
   refreshTokenExpiry: 7 * 24 * 60 * 60, // 7 days in seconds
   cookieDomain: config.COOKIE_DOMAIN,
 } as const;
