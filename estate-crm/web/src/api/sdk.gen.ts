@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { AdminAuthControllerLoginData, AdminAuthControllerLoginErrors, AdminAuthControllerLoginResponses, AdminAuthControllerMeData, AdminAuthControllerMeErrors, AdminAuthControllerMeResponses, AuthControllerLoginData, AuthControllerLoginErrors, AuthControllerLoginResponses, AuthControllerLogoutData, AuthControllerLogoutErrors, AuthControllerLogoutResponses, AuthControllerMeData, AuthControllerMeErrors, AuthControllerMeResponses, AuthControllerRefreshData, AuthControllerRefreshErrors, AuthControllerRefreshResponses, LeadsControllerAddActivityData, LeadsControllerAddActivityErrors, LeadsControllerAddActivityResponses, LeadsControllerAddTagData, LeadsControllerAddTagErrors, LeadsControllerAddTagResponses, LeadsControllerChangeStageData, LeadsControllerChangeStageErrors, LeadsControllerChangeStageResponses, LeadsControllerConvertData, LeadsControllerConvertErrors, LeadsControllerConvertResponses, LeadsControllerCreateData, LeadsControllerCreateErrors, LeadsControllerCreateResponses, LeadsControllerFindActivitiesData, LeadsControllerFindActivitiesErrors, LeadsControllerFindActivitiesResponses, LeadsControllerFindAllData, LeadsControllerFindAllResponses, LeadsControllerFindByIdData, LeadsControllerFindByIdErrors, LeadsControllerFindByIdResponses, LeadsControllerFindTagsData, LeadsControllerFindTagsErrors, LeadsControllerFindTagsResponses, LeadsControllerRemoveData, LeadsControllerRemoveErrors, LeadsControllerRemoveResponses, LeadsControllerRemoveTagData, LeadsControllerRemoveTagErrors, LeadsControllerRemoveTagResponses, LeadsControllerSetDncData, LeadsControllerSetDncErrors, LeadsControllerSetDncResponses, LeadsControllerUpdateData, LeadsControllerUpdateErrors, LeadsControllerUpdateResponses, OrganizationsAdminControllerActivateData, OrganizationsAdminControllerActivateResponses, OrganizationsAdminControllerCreateData, OrganizationsAdminControllerCreateErrors, OrganizationsAdminControllerCreateResponses, OrganizationsAdminControllerFindAllData, OrganizationsAdminControllerFindAllResponses, OrganizationsAdminControllerFindOneData, OrganizationsAdminControllerFindOneErrors, OrganizationsAdminControllerFindOneResponses, OrganizationsAdminControllerRemoveData, OrganizationsAdminControllerRemoveResponses, OrganizationsAdminControllerSuspendData, OrganizationsAdminControllerSuspendResponses, OrganizationsAdminControllerUpdateData, OrganizationsAdminControllerUpdateResponses, OrganizationsControllerGetMyOrganizationData, OrganizationsControllerGetMyOrganizationErrors, OrganizationsControllerGetMyOrganizationResponses, ProjectsControllerChangeStatusData, ProjectsControllerChangeStatusErrors, ProjectsControllerChangeStatusResponses, ProjectsControllerCreateData, ProjectsControllerCreateErrors, ProjectsControllerCreateResponses, ProjectsControllerFindAllData, ProjectsControllerFindAllResponses, ProjectsControllerFindByIdData, ProjectsControllerFindByIdErrors, ProjectsControllerFindByIdResponses, ProjectsControllerRemoveData, ProjectsControllerRemoveErrors, ProjectsControllerRemoveResponses, ProjectsControllerUpdateData, ProjectsControllerUpdateErrors, ProjectsControllerUpdateResponses, PropertiesControllerChangeStatusData, PropertiesControllerChangeStatusErrors, PropertiesControllerChangeStatusResponses, PropertiesControllerCreateData, PropertiesControllerCreateErrors, PropertiesControllerCreateResponses, PropertiesControllerFindAllData, PropertiesControllerFindAllResponses, PropertiesControllerFindByIdData, PropertiesControllerFindByIdErrors, PropertiesControllerFindByIdResponses, PropertiesControllerGetPresignedUploadUrlData, PropertiesControllerGetPresignedUploadUrlErrors, PropertiesControllerGetPresignedUploadUrlResponses, PropertiesControllerRemoveData, PropertiesControllerRemoveErrors, PropertiesControllerRemoveResponses, PropertiesControllerUpdateData, PropertiesControllerUpdateErrors, PropertiesControllerUpdateResponses, UsersAdminControllerFindAllData, UsersAdminControllerFindAllResponses, UsersControllerChangeRoleData, UsersControllerChangeRoleErrors, UsersControllerChangeRoleResponses, UsersControllerCreateData, UsersControllerCreateErrors, UsersControllerCreateResponses, UsersControllerDeactivateData, UsersControllerDeactivateErrors, UsersControllerDeactivateResponses, UsersControllerFindAllData, UsersControllerFindAllResponses, UsersControllerFindByIdData, UsersControllerFindByIdErrors, UsersControllerFindByIdResponses, UsersControllerReactivateData, UsersControllerReactivateResponses, UsersControllerUpdateData, UsersControllerUpdateResponses } from './types.gen';
+import type { AdminAuthControllerLoginData, AdminAuthControllerLoginErrors, AdminAuthControllerLoginResponses, AdminAuthControllerMeData, AdminAuthControllerMeErrors, AdminAuthControllerMeResponses, AuthControllerLoginData, AuthControllerLoginErrors, AuthControllerLoginResponses, AuthControllerLogoutData, AuthControllerLogoutErrors, AuthControllerLogoutResponses, AuthControllerMeData, AuthControllerMeErrors, AuthControllerMeResponses, AuthControllerRefreshData, AuthControllerRefreshErrors, AuthControllerRefreshResponses, ClientsControllerAddActivityData, ClientsControllerAddActivityErrors, ClientsControllerAddActivityResponses, ClientsControllerAddTagData, ClientsControllerAddTagErrors, ClientsControllerAddTagResponses, ClientsControllerCreateData, ClientsControllerCreateErrors, ClientsControllerCreateResponses, ClientsControllerFindActivitiesData, ClientsControllerFindActivitiesErrors, ClientsControllerFindActivitiesResponses, ClientsControllerFindAllData, ClientsControllerFindAllResponses, ClientsControllerFindByIdData, ClientsControllerFindByIdErrors, ClientsControllerFindByIdResponses, ClientsControllerFindTagsData, ClientsControllerFindTagsErrors, ClientsControllerFindTagsResponses, ClientsControllerRemoveData, ClientsControllerRemoveErrors, ClientsControllerRemoveResponses, ClientsControllerRemoveTagData, ClientsControllerRemoveTagErrors, ClientsControllerRemoveTagResponses, ClientsControllerSetVipData, ClientsControllerSetVipErrors, ClientsControllerSetVipResponses, ClientsControllerUpdateData, ClientsControllerUpdateErrors, ClientsControllerUpdateResponses, DealsControllerAddActivityData, DealsControllerAddActivityErrors, DealsControllerAddActivityResponses, DealsControllerAddTagData, DealsControllerAddTagErrors, DealsControllerAddTagResponses, DealsControllerChangeStageData, DealsControllerChangeStageErrors, DealsControllerChangeStageResponses, DealsControllerCommissionPreviewData, DealsControllerCommissionPreviewErrors, DealsControllerCommissionPreviewResponses, DealsControllerCreateData, DealsControllerCreateErrors, DealsControllerCreateResponses, DealsControllerFindActivitiesData, DealsControllerFindActivitiesErrors, DealsControllerFindActivitiesResponses, DealsControllerFindAllData, DealsControllerFindAllResponses, DealsControllerFindByIdData, DealsControllerFindByIdErrors, DealsControllerFindByIdResponses, DealsControllerFindTagsData, DealsControllerFindTagsErrors, DealsControllerFindTagsResponses, DealsControllerRemoveData, DealsControllerRemoveErrors, DealsControllerRemoveResponses, DealsControllerRemoveTagData, DealsControllerRemoveTagErrors, DealsControllerRemoveTagResponses, DealsControllerUpdateData, DealsControllerUpdateErrors, DealsControllerUpdateResponses, LeadsControllerAddActivityData, LeadsControllerAddActivityErrors, LeadsControllerAddActivityResponses, LeadsControllerAddTagData, LeadsControllerAddTagErrors, LeadsControllerAddTagResponses, LeadsControllerChangeStageData, LeadsControllerChangeStageErrors, LeadsControllerChangeStageResponses, LeadsControllerConvertData, LeadsControllerConvertErrors, LeadsControllerConvertResponses, LeadsControllerCreateData, LeadsControllerCreateErrors, LeadsControllerCreateResponses, LeadsControllerFindActivitiesData, LeadsControllerFindActivitiesErrors, LeadsControllerFindActivitiesResponses, LeadsControllerFindAllData, LeadsControllerFindAllResponses, LeadsControllerFindByIdData, LeadsControllerFindByIdErrors, LeadsControllerFindByIdResponses, LeadsControllerFindTagsData, LeadsControllerFindTagsErrors, LeadsControllerFindTagsResponses, LeadsControllerRemoveData, LeadsControllerRemoveErrors, LeadsControllerRemoveResponses, LeadsControllerRemoveTagData, LeadsControllerRemoveTagErrors, LeadsControllerRemoveTagResponses, LeadsControllerSetDncData, LeadsControllerSetDncErrors, LeadsControllerSetDncResponses, LeadsControllerUpdateData, LeadsControllerUpdateErrors, LeadsControllerUpdateResponses, OrganizationsAdminControllerActivateData, OrganizationsAdminControllerActivateResponses, OrganizationsAdminControllerCreateData, OrganizationsAdminControllerCreateErrors, OrganizationsAdminControllerCreateResponses, OrganizationsAdminControllerFindAllData, OrganizationsAdminControllerFindAllResponses, OrganizationsAdminControllerFindOneData, OrganizationsAdminControllerFindOneErrors, OrganizationsAdminControllerFindOneResponses, OrganizationsAdminControllerRemoveData, OrganizationsAdminControllerRemoveResponses, OrganizationsAdminControllerSuspendData, OrganizationsAdminControllerSuspendResponses, OrganizationsAdminControllerUpdateData, OrganizationsAdminControllerUpdateResponses, OrganizationsControllerGetMyOrganizationData, OrganizationsControllerGetMyOrganizationErrors, OrganizationsControllerGetMyOrganizationResponses, ProjectsControllerChangeStatusData, ProjectsControllerChangeStatusErrors, ProjectsControllerChangeStatusResponses, ProjectsControllerCreateData, ProjectsControllerCreateErrors, ProjectsControllerCreateResponses, ProjectsControllerFindAllData, ProjectsControllerFindAllResponses, ProjectsControllerFindByIdData, ProjectsControllerFindByIdErrors, ProjectsControllerFindByIdResponses, ProjectsControllerRemoveData, ProjectsControllerRemoveErrors, ProjectsControllerRemoveResponses, ProjectsControllerUpdateData, ProjectsControllerUpdateErrors, ProjectsControllerUpdateResponses, PropertiesControllerChangeStatusData, PropertiesControllerChangeStatusErrors, PropertiesControllerChangeStatusResponses, PropertiesControllerCreateData, PropertiesControllerCreateErrors, PropertiesControllerCreateResponses, PropertiesControllerFindAllData, PropertiesControllerFindAllResponses, PropertiesControllerFindByIdData, PropertiesControllerFindByIdErrors, PropertiesControllerFindByIdResponses, PropertiesControllerGetPresignedUploadUrlData, PropertiesControllerGetPresignedUploadUrlErrors, PropertiesControllerGetPresignedUploadUrlResponses, PropertiesControllerRemoveData, PropertiesControllerRemoveErrors, PropertiesControllerRemoveResponses, PropertiesControllerUpdateData, PropertiesControllerUpdateErrors, PropertiesControllerUpdateResponses, UsersAdminControllerFindAllData, UsersAdminControllerFindAllResponses, UsersControllerChangeRoleData, UsersControllerChangeRoleErrors, UsersControllerChangeRoleResponses, UsersControllerCreateData, UsersControllerCreateErrors, UsersControllerCreateResponses, UsersControllerDeactivateData, UsersControllerDeactivateErrors, UsersControllerDeactivateResponses, UsersControllerFindAllData, UsersControllerFindAllResponses, UsersControllerFindByIdData, UsersControllerFindByIdErrors, UsersControllerFindByIdResponses, UsersControllerReactivateData, UsersControllerReactivateResponses, UsersControllerUpdateData, UsersControllerUpdateResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -343,7 +343,7 @@ export const leadsControllerChangeStage = <ThrowOnError extends boolean = false>
 });
 
 /**
- * Convert lead to client (sets isConverted=true, no new record created)
+ * Promote lead to client (sets isClient=true, no new record created)
  */
 export const leadsControllerConvert = <ThrowOnError extends boolean = false>(options: Options<LeadsControllerConvertData, ThrowOnError>): RequestResult<LeadsControllerConvertResponses, LeadsControllerConvertErrors, ThrowOnError> => (options.client ?? client).post<LeadsControllerConvertResponses, LeadsControllerConvertErrors, ThrowOnError>({
     url: '/api/leads/{id}/convert',
@@ -404,3 +404,188 @@ export const leadsControllerAddTag = <ThrowOnError extends boolean = false>(opti
  * Remove a tag from a lead
  */
 export const leadsControllerRemoveTag = <ThrowOnError extends boolean = false>(options: Options<LeadsControllerRemoveTagData, ThrowOnError>): RequestResult<LeadsControllerRemoveTagResponses, LeadsControllerRemoveTagErrors, ThrowOnError> => (options.client ?? client).delete<LeadsControllerRemoveTagResponses, LeadsControllerRemoveTagErrors, ThrowOnError>({ url: '/api/leads/{id}/tags/{tagId}', ...options });
+
+/**
+ * List clients (leads with isClient=true)
+ */
+export const clientsControllerFindAll = <ThrowOnError extends boolean = false>(options?: Options<ClientsControllerFindAllData, ThrowOnError>): RequestResult<ClientsControllerFindAllResponses, unknown, ThrowOnError> => (options?.client ?? client).get<ClientsControllerFindAllResponses, unknown, ThrowOnError>({ url: '/api/clients', ...options });
+
+/**
+ * Create a client (creates a lead with isClient=true)
+ */
+export const clientsControllerCreate = <ThrowOnError extends boolean = false>(options: Options<ClientsControllerCreateData, ThrowOnError>): RequestResult<ClientsControllerCreateResponses, ClientsControllerCreateErrors, ThrowOnError> => (options.client ?? client).post<ClientsControllerCreateResponses, ClientsControllerCreateErrors, ThrowOnError>({
+    url: '/api/clients',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Soft delete a client
+ */
+export const clientsControllerRemove = <ThrowOnError extends boolean = false>(options: Options<ClientsControllerRemoveData, ThrowOnError>): RequestResult<ClientsControllerRemoveResponses, ClientsControllerRemoveErrors, ThrowOnError> => (options.client ?? client).delete<ClientsControllerRemoveResponses, ClientsControllerRemoveErrors, ThrowOnError>({ url: '/api/clients/{id}', ...options });
+
+/**
+ * Get client by ID (returns 400 if not a client)
+ */
+export const clientsControllerFindById = <ThrowOnError extends boolean = false>(options: Options<ClientsControllerFindByIdData, ThrowOnError>): RequestResult<ClientsControllerFindByIdResponses, ClientsControllerFindByIdErrors, ThrowOnError> => (options.client ?? client).get<ClientsControllerFindByIdResponses, ClientsControllerFindByIdErrors, ThrowOnError>({ url: '/api/clients/{id}', ...options });
+
+/**
+ * Update a client
+ */
+export const clientsControllerUpdate = <ThrowOnError extends boolean = false>(options: Options<ClientsControllerUpdateData, ThrowOnError>): RequestResult<ClientsControllerUpdateResponses, ClientsControllerUpdateErrors, ThrowOnError> => (options.client ?? client).patch<ClientsControllerUpdateResponses, ClientsControllerUpdateErrors, ThrowOnError>({
+    url: '/api/clients/{id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Set or clear VIP flag on a client (manager/admin only)
+ */
+export const clientsControllerSetVip = <ThrowOnError extends boolean = false>(options: Options<ClientsControllerSetVipData, ThrowOnError>): RequestResult<ClientsControllerSetVipResponses, ClientsControllerSetVipErrors, ThrowOnError> => (options.client ?? client).post<ClientsControllerSetVipResponses, ClientsControllerSetVipErrors, ThrowOnError>({
+    url: '/api/clients/{id}/vip',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * List activities for a client (paginated)
+ */
+export const clientsControllerFindActivities = <ThrowOnError extends boolean = false>(options: Options<ClientsControllerFindActivitiesData, ThrowOnError>): RequestResult<ClientsControllerFindActivitiesResponses, ClientsControllerFindActivitiesErrors, ThrowOnError> => (options.client ?? client).get<ClientsControllerFindActivitiesResponses, ClientsControllerFindActivitiesErrors, ThrowOnError>({ url: '/api/clients/{id}/activities', ...options });
+
+/**
+ * Add an activity to a client
+ */
+export const clientsControllerAddActivity = <ThrowOnError extends boolean = false>(options: Options<ClientsControllerAddActivityData, ThrowOnError>): RequestResult<ClientsControllerAddActivityResponses, ClientsControllerAddActivityErrors, ThrowOnError> => (options.client ?? client).post<ClientsControllerAddActivityResponses, ClientsControllerAddActivityErrors, ThrowOnError>({
+    url: '/api/clients/{id}/activities',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * List tags for a client
+ */
+export const clientsControllerFindTags = <ThrowOnError extends boolean = false>(options: Options<ClientsControllerFindTagsData, ThrowOnError>): RequestResult<ClientsControllerFindTagsResponses, ClientsControllerFindTagsErrors, ThrowOnError> => (options.client ?? client).get<ClientsControllerFindTagsResponses, ClientsControllerFindTagsErrors, ThrowOnError>({ url: '/api/clients/{id}/tags', ...options });
+
+/**
+ * Add a tag to a client
+ */
+export const clientsControllerAddTag = <ThrowOnError extends boolean = false>(options: Options<ClientsControllerAddTagData, ThrowOnError>): RequestResult<ClientsControllerAddTagResponses, ClientsControllerAddTagErrors, ThrowOnError> => (options.client ?? client).post<ClientsControllerAddTagResponses, ClientsControllerAddTagErrors, ThrowOnError>({
+    url: '/api/clients/{id}/tags',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Remove a tag from a client
+ */
+export const clientsControllerRemoveTag = <ThrowOnError extends boolean = false>(options: Options<ClientsControllerRemoveTagData, ThrowOnError>): RequestResult<ClientsControllerRemoveTagResponses, ClientsControllerRemoveTagErrors, ThrowOnError> => (options.client ?? client).delete<ClientsControllerRemoveTagResponses, ClientsControllerRemoveTagErrors, ThrowOnError>({ url: '/api/clients/{id}/tags/{tagId}', ...options });
+
+/**
+ * List deals with filters and pagination
+ */
+export const dealsControllerFindAll = <ThrowOnError extends boolean = false>(options?: Options<DealsControllerFindAllData, ThrowOnError>): RequestResult<DealsControllerFindAllResponses, unknown, ThrowOnError> => (options?.client ?? client).get<DealsControllerFindAllResponses, unknown, ThrowOnError>({ url: '/api/deals', ...options });
+
+/**
+ * Create a deal
+ */
+export const dealsControllerCreate = <ThrowOnError extends boolean = false>(options: Options<DealsControllerCreateData, ThrowOnError>): RequestResult<DealsControllerCreateResponses, DealsControllerCreateErrors, ThrowOnError> => (options.client ?? client).post<DealsControllerCreateResponses, DealsControllerCreateErrors, ThrowOnError>({
+    url: '/api/deals',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Soft delete a deal
+ */
+export const dealsControllerRemove = <ThrowOnError extends boolean = false>(options: Options<DealsControllerRemoveData, ThrowOnError>): RequestResult<DealsControllerRemoveResponses, DealsControllerRemoveErrors, ThrowOnError> => (options.client ?? client).delete<DealsControllerRemoveResponses, DealsControllerRemoveErrors, ThrowOnError>({ url: '/api/deals/{id}', ...options });
+
+/**
+ * Get deal by ID
+ */
+export const dealsControllerFindById = <ThrowOnError extends boolean = false>(options: Options<DealsControllerFindByIdData, ThrowOnError>): RequestResult<DealsControllerFindByIdResponses, DealsControllerFindByIdErrors, ThrowOnError> => (options.client ?? client).get<DealsControllerFindByIdResponses, DealsControllerFindByIdErrors, ThrowOnError>({ url: '/api/deals/{id}', ...options });
+
+/**
+ * Update a deal
+ */
+export const dealsControllerUpdate = <ThrowOnError extends boolean = false>(options: Options<DealsControllerUpdateData, ThrowOnError>): RequestResult<DealsControllerUpdateResponses, DealsControllerUpdateErrors, ThrowOnError> => (options.client ?? client).patch<DealsControllerUpdateResponses, DealsControllerUpdateErrors, ThrowOnError>({
+    url: '/api/deals/{id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Change deal stage (FSM transition)
+ */
+export const dealsControllerChangeStage = <ThrowOnError extends boolean = false>(options: Options<DealsControllerChangeStageData, ThrowOnError>): RequestResult<DealsControllerChangeStageResponses, DealsControllerChangeStageErrors, ThrowOnError> => (options.client ?? client).post<DealsControllerChangeStageResponses, DealsControllerChangeStageErrors, ThrowOnError>({
+    url: '/api/deals/{id}/stage',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * List activities for a deal (paginated, sorted by createdAt DESC)
+ */
+export const dealsControllerFindActivities = <ThrowOnError extends boolean = false>(options: Options<DealsControllerFindActivitiesData, ThrowOnError>): RequestResult<DealsControllerFindActivitiesResponses, DealsControllerFindActivitiesErrors, ThrowOnError> => (options.client ?? client).get<DealsControllerFindActivitiesResponses, DealsControllerFindActivitiesErrors, ThrowOnError>({ url: '/api/deals/{id}/activities', ...options });
+
+/**
+ * Add an activity to a deal
+ */
+export const dealsControllerAddActivity = <ThrowOnError extends boolean = false>(options: Options<DealsControllerAddActivityData, ThrowOnError>): RequestResult<DealsControllerAddActivityResponses, DealsControllerAddActivityErrors, ThrowOnError> => (options.client ?? client).post<DealsControllerAddActivityResponses, DealsControllerAddActivityErrors, ThrowOnError>({
+    url: '/api/deals/{id}/activities',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * List tags for a deal
+ */
+export const dealsControllerFindTags = <ThrowOnError extends boolean = false>(options: Options<DealsControllerFindTagsData, ThrowOnError>): RequestResult<DealsControllerFindTagsResponses, DealsControllerFindTagsErrors, ThrowOnError> => (options.client ?? client).get<DealsControllerFindTagsResponses, DealsControllerFindTagsErrors, ThrowOnError>({ url: '/api/deals/{id}/tags', ...options });
+
+/**
+ * Add a tag to a deal
+ */
+export const dealsControllerAddTag = <ThrowOnError extends boolean = false>(options: Options<DealsControllerAddTagData, ThrowOnError>): RequestResult<DealsControllerAddTagResponses, DealsControllerAddTagErrors, ThrowOnError> => (options.client ?? client).post<DealsControllerAddTagResponses, DealsControllerAddTagErrors, ThrowOnError>({
+    url: '/api/deals/{id}/tags',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Remove a tag from a deal
+ */
+export const dealsControllerRemoveTag = <ThrowOnError extends boolean = false>(options: Options<DealsControllerRemoveTagData, ThrowOnError>): RequestResult<DealsControllerRemoveTagResponses, DealsControllerRemoveTagErrors, ThrowOnError> => (options.client ?? client).delete<DealsControllerRemoveTagResponses, DealsControllerRemoveTagErrors, ThrowOnError>({ url: '/api/deals/{id}/tags/{tagId}', ...options });
+
+/**
+ * Preview commission calculation for a deal (stub — Phase 9)
+ */
+export const dealsControllerCommissionPreview = <ThrowOnError extends boolean = false>(options: Options<DealsControllerCommissionPreviewData, ThrowOnError>): RequestResult<DealsControllerCommissionPreviewResponses, DealsControllerCommissionPreviewErrors, ThrowOnError> => (options.client ?? client).get<DealsControllerCommissionPreviewResponses, DealsControllerCommissionPreviewErrors, ThrowOnError>({ url: '/api/deals/{id}/commission-preview', ...options });

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { eq, and, ilike, count, sql, isNull, gte, lte } from 'drizzle-orm';
+import { eq, and, ilike, count, sql, isNull, gte, lte, inArray } from 'drizzle-orm';
 import { db } from '@/db/connection';
 import { deals, dealTags, properties, leads, users, auditLogs } from '@/db/schema';
 import { AppError } from '@/common/errors/app-error';
@@ -8,6 +8,7 @@ import { createPaginatedResult } from '@/common/types/pagination.types';
 import { canTransitionDealStage } from '@/modules/shared/status-fsm';
 import { DEAL_STAGE_VALUES, DEAL_TYPE_VALUES } from './enums/deal-constants';
 import { DealsActivitiesService } from './deals-activities.service';
+import { CommissionRecordsService } from '@/modules/commissions/commission-records/commission-records.service';
 import type { CreateDealDto } from './dto/create-deal.dto';
 import type { UpdateDealDto } from './dto/update-deal.dto';
 import type { DealFiltersDto } from './dto/deal-filters.dto';
@@ -25,7 +26,10 @@ const DEAL_SORT_COLUMNS: Record<string, unknown> = {
 
 @Injectable()
 export class DealsService {
-  constructor(private readonly activitiesService: DealsActivitiesService) {}
+  constructor(
+    private readonly activitiesService: DealsActivitiesService,
+    private readonly commissionsService: CommissionRecordsService,
+  ) {}
 
   // ─── CRUD ───────────────────────────────────────────────
 
@@ -183,7 +187,64 @@ export class DealsService {
       .limit(limit)
       .offset(offset);
 
-    return createPaginatedResult(data, total, page, limit);
+    if (data.length === 0) {
+      return createPaginatedResult([], total, page, limit);
+    }
+
+    // Batch-fetch properties and agents referenced by these deals
+    const propertyIds = [...new Set(data.map((d) => d.propertyId).filter(Boolean))] as string[];
+    const agentIds = [...new Set(data.map((d) => d.agentId))];
+
+    const propertiesData = propertyIds.length > 0
+      ? await db
+          .select({ id: properties.id, title: properties.title, address: properties.address })
+          .from(properties)
+          .where(inArray(properties.id, propertyIds))
+      : [];
+    const agentsData = await db
+      .select({ id: users.id, name: users.name, email: users.email })
+      .from(users)
+      .where(inArray(users.id, agentIds));
+
+    const propertiesMap = new Map(propertiesData.map((p) => [p.id, p]));
+    const agentsMap = new Map(agentsData.map((a) => [a.id, a]));
+
+    // Enrich with commission preview + property/agent/risk
+    const enriched = await Promise.all(
+      data.map(async (deal) => {
+        const commission = await this.commissionsService.previewForDeal(deal);
+        const prop = deal.propertyId ? propertiesMap.get(deal.propertyId) ?? null : null;
+        const agent = agentsMap.get(deal.agentId) ?? null;
+        const daysUntilClose =
+          deal.targetCloseDate && deal.stage !== 'closedWon' && deal.stage !== 'closedLost'
+            ? Math.ceil((deal.targetCloseDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000))
+            : null;
+        const daysElapsed = deal.createdAt
+          ? Math.floor((Date.now() - deal.createdAt.getTime()) / (24 * 60 * 60 * 1000))
+          : 0;
+        const risk = deal.probability >= 70 ? 'low' : deal.probability >= 50 ? 'medium' : 'high';
+        return {
+          ...deal,
+          property: prop,
+          agent,
+          daysUntilClose,
+          daysElapsed,
+          risk,
+          resolvedRate: commission.resolvedRate,
+          resolvedCommission: commission.resolvedCommission
+            ? {
+                calculated: commission.resolvedCommission.calculatedAmountCents,
+                agentPayout: commission.resolvedCommission.agentPayoutAmountCents,
+                brokerage: commission.resolvedCommission.brokerageAmountCents,
+                appliedRate: commission.resolvedCommission.appliedRate,
+                planType: commission.resolvedCommission.planType,
+              }
+            : null,
+        };
+      }),
+    );
+
+    return createPaginatedResult(enriched, total, page, limit);
   }
 
   async findById(id: string, tenantId: string, user?: { id: string; role: string }) {
@@ -202,7 +263,52 @@ export class DealsService {
       throw new AppError(ErrorCodes.FORBIDDEN, 403, 'You can only access deals assigned to you');
     }
 
-    return deal;
+    // Enrich with commission preview + property/agent/risk
+    const commission = await this.commissionsService.previewForDeal(deal);
+
+    let prop: { id: string; title: string; address: string } | null = null;
+    if (deal.propertyId) {
+      const [p] = await db
+        .select({ id: properties.id, title: properties.title, address: properties.address })
+        .from(properties)
+        .where(eq(properties.id, deal.propertyId))
+        .limit(1);
+      prop = p ?? null;
+    }
+
+    const [agent] = await db
+      .select({ id: users.id, name: users.name, email: users.email })
+      .from(users)
+      .where(eq(users.id, deal.agentId))
+      .limit(1);
+
+    const daysUntilClose =
+      deal.targetCloseDate && deal.stage !== 'closedWon' && deal.stage !== 'closedLost'
+        ? Math.ceil((deal.targetCloseDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000))
+        : null;
+    const daysElapsed = deal.createdAt
+      ? Math.floor((Date.now() - deal.createdAt.getTime()) / (24 * 60 * 60 * 1000))
+      : 0;
+    const risk = deal.probability >= 70 ? 'low' : deal.probability >= 50 ? 'medium' : 'high';
+
+    return {
+      ...deal,
+      property: prop,
+      agent: agent ?? null,
+      daysUntilClose,
+      daysElapsed,
+      risk,
+      resolvedRate: commission.resolvedRate,
+      resolvedCommission: commission.resolvedCommission
+        ? {
+            calculated: commission.resolvedCommission.calculatedAmountCents,
+            agentPayout: commission.resolvedCommission.agentPayoutAmountCents,
+            brokerage: commission.resolvedCommission.brokerageAmountCents,
+            appliedRate: commission.resolvedCommission.appliedRate,
+            planType: commission.resolvedCommission.planType,
+          }
+        : null,
+    };
   }
 
   async update(id: string, dto: UpdateDealDto, user: { id: string; role: string; tenantId: string }) {
@@ -390,11 +496,20 @@ export class DealsService {
         metadata: { from: oldStage, to: newStage, dealValue: deal.value },
       });
 
-      // TODO: Phase 9 — Commission calculation hook
-      // CommissionsService.calculateCommission(dealId, tenantId) will be called here
+      // Commission calculation + property status update on closedWon
+      if (newStage === 'closedWon') {
+        // 1. Mark property as sold (if linked)
+        if (updated.propertyId) {
+          await tx
+            .update(properties)
+            .set({ status: 'sold', updatedAt: new Date() })
+            .where(eq(properties.id, updated.propertyId));
+        }
 
-      // TODO: Phase 9 — Property status update hook
-      // Property status will be set to 'sold' on closedWon
+        // 2. Create immutable commission record (throws COMMISSION_PLAN_MISSING if no plan)
+        //    This also writes audit log + notification — all in the same transaction.
+        await this.commissionsService.recordOnClose(tx, updated, user);
+      }
 
       return updated;
     });
@@ -492,24 +607,4 @@ export class DealsService {
     return tag;
   }
 
-  // ─── Commission Preview (Stub) ──────────────────────────
-
-  /**
-   * Commission preview stub.
-   * Phase 9 will implement the full commission calculation logic:
-   * - Look up the commission plan (property → project → tenant default)
-   * - Calculate base commission, agent split, and brokerage share
-   * - Return the breakdown in integer cents
-   */
-  async commissionPreview(id: string, tenantId: string, user?: { id: string; role: string }) {
-    const deal = await this.findById(id, tenantId, user);
-
-    return {
-      dealId: deal.id,
-      value: deal.value,
-      stage: deal.stage,
-      agentId: deal.agentId,
-      message: 'Commission preview will be available after Phase 9 (Commission Plans) is implemented',
-    };
-  }
 }

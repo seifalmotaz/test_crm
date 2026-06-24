@@ -32,6 +32,7 @@ export class ProjectsService {
         launchDate: dto.launchDate ? new Date(dto.launchDate) : undefined,
         completionDate: dto.completionDate ? new Date(dto.completionDate) : undefined,
         totalUnits: dto.totalUnits ?? undefined,
+        commissionPlanId: dto.commissionPlanId ?? null,
       })
       .returning();
 
@@ -102,6 +103,7 @@ export class ProjectsService {
     if (dto.launchDate !== undefined) updateData.launchDate = dto.launchDate;
     if (dto.completionDate !== undefined) updateData.completionDate = dto.completionDate;
     if (dto.totalUnits !== undefined) updateData.totalUnits = dto.totalUnits;
+    if (dto.commissionPlanId !== undefined) updateData.commissionPlanId = dto.commissionPlanId;
     updateData.updatedAt = new Date();
 
     const [updated] = await db

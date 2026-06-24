@@ -1908,10 +1908,10 @@
             }
           },
           {
-            "name": "isConverted",
+            "name": "isClient",
             "required": false,
             "in": "query",
-            "description": "Filter by converted status (true|false)",
+            "description": "Filter by client status (true|false)",
             "schema": {
               "type": "boolean"
             }
@@ -2164,7 +2164,7 @@
             "access_token": []
           }
         ],
-        "summary": "Convert lead to client (sets isConverted=true, no new record created)",
+        "summary": "Promote lead to client (sets isClient=true, no new record created)",
         "tags": [
           "Leads"
         ]
@@ -2522,6 +2522,1361 @@
         "summary": "Remove a tag from a lead",
         "tags": [
           "Leads"
+        ]
+      }
+    },
+    "/api/clients": {
+      "post": {
+        "operationId": "ClientsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateClientDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Client created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "404": {
+            "description": "Agent not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Create a client (creates a lead with isClient=true)",
+        "tags": [
+          "Clients"
+        ]
+      },
+      "get": {
+        "operationId": "ClientsController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Page number",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Items per page",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Field to sort by",
+            "schema": {
+              "default": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Sort order",
+            "schema": {
+              "default": "desc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search query string",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "isVip",
+            "required": false,
+            "in": "query",
+            "description": "Filter by VIP status (true|false)",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "agentId",
+            "required": false,
+            "in": "query",
+            "description": "Filter by assigned agent ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated client list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedLeadResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "List clients (leads with isClient=true)",
+        "tags": [
+          "Clients"
+        ]
+      }
+    },
+    "/api/clients/{id}": {
+      "get": {
+        "operationId": "ClientsController_findById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Client details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Not a client"
+          },
+          "404": {
+            "description": "Client not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Get client by ID (returns 400 if not a client)",
+        "tags": [
+          "Clients"
+        ]
+      },
+      "patch": {
+        "operationId": "ClientsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateClientDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated client",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Not a client"
+          },
+          "403": {
+            "description": "Forbidden (e.g., agent setting VIP or lifetimeValue)"
+          },
+          "404": {
+            "description": "Client not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Update a client",
+        "tags": [
+          "Clients"
+        ]
+      },
+      "delete": {
+        "operationId": "ClientsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Client deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Not a client"
+          },
+          "404": {
+            "description": "Client not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Soft delete a client",
+        "tags": [
+          "Clients"
+        ]
+      }
+    },
+    "/api/clients/{id}/vip": {
+      "post": {
+        "operationId": "ClientsController_setVip",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetVipDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "VIP status updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Not a client"
+          },
+          "403": {
+            "description": "Forbidden (agent)"
+          },
+          "404": {
+            "description": "Client not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Set or clear VIP flag on a client (manager/admin only)",
+        "tags": [
+          "Clients"
+        ]
+      }
+    },
+    "/api/clients/{id}/activities": {
+      "post": {
+        "operationId": "ClientsController_addActivity",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddActivityDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Activity recorded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadActivityResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Not a client"
+          },
+          "404": {
+            "description": "Client not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Add an activity to a client",
+        "tags": [
+          "Clients"
+        ]
+      },
+      "get": {
+        "operationId": "ClientsController_findActivities",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Page number",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Items per page",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Field to sort by",
+            "schema": {
+              "default": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Sort order",
+            "schema": {
+              "default": "desc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search in activity content",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "description": "Filter by activity type",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "call",
+                "email",
+                "meeting",
+                "note",
+                "stage_change",
+                "assignment",
+                "dnc_set",
+                "dnc_unset",
+                "convert"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated activities",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedLeadActivityResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Not a client"
+          },
+          "404": {
+            "description": "Client not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "List activities for a client (paginated)",
+        "tags": [
+          "Clients"
+        ]
+      }
+    },
+    "/api/clients/{id}/tags": {
+      "get": {
+        "operationId": "ClientsController_findTags",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tags list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LeadTagResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Not a client"
+          },
+          "404": {
+            "description": "Client not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "List tags for a client",
+        "tags": [
+          "Clients"
+        ]
+      },
+      "post": {
+        "operationId": "ClientsController_addTag",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddTagDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Tag added",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadTagResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Not a client"
+          },
+          "409": {
+            "description": "Tag already exists"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Add a tag to a client",
+        "tags": [
+          "Clients"
+        ]
+      }
+    },
+    "/api/clients/{id}/tags/{tagId}": {
+      "delete": {
+        "operationId": "ClientsController_removeTag",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tagId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tag removed"
+          },
+          "400": {
+            "description": "Not a client"
+          },
+          "404": {
+            "description": "Tag or client not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Remove a tag from a client",
+        "tags": [
+          "Clients"
+        ]
+      }
+    },
+    "/api/deals": {
+      "post": {
+        "operationId": "DealsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDealDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Deal created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DealResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error or invalid stage"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Agent not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Create a deal",
+        "tags": [
+          "Deals"
+        ]
+      },
+      "get": {
+        "operationId": "DealsController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Page number",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Items per page",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Field to sort by",
+            "schema": {
+              "default": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Sort order",
+            "schema": {
+              "default": "desc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search query string",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "stage",
+            "required": false,
+            "in": "query",
+            "description": "Filter by deal stage",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "initialContact",
+                "negotiation",
+                "contractPending",
+                "closedWon",
+                "closedLost"
+              ]
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "description": "Filter by deal type",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "standard",
+                "resale",
+                "rental",
+                "investment"
+              ]
+            }
+          },
+          {
+            "name": "agentId",
+            "required": false,
+            "in": "query",
+            "description": "Filter by agent ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "propertyId",
+            "required": false,
+            "in": "query",
+            "description": "Filter by property ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "leadId",
+            "required": false,
+            "in": "query",
+            "description": "Filter by lead or client ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "minValue",
+            "required": false,
+            "in": "query",
+            "description": "Minimum deal value in cents",
+            "schema": {
+              "minimum": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "maxValue",
+            "required": false,
+            "in": "query",
+            "description": "Maximum deal value in cents",
+            "schema": {
+              "minimum": 0,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated deal list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedDealResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "List deals with filters and pagination",
+        "tags": [
+          "Deals"
+        ]
+      }
+    },
+    "/api/deals/{id}": {
+      "get": {
+        "operationId": "DealsController_findById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deal details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DealResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Deal not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Get deal by ID",
+        "tags": [
+          "Deals"
+        ]
+      },
+      "patch": {
+        "operationId": "DealsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDealDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated deal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DealResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden (e.g., agent setting probability or value)"
+          },
+          "404": {
+            "description": "Deal not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Update a deal",
+        "tags": [
+          "Deals"
+        ]
+      },
+      "delete": {
+        "operationId": "DealsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deal deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DealResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Deal not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Soft delete a deal",
+        "tags": [
+          "Deals"
+        ]
+      }
+    },
+    "/api/deals/{id}/stage": {
+      "post": {
+        "operationId": "DealsController_changeStage",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeDealStageDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Stage updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DealResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid transition"
+          },
+          "403": {
+            "description": "Agents cannot close as won"
+          },
+          "404": {
+            "description": "Deal not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Change deal stage (FSM transition)",
+        "tags": [
+          "Deals"
+        ]
+      }
+    },
+    "/api/deals/{id}/activities": {
+      "post": {
+        "operationId": "DealsController_addActivity",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddActivityDto2"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Activity recorded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DealActivityResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "404": {
+            "description": "Deal not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Add an activity to a deal",
+        "tags": [
+          "Deals"
+        ]
+      },
+      "get": {
+        "operationId": "DealsController_findActivities",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Page number",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Items per page",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Field to sort by",
+            "schema": {
+              "default": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Sort order",
+            "schema": {
+              "default": "desc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search in activity content",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "description": "Filter by activity type",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "call",
+                "email",
+                "meeting",
+                "note",
+                "stage_change",
+                "assignment"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated activities",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedDealActivityResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Deal not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "List activities for a deal (paginated, sorted by createdAt DESC)",
+        "tags": [
+          "Deals"
+        ]
+      }
+    },
+    "/api/deals/{id}/tags": {
+      "get": {
+        "operationId": "DealsController_findTags",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tags list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DealTagResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Deal not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "List tags for a deal",
+        "tags": [
+          "Deals"
+        ]
+      },
+      "post": {
+        "operationId": "DealsController_addTag",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddTagDto2"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Tag added",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DealTagResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid color format"
+          },
+          "404": {
+            "description": "Deal not found"
+          },
+          "409": {
+            "description": "Tag already exists"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Add a tag to a deal",
+        "tags": [
+          "Deals"
+        ]
+      }
+    },
+    "/api/deals/{id}/tags/{tagId}": {
+      "delete": {
+        "operationId": "DealsController_removeTag",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tagId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tag removed"
+          },
+          "404": {
+            "description": "Tag or deal not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Remove a tag from a deal",
+        "tags": [
+          "Deals"
+        ]
+      }
+    },
+    "/api/deals/{id}/commission-preview": {
+      "get": {
+        "operationId": "DealsController_commissionPreview",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Commission preview (stub)"
+          },
+          "404": {
+            "description": "Deal not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Preview commission calculation for a deal (stub — Phase 9)",
+        "tags": [
+          "Deals"
         ]
       }
     }
@@ -3809,9 +5164,28 @@
             "example": "2026-06-15T10:00:00.000Z",
             "nullable": true
           },
-          "isConverted": {
+          "isClient": {
             "type": "boolean",
             "example": false
+          },
+          "isVip": {
+            "type": "boolean",
+            "example": false
+          },
+          "vipSetById": {
+            "type": "string",
+            "example": "01915d5e-...",
+            "nullable": true
+          },
+          "vipSetAt": {
+            "type": "string",
+            "example": "2026-06-10T10:00:00.000Z",
+            "nullable": true
+          },
+          "lifetimeValue": {
+            "type": "number",
+            "example": 50000000,
+            "nullable": true
           },
           "isDnc": {
             "type": "boolean",
@@ -3851,7 +5225,8 @@
           "stage",
           "score",
           "previousAgentIds",
-          "isConverted",
+          "isClient",
+          "isVip",
           "isDnc",
           "createdAt",
           "updatedAt"
@@ -3954,6 +5329,15 @@
             "minimum": 0,
             "maximum": 100,
             "description": "Lead score (0-100). Manager/admin only."
+          },
+          "isVip": {
+            "type": "boolean",
+            "description": "VIP status (manager/admin only)",
+            "default": false
+          },
+          "lifetimeValue": {
+            "type": "number",
+            "description": "Lifetime value in cents (manager/admin only)"
           }
         }
       },
@@ -4150,6 +5534,597 @@
             "type": "string",
             "example": "#EF4444",
             "description": "Hex color (e.g., #FF0000)"
+          }
+        },
+        "required": [
+          "tag",
+          "color"
+        ]
+      },
+      "CreateClientDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Ahmed Hassan",
+            "description": "Client full name",
+            "minLength": 1
+          },
+          "email": {
+            "type": "string",
+            "example": "ahmed@example.com",
+            "description": "Client email address"
+          },
+          "phone": {
+            "type": "string",
+            "example": "+201001234567",
+            "description": "Client phone number",
+            "minLength": 5
+          },
+          "type": {
+            "type": "string",
+            "example": "buyer",
+            "description": "Client type (e.g., buyer, seller, renter, investor)"
+          },
+          "budgetMin": {
+            "type": "number",
+            "example": 10000000,
+            "description": "Minimum budget in cents"
+          },
+          "budgetMax": {
+            "type": "number",
+            "example": 30000000,
+            "description": "Maximum budget in cents"
+          },
+          "timeline": {
+            "type": "number",
+            "example": 3,
+            "description": "Timeline in months"
+          },
+          "preferredLocation": {
+            "type": "string",
+            "example": "New Cairo",
+            "description": "Preferred location"
+          },
+          "preferredType": {
+            "type": "string",
+            "example": "apartment",
+            "description": "Preferred property type"
+          },
+          "agentId": {
+            "type": "string",
+            "example": "01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a3",
+            "description": "Assigned agent ID"
+          },
+          "notes": {
+            "type": "string",
+            "example": "Referred by partner",
+            "description": "Internal notes"
+          },
+          "nextAction": {
+            "type": "string",
+            "example": "Follow up next week",
+            "description": "Next action label"
+          },
+          "nextActionDate": {
+            "type": "string",
+            "example": "2026-06-15T10:00:00Z",
+            "description": "Next action due date"
+          },
+          "lifetimeValue": {
+            "type": "number",
+            "example": 50000000,
+            "description": "Lifetime value in cents"
+          }
+        },
+        "required": [
+          "name",
+          "phone",
+          "type"
+        ]
+      },
+      "UpdateClientDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Ahmed Hassan Updated",
+            "description": "Client full name"
+          },
+          "email": {
+            "type": "string",
+            "example": "new@example.com",
+            "description": "Client email address"
+          },
+          "phone": {
+            "type": "string",
+            "example": "+201009876543",
+            "description": "Client phone number"
+          },
+          "type": {
+            "type": "string",
+            "example": "investor",
+            "description": "Client type"
+          },
+          "budgetMin": {
+            "type": "number",
+            "example": 15000000,
+            "description": "Minimum budget in cents"
+          },
+          "budgetMax": {
+            "type": "number",
+            "example": 35000000,
+            "description": "Maximum budget in cents"
+          },
+          "timeline": {
+            "type": "number",
+            "example": 6,
+            "description": "Timeline in months"
+          },
+          "preferredLocation": {
+            "type": "string",
+            "example": "6th October",
+            "description": "Preferred location"
+          },
+          "preferredType": {
+            "type": "string",
+            "example": "villa",
+            "description": "Preferred property type"
+          },
+          "agentId": {
+            "type": "string",
+            "example": "01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a3",
+            "description": "Assigned agent ID"
+          },
+          "notes": {
+            "type": "string",
+            "example": "Updated notes",
+            "description": "Internal notes"
+          },
+          "nextAction": {
+            "type": "string",
+            "example": "Send listings",
+            "description": "Next action label"
+          },
+          "nextActionDate": {
+            "type": "string",
+            "example": "2026-06-20T10:00:00Z",
+            "description": "Next action due date"
+          },
+          "isVip": {
+            "type": "boolean",
+            "description": "VIP status (manager/admin only)",
+            "default": false
+          },
+          "lifetimeValue": {
+            "type": "number",
+            "description": "Lifetime value in cents (manager/admin only)"
+          }
+        }
+      },
+      "SetVipDto": {
+        "type": "object",
+        "properties": {
+          "isVip": {
+            "type": "boolean",
+            "example": true,
+            "description": "Whether the client is a VIP"
+          }
+        },
+        "required": [
+          "isVip"
+        ]
+      },
+      "CreateDealDto": {
+        "type": "object",
+        "properties": {
+          "agentId": {
+            "type": "string",
+            "description": "Agent ID (required)",
+            "example": "01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a3"
+          },
+          "propertyId": {
+            "type": "string",
+            "description": "Property ID — at least one of propertyId or leadId is required"
+          },
+          "leadId": {
+            "type": "string",
+            "description": "Lead or Client ID — at least one of propertyId or leadId is required"
+          },
+          "type": {
+            "type": "string",
+            "description": "Deal type",
+            "enum": [
+              "standard",
+              "resale",
+              "rental",
+              "investment"
+            ],
+            "example": "standard"
+          },
+          "value": {
+            "type": "number",
+            "description": "Deal value in cents",
+            "example": 45000000,
+            "minimum": 0
+          },
+          "probability": {
+            "type": "number",
+            "description": "Probability percentage (0-100)",
+            "default": 50,
+            "minimum": 0,
+            "maximum": 100
+          },
+          "offerDate": {
+            "type": "string",
+            "description": "Offer date",
+            "example": "2026-06-15"
+          },
+          "targetCloseDate": {
+            "type": "string",
+            "description": "Target close date",
+            "example": "2026-09-01"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Internal notes"
+          }
+        },
+        "required": [
+          "agentId",
+          "type",
+          "value"
+        ]
+      },
+      "DealResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a3"
+          },
+          "tenantId": {
+            "type": "string",
+            "example": "01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a4"
+          },
+          "propertyId": {
+            "type": "string",
+            "example": "01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a5",
+            "nullable": true
+          },
+          "leadId": {
+            "type": "string",
+            "description": "Lead or Client ID",
+            "example": "01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a6",
+            "nullable": true
+          },
+          "agentId": {
+            "type": "string",
+            "example": "01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a7"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "standard",
+              "resale",
+              "rental",
+              "investment"
+            ],
+            "example": "standard"
+          },
+          "value": {
+            "type": "number",
+            "example": 45000000
+          },
+          "stage": {
+            "type": "string",
+            "enum": [
+              "initialContact",
+              "negotiation",
+              "contractPending",
+              "closedWon",
+              "closedLost"
+            ],
+            "example": "initialContact"
+          },
+          "probability": {
+            "type": "number",
+            "example": 50,
+            "nullable": true
+          },
+          "offerDate": {
+            "type": "string",
+            "example": "2026-06-15",
+            "nullable": true
+          },
+          "targetCloseDate": {
+            "type": "string",
+            "example": "2026-09-01",
+            "nullable": true
+          },
+          "closingDate": {
+            "type": "string",
+            "example": "2026-09-01T10:00:00.000Z",
+            "nullable": true
+          },
+          "daysUntilClose": {
+            "type": "number",
+            "example": 77,
+            "nullable": true
+          },
+          "daysElapsed": {
+            "type": "number",
+            "example": 5,
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "example": "Negotiating price",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-06-01T10:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2026-06-09T10:00:00.000Z"
+          },
+          "deletedAt": {
+            "type": "string",
+            "example": null,
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "tenantId",
+          "agentId",
+          "type",
+          "value",
+          "stage",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "PaginatedDealResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DealResponseDto"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginatedMetaDto"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "UpdateDealDto": {
+        "type": "object",
+        "properties": {
+          "agentId": {
+            "type": "string",
+            "description": "Agent ID"
+          },
+          "propertyId": {
+            "type": "string",
+            "description": "Property ID"
+          },
+          "leadId": {
+            "type": "string",
+            "description": "Lead or Client ID"
+          },
+          "type": {
+            "type": "string",
+            "description": "Deal type",
+            "enum": [
+              "standard",
+              "resale",
+              "rental",
+              "investment"
+            ]
+          },
+          "value": {
+            "type": "number",
+            "description": "Deal value in cents",
+            "minimum": 0
+          },
+          "probability": {
+            "type": "number",
+            "description": "Probability percentage (0-100)",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "offerDate": {
+            "type": "string",
+            "description": "Offer date"
+          },
+          "targetCloseDate": {
+            "type": "string",
+            "description": "Target close date"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Internal notes"
+          }
+        }
+      },
+      "ChangeDealStageDto": {
+        "type": "object",
+        "properties": {
+          "stage": {
+            "type": "string",
+            "enum": [
+              "initialContact",
+              "negotiation",
+              "contractPending",
+              "closedWon",
+              "closedLost"
+            ],
+            "example": "negotiation",
+            "description": "Target deal stage"
+          }
+        },
+        "required": [
+          "stage"
+        ]
+      },
+      "AddActivityDto2": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "call",
+              "email",
+              "meeting",
+              "note",
+              "stage_change",
+              "assignment"
+            ],
+            "description": "Activity type",
+            "example": "call"
+          },
+          "content": {
+            "type": "string",
+            "description": "Activity content",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Additional metadata"
+          }
+        },
+        "required": [
+          "type",
+          "content"
+        ]
+      },
+      "DealActivityResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a3"
+          },
+          "tenantId": {
+            "type": "string",
+            "example": "01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a4"
+          },
+          "entityType": {
+            "type": "string",
+            "example": "deal"
+          },
+          "entityId": {
+            "type": "string",
+            "example": "01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a5"
+          },
+          "type": {
+            "type": "string",
+            "example": "call"
+          },
+          "content": {
+            "type": "string",
+            "example": "Discussed terms. Follow up next week."
+          },
+          "metadata": {
+            "type": "object",
+            "example": {
+              "duration": 15
+            },
+            "nullable": true
+          },
+          "agentId": {
+            "type": "string",
+            "example": "01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a6"
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-06-09T10:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "tenantId",
+          "entityType",
+          "entityId",
+          "type",
+          "content",
+          "agentId",
+          "createdAt"
+        ]
+      },
+      "PaginatedDealActivityResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DealActivityResponseDto"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginatedMetaDto"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "DealTagResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a3"
+          },
+          "tenantId": {
+            "type": "string",
+            "example": "01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a4"
+          },
+          "dealId": {
+            "type": "string",
+            "example": "01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a5"
+          },
+          "tag": {
+            "type": "string",
+            "example": "VIP"
+          },
+          "color": {
+            "type": "string",
+            "example": "#EF4444"
+          }
+        },
+        "required": [
+          "id",
+          "tenantId",
+          "dealId",
+          "tag",
+          "color"
+        ]
+      },
+      "AddTagDto2": {
+        "type": "object",
+        "properties": {
+          "tag": {
+            "type": "string",
+            "description": "Tag label",
+            "example": "VIP",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "color": {
+            "type": "string",
+            "description": "Hex color code",
+            "example": "#EF4444"
           }
         },
         "required": [

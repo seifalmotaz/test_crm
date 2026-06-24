@@ -80,6 +80,7 @@ export class PropertiesService {
         attributes: (validatedAttributes ?? {}) as Record<string, unknown>,
         projectId: dto.projectId ?? null,
         agentId: dto.agentId ?? null,
+        commissionPlanId: dto.commissionPlanId ?? null,
       })
       .returning();
 
@@ -180,6 +181,7 @@ export class PropertiesService {
     if (validatedAttributes !== undefined) updateData.attributes = validatedAttributes;
     if (dto.projectId !== undefined) updateData.projectId = dto.projectId;
     if (dto.agentId !== undefined) updateData.agentId = dto.agentId;
+    if (dto.commissionPlanId !== undefined) updateData.commissionPlanId = dto.commissionPlanId;
     if (dto.images !== undefined) updateData.images = dto.images;
     updateData.updatedAt = new Date();
 

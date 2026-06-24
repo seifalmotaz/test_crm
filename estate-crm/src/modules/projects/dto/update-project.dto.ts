@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsInt, Min, MinLength, Matches } from 'class-validator';
+import { IsString, IsOptional, IsInt, IsUUID, Min, MinLength, Matches } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class UpdateProjectDto {
@@ -38,4 +38,9 @@ export class UpdateProjectDto {
   @IsInt()
   @Min(1)
   totalUnits?: number;
+
+  @ApiPropertyOptional({ example: '01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a3', description: 'Commission plan ID' })
+  @IsOptional()
+  @IsUUID()
+  commissionPlanId?: string;
 }

@@ -207,6 +207,7 @@ export const commissionRecords = pgTable('commission_records', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 }, (t) => [
   index('commission_records_tenant_id_idx').on(t.tenantId),
+  uniqueIndex('commission_records_deal_id_idx').on(t.dealId),
 ]);
 
 // 10. tasks

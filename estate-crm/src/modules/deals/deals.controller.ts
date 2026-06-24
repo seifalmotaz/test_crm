@@ -209,18 +209,4 @@ export class DealsController {
     return this.dealsService.removeTag(id, tagId, user);
   }
 
-  // ─── Commission Preview (Stub) ──────────────────────────
-
-  @Get(':id/commission-preview')
-  @Roles('admin', 'manager')
-  @ApiOperation({ summary: 'Preview commission calculation for a deal (stub — Phase 9)' })
-  @ApiCookieAuth('access_token')
-  @ApiResponse({ status: 200, description: 'Commission preview (stub)' })
-  @ApiResponse({ status: 404, description: 'Deal not found' })
-  async commissionPreview(
-    @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: AuthenticatedUser,
-  ) {
-    return this.dealsService.commissionPreview(id, user.tenantId, user);
-  }
 }

@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsInt, IsEnum, Min, MinLength, Matches } from 'class-validator';
+import { IsString, IsOptional, IsInt, IsEnum, IsUUID, Min, MinLength, Matches } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ProjectStatus } from '@/modules/projects/enums/project-status.enum';
 
@@ -42,4 +42,9 @@ export class CreateProjectDto {
   @IsInt()
   @Min(1)
   totalUnits?: number;
+
+  @ApiPropertyOptional({ example: '01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a3', description: 'Commission plan ID' })
+  @IsOptional()
+  @IsUUID('4', { each: false })
+  commissionPlanId?: string;
 }

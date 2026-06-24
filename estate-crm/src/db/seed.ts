@@ -150,24 +150,25 @@ async function main() {
   console.log(`Agents: ${agentEmails.join(', ')}`);
 
   // ── Default commission plan ──
-  let plan = await db
+  const existingPlan = await db
     .select()
     .from(commissionPlans)
-    .where(eq(commissionPlans.name, 'Standard 3%'))
+    .where(and(eq(commissionPlans.tenantId, org.id), eq(commissionPlans.isDefault, true)))
     .limit(1)
     .then((rows) => rows[0] ?? null);
 
-  if (!plan) {
-    [plan] = await db.insert(commissionPlans).values({
+  if (!existingPlan) {
+    const [plan] = await db.insert(commissionPlans).values({
       tenantId: org.id,
-      name: 'Standard 3%',
+      name: 'Standard 5%',
       type: 'percentage',
-      rate: '0.03',
+      rate: '0.0500',
+      splitConfig: { listingAgentShare: 50, buyerAgentShare: 50 },
       isDefault: true,
     }).returning();
-    console.log(`Created commission plan: ${plan.name} (${plan.id})`);
+    console.log(`Created default commission plan: ${plan.name} (${plan.id})`);
   } else {
-    console.log(`Commission plan already exists: ${plan.name} (${plan.id})`);
+    console.log(`Default commission plan already exists: ${existingPlan.name} (${existingPlan.id})`);
   }
 
   // ── Seed Projects ──

@@ -1,0 +1,3 @@
+- Our main working directory of the project is `./estate-crm` and we use `bun` as our package manager. 
+- `./alternative_crm` is our competitors CRM project open source code.
+- the code in inside `./` and `./backend` is our first prototype - we will deprecated it and move to the new codebase at `./estate-crm`.

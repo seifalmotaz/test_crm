@@ -523,7 +523,11 @@ export type LeadResponseDto = {
     notes?: string | null;
     nextAction?: string | null;
     nextActionDate?: string | null;
-    isConverted: boolean;
+    isClient: boolean;
+    isVip: boolean;
+    vipSetById?: string | null;
+    vipSetAt?: string | null;
+    lifetimeValue?: number | null;
     isDnc: boolean;
     dncReason?: string | null;
     dncSetAt?: string | null;
@@ -598,6 +602,14 @@ export type UpdateLeadDto = {
      * Lead score (0-100). Manager/admin only.
      */
     score?: number;
+    /**
+     * VIP status (manager/admin only)
+     */
+    isVip?: boolean;
+    /**
+     * Lifetime value in cents (manager/admin only)
+     */
+    lifetimeValue?: number;
 };
 
 export type ChangeLeadStageDto = {
@@ -672,6 +684,304 @@ export type AddTagDto = {
     tag: string;
     /**
      * Hex color (e.g., #FF0000)
+     */
+    color: string;
+};
+
+export type CreateClientDto = {
+    /**
+     * Client full name
+     */
+    name: string;
+    /**
+     * Client email address
+     */
+    email?: string;
+    /**
+     * Client phone number
+     */
+    phone: string;
+    /**
+     * Client type (e.g., buyer, seller, renter, investor)
+     */
+    type: string;
+    /**
+     * Minimum budget in cents
+     */
+    budgetMin?: number;
+    /**
+     * Maximum budget in cents
+     */
+    budgetMax?: number;
+    /**
+     * Timeline in months
+     */
+    timeline?: number;
+    /**
+     * Preferred location
+     */
+    preferredLocation?: string;
+    /**
+     * Preferred property type
+     */
+    preferredType?: string;
+    /**
+     * Assigned agent ID
+     */
+    agentId?: string;
+    /**
+     * Internal notes
+     */
+    notes?: string;
+    /**
+     * Next action label
+     */
+    nextAction?: string;
+    /**
+     * Next action due date
+     */
+    nextActionDate?: string;
+    /**
+     * Lifetime value in cents
+     */
+    lifetimeValue?: number;
+};
+
+export type UpdateClientDto = {
+    /**
+     * Client full name
+     */
+    name?: string;
+    /**
+     * Client email address
+     */
+    email?: string;
+    /**
+     * Client phone number
+     */
+    phone?: string;
+    /**
+     * Client type
+     */
+    type?: string;
+    /**
+     * Minimum budget in cents
+     */
+    budgetMin?: number;
+    /**
+     * Maximum budget in cents
+     */
+    budgetMax?: number;
+    /**
+     * Timeline in months
+     */
+    timeline?: number;
+    /**
+     * Preferred location
+     */
+    preferredLocation?: string;
+    /**
+     * Preferred property type
+     */
+    preferredType?: string;
+    /**
+     * Assigned agent ID
+     */
+    agentId?: string;
+    /**
+     * Internal notes
+     */
+    notes?: string;
+    /**
+     * Next action label
+     */
+    nextAction?: string;
+    /**
+     * Next action due date
+     */
+    nextActionDate?: string;
+    /**
+     * VIP status (manager/admin only)
+     */
+    isVip?: boolean;
+    /**
+     * Lifetime value in cents (manager/admin only)
+     */
+    lifetimeValue?: number;
+};
+
+export type SetVipDto = {
+    /**
+     * Whether the client is a VIP
+     */
+    isVip: boolean;
+};
+
+export type CreateDealDto = {
+    /**
+     * Agent ID (required)
+     */
+    agentId: string;
+    /**
+     * Property ID — at least one of propertyId or leadId is required
+     */
+    propertyId?: string;
+    /**
+     * Lead or Client ID — at least one of propertyId or leadId is required
+     */
+    leadId?: string;
+    /**
+     * Deal type
+     */
+    type: 'standard' | 'resale' | 'rental' | 'investment';
+    /**
+     * Deal value in cents
+     */
+    value: number;
+    /**
+     * Probability percentage (0-100)
+     */
+    probability?: number;
+    /**
+     * Offer date
+     */
+    offerDate?: string;
+    /**
+     * Target close date
+     */
+    targetCloseDate?: string;
+    /**
+     * Internal notes
+     */
+    notes?: string;
+};
+
+export type DealResponseDto = {
+    id: string;
+    tenantId: string;
+    propertyId?: string | null;
+    /**
+     * Lead or Client ID
+     */
+    leadId?: string | null;
+    agentId: string;
+    type: 'standard' | 'resale' | 'rental' | 'investment';
+    value: number;
+    stage: 'initialContact' | 'negotiation' | 'contractPending' | 'closedWon' | 'closedLost';
+    probability?: number | null;
+    offerDate?: string | null;
+    targetCloseDate?: string | null;
+    closingDate?: string | null;
+    daysUntilClose?: number | null;
+    daysElapsed?: number | null;
+    notes?: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt?: string | null;
+};
+
+export type PaginatedDealResponseDto = {
+    data: Array<DealResponseDto>;
+    meta: PaginatedMetaDto;
+};
+
+export type UpdateDealDto = {
+    /**
+     * Agent ID
+     */
+    agentId?: string;
+    /**
+     * Property ID
+     */
+    propertyId?: string;
+    /**
+     * Lead or Client ID
+     */
+    leadId?: string;
+    /**
+     * Deal type
+     */
+    type?: 'standard' | 'resale' | 'rental' | 'investment';
+    /**
+     * Deal value in cents
+     */
+    value?: number;
+    /**
+     * Probability percentage (0-100)
+     */
+    probability?: number;
+    /**
+     * Offer date
+     */
+    offerDate?: string;
+    /**
+     * Target close date
+     */
+    targetCloseDate?: string;
+    /**
+     * Internal notes
+     */
+    notes?: string;
+};
+
+export type ChangeDealStageDto = {
+    /**
+     * Target deal stage
+     */
+    stage: 'initialContact' | 'negotiation' | 'contractPending' | 'closedWon' | 'closedLost';
+};
+
+export type AddActivityDto2 = {
+    /**
+     * Activity type
+     */
+    type: 'call' | 'email' | 'meeting' | 'note' | 'stage_change' | 'assignment';
+    /**
+     * Activity content
+     */
+    content: string;
+    /**
+     * Additional metadata
+     */
+    metadata?: {
+        [key: string]: unknown;
+    };
+};
+
+export type DealActivityResponseDto = {
+    id: string;
+    tenantId: string;
+    entityType: string;
+    entityId: string;
+    type: string;
+    content: string;
+    metadata?: {
+        [key: string]: unknown;
+    } | null;
+    agentId: string;
+    createdAt: string;
+};
+
+export type PaginatedDealActivityResponseDto = {
+    data: Array<DealActivityResponseDto>;
+    meta: PaginatedMetaDto;
+};
+
+export type DealTagResponseDto = {
+    id: string;
+    tenantId: string;
+    dealId: string;
+    tag: string;
+    color: string;
+};
+
+export type AddTagDto2 = {
+    /**
+     * Tag label
+     */
+    tag: string;
+    /**
+     * Hex color code
      */
     color: string;
 };
@@ -1668,9 +1978,9 @@ export type LeadsControllerFindAllData = {
          */
         isDnc?: boolean;
         /**
-         * Filter by converted status (true|false)
+         * Filter by client status (true|false)
          */
-        isConverted?: boolean;
+        isClient?: boolean;
     };
     url: '/api/leads';
 };
@@ -2042,6 +2352,763 @@ export type LeadsControllerRemoveTagErrors = {
 export type LeadsControllerRemoveTagResponses = {
     /**
      * Tag removed
+     */
+    200: unknown;
+};
+
+export type ClientsControllerFindAllData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Page number
+         */
+        page?: number;
+        /**
+         * Items per page
+         */
+        limit?: number;
+        /**
+         * Field to sort by
+         */
+        sortBy?: string;
+        /**
+         * Sort order
+         */
+        sortOrder?: 'asc' | 'desc';
+        /**
+         * Search query string
+         */
+        search?: string;
+        /**
+         * Filter by VIP status (true|false)
+         */
+        isVip?: boolean;
+        /**
+         * Filter by assigned agent ID
+         */
+        agentId?: string;
+    };
+    url: '/api/clients';
+};
+
+export type ClientsControllerFindAllResponses = {
+    /**
+     * Paginated client list
+     */
+    200: PaginatedLeadResponseDto;
+};
+
+export type ClientsControllerFindAllResponse = ClientsControllerFindAllResponses[keyof ClientsControllerFindAllResponses];
+
+export type ClientsControllerCreateData = {
+    body: CreateClientDto;
+    path?: never;
+    query?: never;
+    url: '/api/clients';
+};
+
+export type ClientsControllerCreateErrors = {
+    /**
+     * Validation error
+     */
+    400: unknown;
+    /**
+     * Agent not found
+     */
+    404: unknown;
+};
+
+export type ClientsControllerCreateResponses = {
+    /**
+     * Client created
+     */
+    201: LeadResponseDto;
+};
+
+export type ClientsControllerCreateResponse = ClientsControllerCreateResponses[keyof ClientsControllerCreateResponses];
+
+export type ClientsControllerRemoveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/clients/{id}';
+};
+
+export type ClientsControllerRemoveErrors = {
+    /**
+     * Not a client
+     */
+    400: unknown;
+    /**
+     * Client not found
+     */
+    404: unknown;
+};
+
+export type ClientsControllerRemoveResponses = {
+    /**
+     * Client deleted
+     */
+    200: LeadResponseDto;
+};
+
+export type ClientsControllerRemoveResponse = ClientsControllerRemoveResponses[keyof ClientsControllerRemoveResponses];
+
+export type ClientsControllerFindByIdData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/clients/{id}';
+};
+
+export type ClientsControllerFindByIdErrors = {
+    /**
+     * Not a client
+     */
+    400: unknown;
+    /**
+     * Client not found
+     */
+    404: unknown;
+};
+
+export type ClientsControllerFindByIdResponses = {
+    /**
+     * Client details
+     */
+    200: LeadResponseDto;
+};
+
+export type ClientsControllerFindByIdResponse = ClientsControllerFindByIdResponses[keyof ClientsControllerFindByIdResponses];
+
+export type ClientsControllerUpdateData = {
+    body: UpdateClientDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/clients/{id}';
+};
+
+export type ClientsControllerUpdateErrors = {
+    /**
+     * Not a client
+     */
+    400: unknown;
+    /**
+     * Forbidden (e.g., agent setting VIP or lifetimeValue)
+     */
+    403: unknown;
+    /**
+     * Client not found
+     */
+    404: unknown;
+};
+
+export type ClientsControllerUpdateResponses = {
+    /**
+     * Updated client
+     */
+    200: LeadResponseDto;
+};
+
+export type ClientsControllerUpdateResponse = ClientsControllerUpdateResponses[keyof ClientsControllerUpdateResponses];
+
+export type ClientsControllerSetVipData = {
+    body: SetVipDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/clients/{id}/vip';
+};
+
+export type ClientsControllerSetVipErrors = {
+    /**
+     * Not a client
+     */
+    400: unknown;
+    /**
+     * Forbidden (agent)
+     */
+    403: unknown;
+    /**
+     * Client not found
+     */
+    404: unknown;
+};
+
+export type ClientsControllerSetVipResponses = {
+    /**
+     * VIP status updated
+     */
+    200: LeadResponseDto;
+};
+
+export type ClientsControllerSetVipResponse = ClientsControllerSetVipResponses[keyof ClientsControllerSetVipResponses];
+
+export type ClientsControllerFindActivitiesData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: {
+        /**
+         * Page number
+         */
+        page?: number;
+        /**
+         * Items per page
+         */
+        limit?: number;
+        /**
+         * Field to sort by
+         */
+        sortBy?: string;
+        /**
+         * Sort order
+         */
+        sortOrder?: 'asc' | 'desc';
+        /**
+         * Search in activity content
+         */
+        search?: string;
+        /**
+         * Filter by activity type
+         */
+        type?: 'call' | 'email' | 'meeting' | 'note' | 'stage_change' | 'assignment' | 'dnc_set' | 'dnc_unset' | 'convert';
+    };
+    url: '/api/clients/{id}/activities';
+};
+
+export type ClientsControllerFindActivitiesErrors = {
+    /**
+     * Not a client
+     */
+    400: unknown;
+    /**
+     * Client not found
+     */
+    404: unknown;
+};
+
+export type ClientsControllerFindActivitiesResponses = {
+    /**
+     * Paginated activities
+     */
+    200: PaginatedLeadActivityResponseDto;
+};
+
+export type ClientsControllerFindActivitiesResponse = ClientsControllerFindActivitiesResponses[keyof ClientsControllerFindActivitiesResponses];
+
+export type ClientsControllerAddActivityData = {
+    body: AddActivityDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/clients/{id}/activities';
+};
+
+export type ClientsControllerAddActivityErrors = {
+    /**
+     * Not a client
+     */
+    400: unknown;
+    /**
+     * Client not found
+     */
+    404: unknown;
+};
+
+export type ClientsControllerAddActivityResponses = {
+    /**
+     * Activity recorded
+     */
+    201: LeadActivityResponseDto;
+};
+
+export type ClientsControllerAddActivityResponse = ClientsControllerAddActivityResponses[keyof ClientsControllerAddActivityResponses];
+
+export type ClientsControllerFindTagsData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/clients/{id}/tags';
+};
+
+export type ClientsControllerFindTagsErrors = {
+    /**
+     * Not a client
+     */
+    400: unknown;
+    /**
+     * Client not found
+     */
+    404: unknown;
+};
+
+export type ClientsControllerFindTagsResponses = {
+    /**
+     * Tags list
+     */
+    200: Array<LeadTagResponseDto>;
+};
+
+export type ClientsControllerFindTagsResponse = ClientsControllerFindTagsResponses[keyof ClientsControllerFindTagsResponses];
+
+export type ClientsControllerAddTagData = {
+    body: AddTagDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/clients/{id}/tags';
+};
+
+export type ClientsControllerAddTagErrors = {
+    /**
+     * Not a client
+     */
+    400: unknown;
+    /**
+     * Tag already exists
+     */
+    409: unknown;
+};
+
+export type ClientsControllerAddTagResponses = {
+    /**
+     * Tag added
+     */
+    201: LeadTagResponseDto;
+};
+
+export type ClientsControllerAddTagResponse = ClientsControllerAddTagResponses[keyof ClientsControllerAddTagResponses];
+
+export type ClientsControllerRemoveTagData = {
+    body?: never;
+    path: {
+        id: string;
+        tagId: string;
+    };
+    query?: never;
+    url: '/api/clients/{id}/tags/{tagId}';
+};
+
+export type ClientsControllerRemoveTagErrors = {
+    /**
+     * Not a client
+     */
+    400: unknown;
+    /**
+     * Tag or client not found
+     */
+    404: unknown;
+};
+
+export type ClientsControllerRemoveTagResponses = {
+    /**
+     * Tag removed
+     */
+    200: unknown;
+};
+
+export type DealsControllerFindAllData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Page number
+         */
+        page?: number;
+        /**
+         * Items per page
+         */
+        limit?: number;
+        /**
+         * Field to sort by
+         */
+        sortBy?: string;
+        /**
+         * Sort order
+         */
+        sortOrder?: 'asc' | 'desc';
+        /**
+         * Search query string
+         */
+        search?: string;
+        /**
+         * Filter by deal stage
+         */
+        stage?: 'initialContact' | 'negotiation' | 'contractPending' | 'closedWon' | 'closedLost';
+        /**
+         * Filter by deal type
+         */
+        type?: 'standard' | 'resale' | 'rental' | 'investment';
+        /**
+         * Filter by agent ID
+         */
+        agentId?: string;
+        /**
+         * Filter by property ID
+         */
+        propertyId?: string;
+        /**
+         * Filter by lead or client ID
+         */
+        leadId?: string;
+        /**
+         * Minimum deal value in cents
+         */
+        minValue?: number;
+        /**
+         * Maximum deal value in cents
+         */
+        maxValue?: number;
+    };
+    url: '/api/deals';
+};
+
+export type DealsControllerFindAllResponses = {
+    /**
+     * Paginated deal list
+     */
+    200: PaginatedDealResponseDto;
+};
+
+export type DealsControllerFindAllResponse = DealsControllerFindAllResponses[keyof DealsControllerFindAllResponses];
+
+export type DealsControllerCreateData = {
+    body: CreateDealDto;
+    path?: never;
+    query?: never;
+    url: '/api/deals';
+};
+
+export type DealsControllerCreateErrors = {
+    /**
+     * Validation error or invalid stage
+     */
+    400: unknown;
+    /**
+     * Forbidden
+     */
+    403: unknown;
+    /**
+     * Agent not found
+     */
+    404: unknown;
+};
+
+export type DealsControllerCreateResponses = {
+    /**
+     * Deal created
+     */
+    201: DealResponseDto;
+};
+
+export type DealsControllerCreateResponse = DealsControllerCreateResponses[keyof DealsControllerCreateResponses];
+
+export type DealsControllerRemoveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/deals/{id}';
+};
+
+export type DealsControllerRemoveErrors = {
+    /**
+     * Deal not found
+     */
+    404: unknown;
+};
+
+export type DealsControllerRemoveResponses = {
+    /**
+     * Deal deleted
+     */
+    200: DealResponseDto;
+};
+
+export type DealsControllerRemoveResponse = DealsControllerRemoveResponses[keyof DealsControllerRemoveResponses];
+
+export type DealsControllerFindByIdData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/deals/{id}';
+};
+
+export type DealsControllerFindByIdErrors = {
+    /**
+     * Deal not found
+     */
+    404: unknown;
+};
+
+export type DealsControllerFindByIdResponses = {
+    /**
+     * Deal details
+     */
+    200: DealResponseDto;
+};
+
+export type DealsControllerFindByIdResponse = DealsControllerFindByIdResponses[keyof DealsControllerFindByIdResponses];
+
+export type DealsControllerUpdateData = {
+    body: UpdateDealDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/deals/{id}';
+};
+
+export type DealsControllerUpdateErrors = {
+    /**
+     * Forbidden (e.g., agent setting probability or value)
+     */
+    403: unknown;
+    /**
+     * Deal not found
+     */
+    404: unknown;
+};
+
+export type DealsControllerUpdateResponses = {
+    /**
+     * Updated deal
+     */
+    200: DealResponseDto;
+};
+
+export type DealsControllerUpdateResponse = DealsControllerUpdateResponses[keyof DealsControllerUpdateResponses];
+
+export type DealsControllerChangeStageData = {
+    body: ChangeDealStageDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/deals/{id}/stage';
+};
+
+export type DealsControllerChangeStageErrors = {
+    /**
+     * Invalid transition
+     */
+    400: unknown;
+    /**
+     * Agents cannot close as won
+     */
+    403: unknown;
+    /**
+     * Deal not found
+     */
+    404: unknown;
+};
+
+export type DealsControllerChangeStageResponses = {
+    /**
+     * Stage updated
+     */
+    200: DealResponseDto;
+};
+
+export type DealsControllerChangeStageResponse = DealsControllerChangeStageResponses[keyof DealsControllerChangeStageResponses];
+
+export type DealsControllerFindActivitiesData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: {
+        /**
+         * Page number
+         */
+        page?: number;
+        /**
+         * Items per page
+         */
+        limit?: number;
+        /**
+         * Field to sort by
+         */
+        sortBy?: string;
+        /**
+         * Sort order
+         */
+        sortOrder?: 'asc' | 'desc';
+        /**
+         * Search in activity content
+         */
+        search?: string;
+        /**
+         * Filter by activity type
+         */
+        type?: 'call' | 'email' | 'meeting' | 'note' | 'stage_change' | 'assignment';
+    };
+    url: '/api/deals/{id}/activities';
+};
+
+export type DealsControllerFindActivitiesErrors = {
+    /**
+     * Deal not found
+     */
+    404: unknown;
+};
+
+export type DealsControllerFindActivitiesResponses = {
+    /**
+     * Paginated activities
+     */
+    200: PaginatedDealActivityResponseDto;
+};
+
+export type DealsControllerFindActivitiesResponse = DealsControllerFindActivitiesResponses[keyof DealsControllerFindActivitiesResponses];
+
+export type DealsControllerAddActivityData = {
+    body: AddActivityDto2;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/deals/{id}/activities';
+};
+
+export type DealsControllerAddActivityErrors = {
+    /**
+     * Validation error
+     */
+    400: unknown;
+    /**
+     * Deal not found
+     */
+    404: unknown;
+};
+
+export type DealsControllerAddActivityResponses = {
+    /**
+     * Activity recorded
+     */
+    201: DealActivityResponseDto;
+};
+
+export type DealsControllerAddActivityResponse = DealsControllerAddActivityResponses[keyof DealsControllerAddActivityResponses];
+
+export type DealsControllerFindTagsData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/deals/{id}/tags';
+};
+
+export type DealsControllerFindTagsErrors = {
+    /**
+     * Deal not found
+     */
+    404: unknown;
+};
+
+export type DealsControllerFindTagsResponses = {
+    /**
+     * Tags list
+     */
+    200: Array<DealTagResponseDto>;
+};
+
+export type DealsControllerFindTagsResponse = DealsControllerFindTagsResponses[keyof DealsControllerFindTagsResponses];
+
+export type DealsControllerAddTagData = {
+    body: AddTagDto2;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/deals/{id}/tags';
+};
+
+export type DealsControllerAddTagErrors = {
+    /**
+     * Invalid color format
+     */
+    400: unknown;
+    /**
+     * Deal not found
+     */
+    404: unknown;
+    /**
+     * Tag already exists
+     */
+    409: unknown;
+};
+
+export type DealsControllerAddTagResponses = {
+    /**
+     * Tag added
+     */
+    201: DealTagResponseDto;
+};
+
+export type DealsControllerAddTagResponse = DealsControllerAddTagResponses[keyof DealsControllerAddTagResponses];
+
+export type DealsControllerRemoveTagData = {
+    body?: never;
+    path: {
+        id: string;
+        tagId: string;
+    };
+    query?: never;
+    url: '/api/deals/{id}/tags/{tagId}';
+};
+
+export type DealsControllerRemoveTagErrors = {
+    /**
+     * Tag or deal not found
+     */
+    404: unknown;
+};
+
+export type DealsControllerRemoveTagResponses = {
+    /**
+     * Tag removed
+     */
+    200: unknown;
+};
+
+export type DealsControllerCommissionPreviewData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/deals/{id}/commission-preview';
+};
+
+export type DealsControllerCommissionPreviewErrors = {
+    /**
+     * Deal not found
+     */
+    404: unknown;
+};
+
+export type DealsControllerCommissionPreviewResponses = {
+    /**
+     * Commission preview (stub)
      */
     200: unknown;
 };
