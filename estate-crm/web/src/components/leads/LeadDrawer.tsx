@@ -127,7 +127,7 @@ export default function LeadDrawer({
                 DNC
               </span>
             )}
-            {currentLead.isConverted && (
+            {currentLead.isClient && (
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-medium">
                 Converted
               </span>
@@ -154,7 +154,7 @@ export default function LeadDrawer({
                 ))}
               </select>
             )}
-            {canConvert && !currentLead.isConverted && (
+            {canConvert && !currentLead.isClient && (
               <button
                 onClick={onConvert}
                 className="flex items-center gap-1 px-2 py-1 bg-amber-500/20 text-amber-300 text-[10px] font-medium rounded-lg hover:bg-amber-500/30"

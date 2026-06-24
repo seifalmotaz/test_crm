@@ -59,7 +59,7 @@ export default function LeadsPage() {
     source: undefined,
     type: undefined,
     isDnc: undefined,
-    isConverted: undefined,
+    isClient: undefined,
     page: 1,
     limit: 100,
   });

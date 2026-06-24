@@ -136,7 +136,7 @@ export default function LeadListView({
                   <td onClick={() => onRowClick(lead)} className="px-4 py-3 cursor-pointer">
                     <div className="flex items-center gap-1">
                       {lead.isDnc && <Shield size={11} className="text-red-400" aria-label="DNC" />}
-                      {lead.isConverted && <CheckCircle size={11} className="text-amber-400" aria-label="Converted" />}
+                      {lead.isClient && <CheckCircle size={11} className="text-amber-400" aria-label="Converted" />}
                     </div>
                   </td>
                 </tr>

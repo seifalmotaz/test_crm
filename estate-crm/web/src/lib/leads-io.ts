@@ -202,7 +202,7 @@ const LEAD_EXPORT_COLUMNS: { header: string; get: (l: LeadResponseDto) => string
   { header: 'nextAction', get: (l) => l.nextAction ?? '' },
   { header: 'nextActionDate', get: (l) => l.nextActionDate ?? '' },
   { header: 'isDnc', get: (l) => (l.isDnc ? 'true' : 'false') },
-  { header: 'isConverted', get: (l) => (l.isConverted ? 'true' : 'false') },
+  { header: 'isClient', get: (l) => (l.isClient ? 'true' : 'false') },
   { header: 'createdAt', get: (l) => l.createdAt },
 ];
 

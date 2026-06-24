@@ -29,7 +29,7 @@ export default function LeadFiltersBar({ filters, onChange, resultCount }: LeadF
       type: undefined,
       agentId: undefined,
       isDnc: undefined,
-      isConverted: undefined,
+      isClient: undefined,
       page: 1,
       limit: 100,
     });
@@ -41,7 +41,7 @@ export default function LeadFiltersBar({ filters, onChange, resultCount }: LeadF
     filters.source ||
     filters.type ||
     filters.isDnc !== undefined ||
-    filters.isConverted !== undefined;
+    filters.isClient !== undefined;
 
   return (
     <div className="space-y-2 mb-4">

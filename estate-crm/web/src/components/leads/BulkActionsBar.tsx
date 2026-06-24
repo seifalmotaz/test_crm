@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, UserCheck, Trash2, Download, Upload, ChevronDown } from 'lucide-react';
+import { X, UserCheck, Download, Upload, ChevronDown } from 'lucide-react';
 
 interface Agent {
   id: string;

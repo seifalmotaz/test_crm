@@ -33,7 +33,7 @@ function buildFindAllQuery(filters?: LeadFilters): LeadsControllerFindAllData['q
   if (filters.type) query.type = filters.type;
   if (filters.agentId) query.agentId = filters.agentId;
   if (filters.isDnc !== undefined) query.isDnc = filters.isDnc;
-  if (filters.isConverted !== undefined) query.isConverted = filters.isConverted;
+  if (filters.isClient !== undefined) query.isClient = filters.isClient;
   if (filters.page) query.page = filters.page;
   if (filters.limit) query.limit = filters.limit;
   if (filters.sortBy) query.sortBy = filters.sortBy;

@@ -387,6 +387,10 @@ export type ProjectResponseDto = {
     completionDate?: string;
     totalUnits?: number;
     soldUnits?: number;
+    /**
+     * Project image URLs
+     */
+    images?: Array<string>;
     commissionPlanId?: string;
     createdAt: string;
     updatedAt: string;
@@ -427,6 +431,10 @@ export type UpdateProjectDto = {
      * Total number of units
      */
     totalUnits?: number;
+    /**
+     * Project image URLs
+     */
+    images?: Array<string>;
 };
 
 export type ChangeProjectStatusDto = {

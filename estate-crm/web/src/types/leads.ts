@@ -13,7 +13,7 @@ export interface LeadFilters {
   type?: string;
   agentId?: string;
   isDnc?: boolean;
-  isConverted?: boolean;
+  isClient?: boolean;
   page?: number;
   limit?: number;
   sortBy?: string;

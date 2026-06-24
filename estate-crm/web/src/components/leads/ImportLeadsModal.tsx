@@ -6,7 +6,6 @@ import {
   downloadBlob,
   type ParsedLeadRow,
 } from '../../lib/leads-io';
-import type { LeadResponseDto } from '../../api/types.gen';
 import { LEAD_SOURCE_LABELS, LEAD_TYPE_LABELS } from '../../types/leads';
 
 const SAMPLE_CSV = `name,phone,email,source,type,preferredLocation,preferredType,budgetMin,budgetMax,timeline,notes
@@ -24,7 +23,6 @@ interface ImportLeadsModalProps {
 export default function ImportLeadsModal({ onClose, onConfirm }: ImportLeadsModalProps) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [rows, setRows] = useState<ParsedLeadRow[]>([]);
-  const [headers, setHeaders] = useState<string[]>([]);
   const [fileName, setFileName] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitResult, setSubmitResult] = useState<{ created: number; failed: number } | null>(null);
@@ -43,11 +41,9 @@ export default function ImportLeadsModal({ onClose, onConfirm }: ImportLeadsModa
         if (h.length === 0 || r.length === 0) {
           setParseError('File appears to be empty or has no data rows.');
           setRows([]);
-          setHeaders([]);
           return;
         }
         const parsed = parseLeadsFromRows(h, r);
-        setHeaders(h);
         setRows(parsed);
       } catch (err: any) {
         setParseError(`Failed to read file: ${err?.message || 'Unknown error'}`);

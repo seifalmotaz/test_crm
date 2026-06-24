@@ -61,7 +61,7 @@ export default function LeadCard({
       onDragStart={onDragStart}
       className={`group bg-card card-border rounded-xl p-3 cursor-pointer hover:bg-white/5 transition-all relative ${
         lead.isDnc ? 'border-red-500/30' : ''
-      } ${lead.isConverted ? 'border-amber-500/30' : ''} ${
+      } ${lead.isClient ? 'border-amber-500/30' : ''} ${
         selected ? 'ring-2 ring-blue-500/50 bg-blue-500/5' : ''
       }`}
     >
@@ -138,7 +138,7 @@ export default function LeadCard({
               <Shield size={10} className="text-red-400" />
             </span>
           )}
-          {lead.isConverted && (
+          {lead.isClient && (
             <span title="Converted">
               <CheckCircle size={10} className="text-amber-400" />
             </span>
