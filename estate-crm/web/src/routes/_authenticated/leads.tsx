@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
-import { Plus, Loader2, Kanban, List, CheckCircle } from 'lucide-react';
+import { Plus, Loader2, Kanban, List, CheckCircle, AlertCircle } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../contexts/AuthContext';
 import {
@@ -10,16 +10,31 @@ import {
   useChangeLeadStage,
   useConvertLead,
 } from '../../hooks/useLeads';
-import { usersControllerFindAll, leadsControllerChangeStage, leadsControllerFindTags } from '../../api/sdk.gen';
-import { useQuery } from '@tanstack/react-query';
-import type { LeadResponseDto, CreateLeadDto, UpdateLeadDto, ChangeLeadStageDto } from '../../api/types.gen';
+import {
+  usersControllerFindAll,
+  leadsControllerChangeStage,
+  leadsControllerFindTags,
+  leadsControllerBulkAssign,
+  leadsControllerCreate,
+} from '../../api/sdk.gen';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import type {
+  LeadResponseDto,
+  CreateLeadDto,
+  UpdateLeadDto,
+  ChangeLeadStageDto,
+} from '../../api/types.gen';
 import type { LeadFilters, LeadViewMode } from '../../types/leads';
+import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import LeadFiltersBar from '../../components/leads/LeadFilters';
 import LeadKanban from '../../components/leads/LeadKanban';
 import LeadListView from '../../components/leads/LeadListView';
 import LeadDrawer from '../../components/leads/LeadDrawer';
 import AddLeadModal from '../../components/leads/AddLeadModal';
 import ConvertLeadModal from '../../components/leads/ConvertLeadModal';
+import BulkActionsBar from '../../components/leads/BulkActionsBar';
+import ImportLeadsModal from '../../components/leads/ImportLeadsModal';
+import { exportLeadsAsCsv, exportLeadsAsXls, downloadBlob } from '../../lib/leads-io';
 
 function toLeadView(dto: LeadResponseDto): LeadResponseDto {
   return dto;
@@ -34,7 +49,9 @@ export default function LeadsPage() {
   const [selectedLead, setSelectedLead] = useState<LeadResponseDto | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showConvertModal, setShowConvertModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const [filters, setFilters] = useState<LeadFilters>({
     search: '',
@@ -47,7 +64,13 @@ export default function LeadsPage() {
     limit: 100,
   });
 
-  const { data: leadsData, isLoading, error } = useLeads(filters);
+  const debouncedSearch = useDebouncedValue(filters.search, 350);
+  const effectiveFilters = useMemo<LeadFilters>(
+    () => ({ ...filters, search: debouncedSearch ?? '' }),
+    [filters, debouncedSearch],
+  );
+
+  const { data: leadsData, isLoading, error, refetch } = useLeads(effectiveFilters);
 
   // Fetch agents for assignment dropdown
   const { data: agentsData } = useQuery({
@@ -78,12 +101,24 @@ export default function LeadsPage() {
   const changeStageMutation = useChangeLeadStage(selectedId);
   const convertMutation = useConvertLead(selectedId);
 
+  // Bulk assign mutation
+  const bulkAssignMutation = useMutation({
+    mutationFn: async ({ leadIds, agentId }: { leadIds: string[]; agentId: string | null }) => {
+      const { data } = await leadsControllerBulkAssign({
+        body: { leadIds, agentId: agentId ?? null },
+      });
+      return data as { assigned: number; failed: number; failedIds?: string[]; agentId?: string | null };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['leads'] });
+    },
+  });
+
   // Load tags for all leads in a single query per lead (only when kanban is active)
   const { data: tagsByLeadId } = useQuery<Record<string, any[]>>({
     queryKey: ['lead-tags-batch', leads.slice(0, 50).map((l) => l.id).join(',')],
     queryFn: async () => {
       const result: Record<string, any[]> = {};
-      // Fetch tags per lead, capped at 50 to avoid N+1 issues
       const results = await Promise.all(
         leads.slice(0, 50).map(async (lead) => {
           try {
@@ -114,6 +149,87 @@ export default function LeadsPage() {
   const isOwner = selectedLead?.agentId === user?.id;
   const canConvert = selectedLead ? (canManage || (isOwner && !!selectedLead.agentId)) : false;
 
+  // Note: we intentionally do NOT auto-prune selections across filter changes.
+  // Selected IDs that fall off the current page are kept in state until the
+  // user clicks "Clear" — this lets an admin bulk-assign a selection that
+  // spans multiple filter pages.
+
+  function toggleSelect(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleSelectAll(ids: string[]) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (ids.length === 0) {
+        // Deselect all on this page
+        for (const id of ids) next.delete(id);
+      }
+      for (const id of ids) next.add(id);
+      return next;
+    });
+  }
+
+  function clearSelection() {
+    setSelectedIds(new Set());
+  }
+
+  async function handleBulkAssign(agentId: string | null) {
+    if (selectedIds.size === 0) return;
+    try {
+      const result = await bulkAssignMutation.mutateAsync({
+        leadIds: Array.from(selectedIds),
+        agentId,
+      });
+      const target = agentId
+        ? agents.find((a) => a.id === agentId)?.name ?? 'agent'
+        : 'unassigned';
+      if (result.failed > 0 && result.failedIds?.length) {
+        showToast(
+          `Assigned ${result.assigned} leads to ${target} (${result.failed} failed)`,
+          result.failed > 0 ? 'error' : 'success',
+        );
+      } else {
+        showToast(`Assigned ${result.assigned} leads to ${target}`);
+      }
+      clearSelection();
+    } catch (err: any) {
+      showToast(err?.detail || err?.message || 'Failed to assign leads', 'error');
+    }
+  }
+
+  function exportLeads(format: 'csv' | 'xls') {
+    if (leads.length === 0) {
+      showToast('No leads to export', 'error');
+      return;
+    }
+    const blob = format === 'csv' ? exportLeadsAsCsv(leads) : exportLeadsAsXls(leads);
+    const ext = format === 'csv' ? 'csv' : 'xls';
+    const stamp = new Date().toISOString().slice(0, 10);
+    downloadBlob(`leads-${stamp}.${ext}`, blob);
+  }
+
+  async function performImport(rowsData: CreateLeadDto[]) {
+    // Sequential POST per row — fine for ≤200 rows.
+    let created = 0;
+    let failed = 0;
+    for (const dto of rowsData) {
+      try {
+        await leadsControllerCreate({ body: dto });
+        created++;
+      } catch (err) {
+        failed++;
+      }
+    }
+    queryClient.invalidateQueries({ queryKey: ['leads'] });
+    return { created, failed };
+  }
+
   if (isLoading) {
     return (
       <div className="p-4 sm:p-6">
@@ -124,18 +240,13 @@ export default function LeadsPage() {
     );
   }
 
-  if (error) {
-    return (
-      <div className="p-4 sm:p-6">
-        <div className="flex flex-col items-center justify-center py-20 bg-card card-border rounded-2xl">
-          <p className="text-white font-semibold mb-1">Failed to load leads</p>
-          <p className="text-slate-400 text-xs">
-            {(error as any)?.detail || (error as any)?.message || 'An unexpected error occurred'}
-          </p>
-        </div>
-      </div>
-    );
-  }
+  // Inline error (don't unmount filters)
+  const errorMessage = error
+    ? (error as any)?.detail ||
+      (error as any)?.message ||
+      (error as any)?.body?.detail ||
+      'An unexpected error occurred'
+    : null;
 
   return (
     <div className="p-4 sm:p-6 max-w-7xl">
@@ -156,6 +267,35 @@ export default function LeadsPage() {
           )}
         </div>
       </div>
+
+      {/* Inline error */}
+      {errorMessage && (
+        <div className="mb-4 flex items-start gap-3 p-3 bg-red-500/10 border border-red-500/20 rounded-2xl">
+          <AlertCircle size={16} className="text-red-400 flex-shrink-0 mt-0.5" />
+          <div className="flex-1 min-w-0">
+            <p className="text-red-300 text-xs font-semibold">Failed to load leads</p>
+            <p className="text-red-300/80 text-xs mt-0.5 break-words">{errorMessage}</p>
+          </div>
+          <button
+            onClick={() => refetch()}
+            className="text-[10px] uppercase tracking-wider font-semibold text-red-300 hover:text-white px-2 py-1 rounded-md bg-red-500/15 hover:bg-red-500/25 transition-all"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
+      {/* Bulk action bar (also shows Import/Export even with empty selection) */}
+      <BulkActionsBar
+        selectedIds={Array.from(selectedIds)}
+        agents={agents}
+        onClear={clearSelection}
+        onAssign={handleBulkAssign}
+        onImport={canManage ? () => setShowImportModal(true) : undefined}
+        onExport={() => exportLeads('csv')}
+        busy={bulkAssignMutation.isPending}
+        canManage={canManage}
+      />
 
       {/* Filters + View Toggle */}
       <div className="flex flex-col sm:flex-row sm:items-start gap-3 mb-4">
@@ -228,7 +368,6 @@ export default function LeadsPage() {
                 path: { id: leadId },
                 body: { stage: newStage as any },
               });
-              // Refetch the leads list
               queryClient.invalidateQueries({ queryKey: ['leads'] });
               showToast(`Moved to ${newStage}`);
             } catch (err: any) {
@@ -236,9 +375,17 @@ export default function LeadsPage() {
             }
           }}
           canManage={canManage}
+          selectedIds={selectedIds}
+          onToggleSelect={toggleSelect}
         />
       ) : (
-        <LeadListView leads={leads} onRowClick={(lead) => setSelectedLead(lead)} />
+        <LeadListView
+          leads={leads}
+          onRowClick={(lead) => setSelectedLead(lead)}
+          selectedIds={selectedIds}
+          onToggleSelect={toggleSelect}
+          onToggleSelectAll={toggleSelectAll}
+        />
       )}
 
       {/* Drawer */}
@@ -324,6 +471,14 @@ export default function LeadsPage() {
             });
           }}
           isLoading={convertMutation.isPending}
+        />
+      )}
+
+      {/* Import Modal */}
+      {showImportModal && (
+        <ImportLeadsModal
+          onClose={() => setShowImportModal(false)}
+          onConfirm={performImport}
         />
       )}
 

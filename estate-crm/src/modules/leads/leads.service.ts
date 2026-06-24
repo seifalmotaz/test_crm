@@ -550,4 +550,112 @@ export class LeadsService {
 
     return tag;
   }
+
+  // ─── Bulk Assign ──────────────────────────────────────────
+
+  async bulkAssign(
+    leadIds: string[],
+    agentId: string | null | undefined,
+    user: { id: string; role: string; tenantId: string },
+  ) {
+    if (!leadIds || leadIds.length === 0) {
+      throw new AppError(ErrorCodes.VALIDATION_ERROR, 400, 'leadIds cannot be empty');
+    }
+
+    // Verify target agent exists in tenant (if provided)
+    if (agentId) {
+      const [existingAgent] = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(and(eq(users.id, agentId), eq(users.tenantId, user.tenantId), isNull(users.deletedAt)))
+        .limit(1);
+
+      if (!existingAgent) {
+        throw new AppError(ErrorCodes.USER_NOT_FOUND, 404, 'Agent not found in this tenant');
+      }
+    }
+
+    // Find leads that exist in this tenant and are not deleted
+    const existingLeads = await db
+      .select({ id: leads.id, agentId: leads.agentId })
+      .from(leads)
+      .where(and(eq(leads.tenantId, user.tenantId), isNull(leads.deletedAt)));
+
+    const validLeadIds = new Set(existingLeads.map((l) => l.id));
+    const validIds = leadIds.filter((id) => validLeadIds.has(id));
+    const failedIds = leadIds.filter((id) => !validLeadIds.has(id));
+
+    if (validIds.length === 0) {
+      return {
+        assigned: 0,
+        failed: failedIds.length,
+        failedIds,
+        agentId: agentId ?? null,
+      };
+    }
+
+    // Perform all updates + activities in a single transaction
+    await db.transaction(async (tx) => {
+      // Append old agent to previousAgentIds when reassigning
+      if (agentId !== undefined && agentId !== null) {
+        // Get current agentIds for valid leads (to record previousAgentIds)
+        const currentLeads = existingLeads.filter((l) => validIds.includes(l.id) && l.agentId);
+
+        for (const lead of currentLeads) {
+          await tx
+            .update(leads)
+            .set({
+              previousAgentIds: sql`array_append(${leads.previousAgentIds}, ${lead.agentId})`,
+            })
+            .where(eq(leads.id, lead.id));
+        }
+      }
+
+      // Update all leads
+      await tx
+        .update(leads)
+        .set({ agentId: agentId ?? null, updatedAt: new Date() })
+        .where(
+          and(
+            eq(leads.tenantId, user.tenantId),
+            isNull(leads.deletedAt),
+            sql`${leads.id} = ANY(${validIds})`,
+          ),
+        );
+
+      // Log a single activity per lead for traceability
+      for (const leadId of validIds) {
+        const original = existingLeads.find((l) => l.id === leadId);
+        await this.activitiesService.logActivity(tx, {
+          tenantId: user.tenantId,
+          leadId,
+          type: 'assignment',
+          content: `Lead bulk-reassigned from ${original?.agentId ?? 'unassigned'} to ${agentId ?? 'unassigned'}`,
+          agentId: user.id,
+          metadata: { from: original?.agentId ?? null, to: agentId ?? null, bulk: true },
+        });
+      }
+
+      // Single audit log entry summarising the bulk action
+      await tx.insert(auditLogs).values({
+        tenantId: user.tenantId,
+        actorId: user.id,
+        action: 'lead.bulk_assign',
+        targetType: 'lead',
+        targetId: null,
+        metadata: {
+          count: validIds.length,
+          agentId: agentId ?? null,
+          leadIds: validIds,
+        },
+      });
+    });
+
+    return {
+      assigned: validIds.length,
+      failed: failedIds.length,
+      failedIds,
+      agentId: agentId ?? null,
+    };
+  }
 }

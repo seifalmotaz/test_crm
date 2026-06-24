@@ -31,20 +31,20 @@ const mockProperties = [
 ]
 
 const mockDeals = [
-  { id: 1, property: 'Marina Heights #245', type: 'Penthouse', agent: 'Sarah Chen', listPrice: 2450000, stage: 'Closing', changePct: 3.2, volume: '3 units', sparkTrend: 'up' as const },
-  { id: 2, property: 'Palm Vista #18', type: 'Apartment', agent: 'Ahmed Ali', listPrice: 1800000, stage: 'Negotiation', changePct: -1.5, volume: '1 unit', sparkTrend: 'down' as const },
-  { id: 3, property: 'Skyline Penthouse', type: 'Penthouse', agent: 'Maria Lopez', listPrice: 5200000, stage: 'Due Diligence', changePct: 8.1, volume: '1 unit', sparkTrend: 'up' as const },
-  { id: 4, property: 'Green Valley #7', type: 'Villa', agent: 'James Park', listPrice: 980000, stage: 'Inspection', changePct: -0.8, volume: '2 units', sparkTrend: 'down' as const },
-  { id: 5, property: 'Harbor View #33', type: 'Commercial', agent: 'Sarah Chen', listPrice: 3400000, stage: 'Offer Sent', changePct: 5.4, volume: '1 unit', sparkTrend: 'up' as const },
-]
+  { id: 1, property: 'Marina Heights #245', type: 'Penthouse', agent: 'Sarah Chen', listPrice: 2450000, stage: 'Closing', changePct: 3.2, volume: '3 units', sparkTrend: 'up' as const, closingInDays: 2 },
+  { id: 2, property: 'Palm Vista #18', type: 'Apartment', agent: 'Ahmed Ali', listPrice: 1800000, stage: 'Negotiation', changePct: -1.5, volume: '1 unit', sparkTrend: 'down' as const, closingInDays: 14 },
+  { id: 3, property: 'Skyline Penthouse', type: 'Penthouse', agent: 'Maria Lopez', listPrice: 5200000, stage: 'Due Diligence', changePct: 8.1, volume: '1 unit', sparkTrend: 'up' as const, closingInDays: 30 },
+  { id: 4, property: 'Green Valley #7', type: 'Villa', agent: 'James Park', listPrice: 980000, stage: 'Inspection', changePct: -0.8, volume: '2 units', sparkTrend: 'down' as const, closingInDays: 5 },
+  { id: 5, property: 'Harbor View #33', type: 'Commercial', agent: 'Sarah Chen', listPrice: 3400000, stage: 'Offer Sent', changePct: 5.4, volume: '1 unit', sparkTrend: 'up' as const, closingInDays: 21 },
+];
 
 const mockHotLeads = [
-  { id: 1, name: 'John Martinez', interest: 'Apartment', budget: '$1.2M', score: 95, change: '+12%' },
-  { id: 2, name: 'Emily Watson', interest: 'Villa', budget: '$3.5M', score: 88, change: '+8%' },
-  { id: 3, name: 'Omar Hassan', interest: 'Commercial', budget: '$5M', score: 82, change: '-3%' },
-  { id: 4, name: 'Lisa Chen', interest: 'Penthouse', budget: '$2.8M', score: 79, change: '+5%' },
-  { id: 5, name: 'David Kim', interest: 'Townhouse', budget: '$800K', score: 76, change: '-1%' },
-]
+  { id: 1, name: 'John Martinez', interest: 'Apartment', budget: '$1.2M', score: 95, change: '+12%', views: 42 },
+  { id: 2, name: 'Emily Watson', interest: 'Villa', budget: '$3.5M', score: 88, change: '+8%', views: 35 },
+  { id: 3, name: 'Omar Hassan', interest: 'Commercial', budget: '$5M', score: 82, change: '-3%', views: 21 },
+  { id: 4, name: 'Lisa Chen', interest: 'Penthouse', budget: '$2.8M', score: 79, change: '+5%', views: 28 },
+  { id: 5, name: 'David Kim', interest: 'Townhouse', budget: '$800K', score: 76, change: '-1%', views: 12 },
+];
 
 const mockAgents = [
   { id: 1, name: 'Sarah Chen', avatar: 'SC', color: '#3b82f6', region: 'Downtown', dealsThisMonth: 8, revenue: 420000, trend: 12.5 },
@@ -54,10 +54,10 @@ const mockAgents = [
 ]
 
 const mockAlerts = [
-  { priority: 'high' as const, message: '3 leads have not been contacted in 7+ days', action: 'Review neglected leads' },
-  { priority: 'high' as const, message: 'Marina Heights deal closing in 2 days — docs pending', action: 'Upload pending documents' },
-  { priority: 'medium' as const, message: 'Agent Sarah Chen exceeded monthly target by 120%', action: 'View performance report' },
-  { priority: 'low' as const, message: '5 new properties added to the MLS feed', action: 'Review new listings' },
+  { priority: 'high' as const, message: '3 leads have not been contacted in 7+ days', action: 'Review neglected leads', linkTo: '/leads' as const },
+  { priority: 'high' as const, message: 'Marina Heights deal closing in 2 days — docs pending', action: 'Upload pending documents', linkTo: '/deals' as const },
+  { priority: 'medium' as const, message: 'Agent Sarah Chen exceeded monthly target by 120%', action: 'View performance report', linkTo: '/agents' as const },
+  { priority: 'low' as const, message: '5 new properties added to the MLS feed', action: 'Review new listings', linkTo: '/properties' as const },
 ]
 
 export default function DashboardPage() {

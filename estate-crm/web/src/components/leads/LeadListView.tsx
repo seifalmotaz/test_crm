@@ -8,6 +8,9 @@ import { Phone, Shield, CheckCircle } from 'lucide-react';
 interface LeadListViewProps {
   leads: LeadResponseDto[];
   onRowClick: (lead: LeadResponseDto) => void;
+  selectedIds: Set<string>;
+  onToggleSelect: (id: string) => void;
+  onToggleSelectAll: (ids: string[]) => void;
 }
 
 const STAGE_BADGES: Record<string, { label: string; bg: string; text: string }> = {
@@ -18,7 +21,13 @@ const STAGE_BADGES: Record<string, { label: string; bg: string; text: string }> 
   lost: { label: 'Lost', bg: 'bg-slate-500/15', text: 'text-slate-400' },
 };
 
-export default function LeadListView({ leads, onRowClick }: LeadListViewProps) {
+export default function LeadListView({
+  leads,
+  onRowClick,
+  selectedIds,
+  onToggleSelect,
+  onToggleSelectAll,
+}: LeadListViewProps) {
   if (leads.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 bg-card card-border rounded-2xl">
@@ -27,12 +36,31 @@ export default function LeadListView({ leads, onRowClick }: LeadListViewProps) {
     );
   }
 
+  const allSelected = leads.every((l) => selectedIds.has(l.id));
+  const someSelected = leads.some((l) => selectedIds.has(l.id));
+
   return (
     <div className="bg-card card-border rounded-2xl overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full text-left">
           <thead>
             <tr className="border-b border-white/5">
+              <th className="px-4 py-3 w-10">
+                <input
+                  type="checkbox"
+                  aria-label="Select all leads"
+                  checked={allSelected}
+                  ref={(el) => {
+                    if (el) el.indeterminate = someSelected && !allSelected;
+                  }}
+                  onChange={() =>
+                    onToggleSelectAll(
+                      allSelected ? [] : leads.map((l) => l.id),
+                    )
+                  }
+                  className="w-4 h-4 rounded bg-white/5 border-white/20 accent-blue-500 cursor-pointer"
+                />
+              </th>
               <th className="px-4 py-3 text-[10px] uppercase tracking-wider text-slate-500 font-medium">Name</th>
               <th className="px-4 py-3 text-[10px] uppercase tracking-wider text-slate-500 font-medium">Phone</th>
               <th className="px-4 py-3 text-[10px] uppercase tracking-wider text-slate-500 font-medium">Stage</th>
@@ -47,40 +75,56 @@ export default function LeadListView({ leads, onRowClick }: LeadListViewProps) {
             {leads.map((lead) => {
               const sb = STAGE_BADGES[lead.stage] ?? STAGE_BADGES.fresh;
               const overdue = isLeadOverdue(lead);
+              const isSelected = selectedIds.has(lead.id);
               return (
                 <tr
                   key={lead.id}
-                  onClick={() => onRowClick(lead)}
-                  className="border-b border-white/3 hover:bg-white/3 cursor-pointer transition-colors"
+                  className={`border-b border-white/3 transition-colors ${
+                    isSelected ? 'bg-blue-500/8' : 'hover:bg-white/3'
+                  }`}
                 >
                   <td className="px-4 py-3">
-                    <p className="text-white text-xs font-medium truncate max-w-[200px]">
-                      {lead.name}
-                    </p>
+                    <input
+                      type="checkbox"
+                      aria-label={`Select ${lead.name}`}
+                      checked={isSelected}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        onToggleSelect(lead.id);
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      className="w-4 h-4 rounded bg-white/5 border-white/20 accent-blue-500 cursor-pointer"
+                    />
                   </td>
-                  <td className="px-4 py-3 text-slate-400 text-xs">
+                  <td
+                    onClick={() => onRowClick(lead)}
+                    className="px-4 py-3 cursor-pointer"
+                  >
+                    <p className="text-white text-xs font-medium truncate max-w-[200px]">{lead.name}</p>
+                  </td>
+                  <td onClick={() => onRowClick(lead)} className="px-4 py-3 text-slate-400 text-xs cursor-pointer">
                     <div className="flex items-center gap-1">
                       <Phone size={10} />
                       {lead.phone}
                     </div>
                   </td>
-                  <td className="px-4 py-3">
+                  <td onClick={() => onRowClick(lead)} className="px-4 py-3 cursor-pointer">
                     <span
                       className={`text-[10px] font-medium px-2 py-0.5 rounded-full border border-white/10 ${sb.bg} ${sb.text}`}
                     >
                       {sb.label}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-slate-400 text-xs">
+                  <td onClick={() => onRowClick(lead)} className="px-4 py-3 text-slate-400 text-xs cursor-pointer">
                     {LEAD_TYPE_LABELS[lead.type] ?? lead.type}
                   </td>
-                  <td className="px-4 py-3 text-slate-500 text-xs">
+                  <td onClick={() => onRowClick(lead)} className="px-4 py-3 text-slate-500 text-xs cursor-pointer">
                     {lead.source}
                   </td>
-                  <td className="px-4 py-3 text-white text-xs font-semibold">
+                  <td onClick={() => onRowClick(lead)} className="px-4 py-3 text-white text-xs font-semibold cursor-pointer">
                     {lead.score}
                   </td>
-                  <td className="px-4 py-3 text-xs">
+                  <td onClick={() => onRowClick(lead)} className="px-4 py-3 text-xs cursor-pointer">
                     {lead.nextAction ? (
                       <span className={overdue ? 'text-red-400' : 'text-slate-400'}>
                         {lead.nextAction}
@@ -89,7 +133,7 @@ export default function LeadListView({ leads, onRowClick }: LeadListViewProps) {
                       <span className="text-slate-600">—</span>
                     )}
                   </td>
-                  <td className="px-4 py-3">
+                  <td onClick={() => onRowClick(lead)} className="px-4 py-3 cursor-pointer">
                     <div className="flex items-center gap-1">
                       {lead.isDnc && <Shield size={11} className="text-red-400" aria-label="DNC" />}
                       {lead.isConverted && <CheckCircle size={11} className="text-amber-400" aria-label="Converted" />}

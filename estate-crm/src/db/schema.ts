@@ -54,6 +54,7 @@ export const projects = pgTable('projects', {
   completionDate: timestamp('completion_date', { withTimezone: true }),
   totalUnits: integer('total_units'),
   soldUnits: integer('sold_units').default(0),
+  images: text('images').array().default([]),
   commissionPlanId: uuid('commission_plan_id'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),

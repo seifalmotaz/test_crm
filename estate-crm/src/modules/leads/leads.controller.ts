@@ -36,6 +36,10 @@ import {
   PaginatedLeadActivityResponseDto,
 } from './dto/activity-response.dto';
 import { LeadTagResponseDto } from './dto/tag-response.dto';
+import {
+  BulkAssignLeadsDto,
+  BulkAssignResultDto,
+} from './dto/bulk-assign-leads.dto';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { Roles } from '@/common/decorators/roles.decorator';
 import type { AuthenticatedUser } from '@/common/types/auth.types';
@@ -245,5 +249,22 @@ export class LeadsController {
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.leadsService.removeTag(id, tagId, user);
+  }
+
+  // ─── Bulk Assign ──────────────────────────────────────────
+
+  @Post('bulk-assign')
+  @HttpCode(HttpStatus.OK)
+  @Roles('admin', 'manager')
+  @ApiOperation({ summary: 'Reassign multiple leads to an agent (or unassign)' })
+  @ApiCookieAuth('access_token')
+  @ApiResponse({ status: 200, description: 'Bulk assign result', type: BulkAssignResultDto })
+  @ApiResponse({ status: 400, description: 'Validation error' })
+  @ApiResponse({ status: 404, description: 'Agent not found' })
+  async bulkAssign(
+    @Body() dto: BulkAssignLeadsDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.leadsService.bulkAssign(dto.leadIds, dto.agentId ?? null, user);
   }
 }

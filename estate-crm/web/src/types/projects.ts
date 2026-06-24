@@ -9,6 +9,7 @@ export interface ProjectView {
   completionDate?: string;
   totalUnits?: number;
   soldUnits: number;
+  images: string[];
   createdAt: string;
   updatedAt: string;
 }

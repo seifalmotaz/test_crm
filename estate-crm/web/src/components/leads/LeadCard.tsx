@@ -1,4 +1,4 @@
-import { Phone, Shield, CheckCircle, AlertCircle, Calendar } from 'lucide-react';
+import { Phone, Shield, CheckCircle, AlertCircle, Calendar, Check } from 'lucide-react';
 import type { LeadResponseDto } from '../../api/types.gen';
 import {
   LEAD_TYPE_LABELS,
@@ -14,6 +14,9 @@ interface LeadCardProps {
   onClick: () => void;
   draggable?: boolean;
   onDragStart?: (e: React.DragEvent<HTMLDivElement>) => void;
+  selected?: boolean;
+  selectable?: boolean;
+  onToggleSelect?: () => void;
 }
 
 const STAGE_COLORS: Record<string, string> = {
@@ -37,7 +40,16 @@ function ScoreBadge({ score }: { score: number }) {
   );
 }
 
-export default function LeadCard({ lead, tags = [], onClick, draggable, onDragStart }: LeadCardProps) {
+export default function LeadCard({
+  lead,
+  tags = [],
+  onClick,
+  draggable,
+  onDragStart,
+  selected,
+  selectable,
+  onToggleSelect,
+}: LeadCardProps) {
   const overdue = isLeadOverdue(lead);
   const initials = getLeadInitials(lead.name);
   const stageColor = STAGE_COLORS[lead.stage] ?? '#6B7280';
@@ -47,10 +59,30 @@ export default function LeadCard({ lead, tags = [], onClick, draggable, onDragSt
       onClick={onClick}
       draggable={draggable}
       onDragStart={onDragStart}
-      className={`group bg-card card-border rounded-xl p-3 cursor-pointer hover:bg-white/5 transition-all ${
+      className={`group bg-card card-border rounded-xl p-3 cursor-pointer hover:bg-white/5 transition-all relative ${
         lead.isDnc ? 'border-red-500/30' : ''
-      } ${lead.isConverted ? 'border-amber-500/30' : ''}`}
+      } ${lead.isConverted ? 'border-amber-500/30' : ''} ${
+        selected ? 'ring-2 ring-blue-500/50 bg-blue-500/5' : ''
+      }`}
     >
+      {selectable && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleSelect?.();
+          }}
+          className={`absolute top-2 right-2 w-5 h-5 rounded-md flex items-center justify-center transition-all ${
+            selected
+              ? 'bg-blue-500 text-white'
+              : 'bg-white/5 border border-white/20 text-transparent hover:border-white/40'
+          }`}
+          aria-label={selected ? 'Deselect lead' : 'Select lead'}
+        >
+          {selected && <Check size={11} />}
+        </button>
+      )}
+
       {/* Header row */}
       <div className="flex items-start gap-2 mb-2">
         <div
@@ -59,7 +91,7 @@ export default function LeadCard({ lead, tags = [], onClick, draggable, onDragSt
         >
           {initials}
         </div>
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 pr-6">
           <p className="text-white text-xs font-semibold truncate">{lead.name}</p>
           <p className="text-slate-500 text-[10px] truncate flex items-center gap-1">
             <Phone size={9} /> {lead.phone}

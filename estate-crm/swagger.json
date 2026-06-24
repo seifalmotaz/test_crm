@@ -1731,7 +1731,7 @@
             }
           },
           "400": {
-            "description": "Invalid transition"
+            "description": "Invalid status value"
           },
           "403": {
             "description": "Forbidden"
@@ -1742,9 +1742,94 @@
             "access_token": []
           }
         ],
-        "summary": "Change project status (FSM transition)",
+        "summary": "Change project status (admin may set any valid status)",
         "tags": [
           "Projects"
+        ]
+      }
+    },
+    "/api/projects/{id}/media": {
+      "post": {
+        "operationId": "ProjectsController_getPresignedUploadUrl",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MediaUploadDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Pre-signed upload URL generated"
+          },
+          "404": {
+            "description": "Project not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Generate a pre-signed upload URL for project media",
+        "tags": [
+          "Projects"
+        ]
+      }
+    },
+    "/api/leads/bulk-assign": {
+      "post": {
+        "operationId": "LeadsController_bulkAssign",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkAssignLeadsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Bulk assign result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BulkAssignResultDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "404": {
+            "description": "Agent not found"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Reassign multiple leads to an agent (or unassign)",
+        "tags": [
+          "Leads"
         ]
       }
     },
@@ -4863,6 +4948,15 @@
             "type": "number",
             "example": 0
           },
+          "images": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "https://images.example.com/proj1.jpg"
+            ]
+          },
           "commissionPlanId": {
             "type": "string",
             "example": "01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a3"
@@ -4947,8 +5041,74 @@
             "example": 200,
             "description": "Total number of units",
             "minimum": 1
+          },
+          "images": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "https://images.example.com/proj1.jpg"
+            ],
+            "description": "Project image URLs"
           }
         }
+      },
+      "BulkAssignLeadsDto": {
+        "type": "object",
+        "properties": {
+          "leadIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a3",
+              "01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a4"
+            ],
+            "description": "Lead IDs to assign (1-200 per request)"
+          },
+          "agentId": {
+            "type": "string",
+            "nullable": true,
+            "example": "01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a3",
+            "description": "Target agent ID. Omit or send null to unassign leads."
+          }
+        },
+        "required": [
+          "leadIds"
+        ]
+      },
+      "BulkAssignResultDto": {
+        "type": "object",
+        "properties": {
+          "assigned": {
+            "type": "number",
+            "example": 25,
+            "description": "Number of leads successfully reassigned"
+          },
+          "failed": {
+            "type": "number",
+            "example": 2,
+            "description": "Number of leads that could not be reassigned (not found, etc.)"
+          },
+          "failedIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "IDs of leads that failed to reassign"
+          },
+          "agentId": {
+            "type": "string",
+            "nullable": true,
+            "example": "01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a3"
+          }
+        },
+        "required": [
+          "assigned",
+          "failed"
+        ]
       },
       "ChangeProjectStatusDto": {
         "type": "object",

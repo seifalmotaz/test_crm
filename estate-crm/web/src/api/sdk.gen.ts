@@ -280,10 +280,22 @@ export const projectsControllerUpdate = <ThrowOnError extends boolean = false>(o
 });
 
 /**
- * Change project status (FSM transition)
+ * Change project status (admin may set any valid status)
  */
 export const projectsControllerChangeStatus = <ThrowOnError extends boolean = false>(options: Options<ProjectsControllerChangeStatusData, ThrowOnError>): RequestResult<ProjectsControllerChangeStatusResponses, ProjectsControllerChangeStatusErrors, ThrowOnError> => (options.client ?? client).post<ProjectsControllerChangeStatusResponses, ProjectsControllerChangeStatusErrors, ThrowOnError>({
     url: '/api/projects/{id}/status',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Generate a pre-signed upload URL for project media
+ */
+export const projectsControllerGetPresignedUploadUrl = <ThrowOnError extends boolean = false>(options: Options<ProjectsControllerGetPresignedUploadUrlData, ThrowOnError>): RequestResult<ProjectsControllerGetPresignedUploadUrlResponses, ProjectsControllerGetPresignedUploadUrlErrors, ThrowOnError> => (options.client ?? client).post<ProjectsControllerGetPresignedUploadUrlResponses, ProjectsControllerGetPresignedUploadUrlErrors, ThrowOnError>({
+    url: '/api/projects/{id}/media',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -404,6 +416,18 @@ export const leadsControllerAddTag = <ThrowOnError extends boolean = false>(opti
  * Remove a tag from a lead
  */
 export const leadsControllerRemoveTag = <ThrowOnError extends boolean = false>(options: Options<LeadsControllerRemoveTagData, ThrowOnError>): RequestResult<LeadsControllerRemoveTagResponses, LeadsControllerRemoveTagErrors, ThrowOnError> => (options.client ?? client).delete<LeadsControllerRemoveTagResponses, LeadsControllerRemoveTagErrors, ThrowOnError>({ url: '/api/leads/{id}/tags/{tagId}', ...options });
+
+/**
+ * Reassign multiple leads to an agent (or unassign)
+ */
+export const leadsControllerBulkAssign = <ThrowOnError extends boolean = false>(options: Options<LeadsControllerBulkAssignData, ThrowOnError>): RequestResult<LeadsControllerBulkAssignResponses, LeadsControllerBulkAssignErrors, ThrowOnError> => (options.client ?? client).post<LeadsControllerBulkAssignResponses, LeadsControllerBulkAssignErrors, ThrowOnError>({
+    url: '/api/leads/bulk-assign',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
 
 /**
  * List clients (leads with isClient=true)

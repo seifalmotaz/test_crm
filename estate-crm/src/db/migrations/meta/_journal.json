@@ -50,6 +50,13 @@
       "when": 1781619263980,
       "tag": "0006_add_is_client_and_vip_fields",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1781705600000,
+      "tag": "0007_add_project_images",
+      "breakpoints": true
     }
   ]
 }

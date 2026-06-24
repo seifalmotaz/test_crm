@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { X, Building2, MapPin, Calendar, Layers, Trash2, Edit2, Check, AlertTriangle } from 'lucide-react';
+import { X, Building2, MapPin, Calendar, Layers, Trash2, Edit2, Check, AlertTriangle, ImagePlus, Loader2 } from 'lucide-react';
 import type { ProjectView } from '../../types/projects';
 import type { UpdateProjectDto } from '../../api/types.gen';
+import { useProjectPresignedUpload } from '../../hooks/useProjectPresignedUpload';
 
 interface ProjectDrawerProps {
   project: ProjectView | null;
@@ -20,13 +21,11 @@ const statusConfig: Record<string, { label: string; bg: string; text: string }> 
   delivered: { label: 'Delivered', bg: 'bg-slate-500/15', text: 'text-slate-400' },
 };
 
-const statusTransitions: Record<string, string[]> = {
-  planning: ['preLaunch', 'active'],
-  preLaunch: ['active', 'planning'],
-  active: ['soldOut', 'delivered'],
-  soldOut: ['delivered'],
-  delivered: [],
-};
+// Admins may set any valid status from this list — order is "lifecycle order" so the UI feels natural.
+const allStatuses = ['planning', 'preLaunch', 'active', 'soldOut', 'delivered'] as const;
+
+const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const MAX_SIZE = 25 * 1024 * 1024;
 
 function generateGradient(id: string): string {
   const colors = [
@@ -54,12 +53,15 @@ export default function ProjectDrawer({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [form, setForm] = useState<UpdateProjectDto>({});
+  const [uploading, setUploading] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+
+  const presignedUpload = useProjectPresignedUpload();
 
   if (!project) return null;
   const p = project;
 
   const statusCfg = statusConfig[p.status] || statusConfig.planning;
-  const transitions = statusTransitions[p.status] || [];
 
   const pct = p.totalUnits && p.totalUnits > 0
     ? Math.round((p.soldUnits / p.totalUnits) * 100)
@@ -90,7 +92,6 @@ export default function ProjectDrawer({
     setError('');
     try {
       const updateData: UpdateProjectDto = { ...form };
-      // Convert date-only values back to ISO strings if they're date input values
       if (updateData.launchDate && updateData.launchDate.length === 10) {
         updateData.launchDate = updateData.launchDate;
       }
@@ -109,6 +110,43 @@ export default function ProjectDrawer({
 
   function handleChangeStatus(status: string) {
     onChangeStatus(status);
+  }
+
+  async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!ACCEPTED_TYPES.includes(file.type)) {
+      setError('Only JPG, PNG, and WebP images are allowed');
+      return;
+    }
+    if (file.size > MAX_SIZE) {
+      setError('File size must be under 25 MB');
+      return;
+    }
+
+    setUploading(true);
+    setError('');
+    try {
+      const result = await presignedUpload.mutateAsync({ projectId: p.id, file });
+      const updated = [...(p.images || []), result.fileUrl];
+      await onUpdate({ images: updated });
+    } catch (err: any) {
+      setError(err?.message || 'Failed to upload photo');
+    } finally {
+      setUploading(false);
+      e.target.value = '';
+    }
+  }
+
+  async function handleRemovePhoto(url: string) {
+    setError('');
+    try {
+      const updated = (p.images || []).filter((img) => img !== url);
+      await onUpdate({ images: updated });
+    } catch (err: any) {
+      setError(err?.message || 'Failed to remove photo');
+    }
   }
 
   function inputCls() {
@@ -154,10 +192,71 @@ export default function ProjectDrawer({
         </div>
 
         <div className="px-5 py-4 space-y-4">
-          {/* Gradient header */}
-          <div className={`h-32 bg-gradient-to-br ${generateGradient(project.id)} rounded-2xl flex items-center justify-center`}>
-            <Building2 size={48} className="text-white/25" />
-          </div>
+          {/* Hero image or fallback gradient */}
+          {p.images && p.images.length > 0 ? (
+            <img
+              src={p.images[0]}
+              alt={project.name}
+              className="h-32 w-full object-cover rounded-2xl cursor-pointer"
+              onClick={() => setLightboxIndex(0)}
+            />
+          ) : (
+            <div className={`h-32 bg-gradient-to-br ${generateGradient(project.id)} rounded-2xl flex items-center justify-center`}>
+              <Building2 size={48} className="text-white/25" />
+            </div>
+          )}
+
+          {/* Photo gallery */}
+          {((p.images && p.images.length > 0) || canManage) && (
+            <div>
+              <p className="text-slate-500 text-[9px] uppercase tracking-wider mb-2">Photos</p>
+              {p.images && p.images.length > 0 && (
+                <div className="grid grid-cols-3 gap-2 mb-2">
+                  {p.images.map((img, i) => (
+                    <div key={img} className="group relative aspect-square rounded-xl overflow-hidden bg-white/5 border border-white/8">
+                      <img
+                        src={img}
+                        alt={`${p.name} ${i + 1}`}
+                        className="w-full h-full object-cover cursor-pointer"
+                        onClick={() => setLightboxIndex(i)}
+                      />
+                      {canManage && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemovePhoto(img)}
+                          className="absolute top-1 right-1 w-5 h-5 bg-red-500/80 rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                        >
+                          <X size={10} />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+              {canManage && (
+                <label className="flex flex-col items-center justify-center gap-1.5 border-2 border-dashed border-white/10 rounded-xl cursor-pointer hover:border-white/20 hover:bg-white/3 p-3 transition-all">
+                  {uploading ? (
+                    <Loader2 size={18} className="text-blue-400 animate-spin" />
+                  ) : (
+                    <>
+                      <ImagePlus size={18} className="text-slate-500" />
+                      <p className="text-slate-400 text-[10px]">
+                        Drop a photo or <span className="text-blue-400 underline">browse</span>
+                      </p>
+                      <p className="text-slate-600 text-[9px]">JPG, PNG, WebP · Max 25 MB</p>
+                    </>
+                  )}
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="hidden"
+                    onChange={handleFileSelect}
+                    disabled={uploading}
+                  />
+                </label>
+              )}
+            </div>
+          )}
 
           {/* Description */}
           {(project.description || editing) && (
@@ -345,26 +444,31 @@ export default function ProjectDrawer({
                 </div>
               ) : (
                 <>
-                  {/* Status transition */}
-                  {transitions.length > 0 && (
-                    <div>
-                      <p className="text-slate-500 text-[9px] uppercase tracking-wider mb-2">Change Status</p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {transitions.map((st) => {
-                          const cfg = statusConfig[st] || statusConfig.planning;
-                          return (
-                            <button
-                              key={st}
-                              onClick={() => handleChangeStatus(st)}
-                              className={`text-[10px] font-medium px-2.5 py-1 rounded-full border ${cfg.bg} ${cfg.text} border-white/10 hover:opacity-80 transition-all`}
-                            >
-                              {cfg.label}
-                            </button>
-                          );
-                        })}
-                      </div>
+                  {/* Status: show ALL valid statuses so admins can set any of them */}
+                  <div>
+                    <p className="text-slate-500 text-[9px] uppercase tracking-wider mb-2">Change Status</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {allStatuses.map((st) => {
+                        const cfg = statusConfig[st] || statusConfig.planning;
+                        const isCurrent = p.status === st;
+                        return (
+                          <button
+                            key={st}
+                            onClick={() => !isCurrent && handleChangeStatus(st)}
+                            disabled={isCurrent}
+                            className={`text-[10px] font-medium px-2.5 py-1 rounded-full border transition-all ${
+                              isCurrent
+                                ? `${cfg.bg} ${cfg.text} border-white/30 cursor-default opacity-100`
+                                : `${cfg.bg} ${cfg.text} border-white/10 hover:opacity-80`
+                            }`}
+                            aria-pressed={isCurrent}
+                          >
+                            {isCurrent ? `✓ ${cfg.label}` : cfg.label}
+                          </button>
+                        );
+                      })}
                     </div>
-                  )}
+                  </div>
 
                   {/* Delete */}
                   <button
@@ -379,6 +483,27 @@ export default function ProjectDrawer({
           )}
         </div>
       </div>
+
+      {/* Lightbox */}
+      {lightboxIndex !== null && p.images && p.images[lightboxIndex] && (
+        <div
+          className="fixed inset-0 z-[70] bg-black/90 flex items-center justify-center"
+          onClick={() => setLightboxIndex(null)}
+        >
+          <button
+            onClick={() => setLightboxIndex(null)}
+            className="absolute top-4 right-4 w-8 h-8 bg-white/10 rounded-full flex items-center justify-center text-white hover:bg-white/20 transition-all z-10"
+          >
+            <X size={16} />
+          </button>
+          <img
+            src={p.images[lightboxIndex]}
+            alt={`${p.name} ${lightboxIndex + 1}`}
+            className="max-w-[90vw] max-h-[90vh] object-contain rounded-xl"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
 
       {/* Delete Confirmation */}
       {showDeleteConfirm && (

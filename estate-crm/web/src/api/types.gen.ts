@@ -1933,6 +1933,29 @@ export type ProjectsControllerChangeStatusResponses = {
 
 export type ProjectsControllerChangeStatusResponse = ProjectsControllerChangeStatusResponses[keyof ProjectsControllerChangeStatusResponses];
 
+export type ProjectsControllerGetPresignedUploadUrlData = {
+    body: MediaUploadDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/projects/{id}/media';
+};
+
+export type ProjectsControllerGetPresignedUploadUrlErrors = {
+    /**
+     * Project not found
+     */
+    404: unknown;
+};
+
+export type ProjectsControllerGetPresignedUploadUrlResponses = {
+    /**
+     * Pre-signed upload URL generated
+     */
+    200: unknown;
+};
+
 export type LeadsControllerFindAllData = {
     body?: never;
     path?: never;
@@ -2354,6 +2377,45 @@ export type LeadsControllerRemoveTagResponses = {
      * Tag removed
      */
     200: unknown;
+};
+
+export type LeadsControllerBulkAssignData = {
+    body: {
+        /**
+         * Lead IDs to assign (1-200 per request)
+         */
+        leadIds: Array<string>;
+        /**
+         * Target agent ID. Omit or send null to unassign leads.
+         */
+        agentId?: string | null;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/leads/bulk-assign';
+};
+
+export type LeadsControllerBulkAssignErrors = {
+    /**
+     * Validation error
+     */
+    400: unknown;
+    /**
+     * Agent not found
+     */
+    404: unknown;
+};
+
+export type LeadsControllerBulkAssignResponses = {
+    /**
+     * Bulk assign result
+     */
+    200: {
+        assigned: number;
+        failed: number;
+        failedIds?: Array<string>;
+        agentId?: string | null;
+    };
 };
 
 export type ClientsControllerFindAllData = {

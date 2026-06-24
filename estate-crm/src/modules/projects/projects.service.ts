@@ -7,6 +7,9 @@ import { ErrorCodes } from '@/common/errors/error-codes';
 import { createPaginatedResult } from '@/common/types/pagination.types';
 import { canTransitionProjectStatus } from '@/modules/shared/status-fsm';
 import { ProjectStatus } from '@/modules/projects/enums/project-status.enum';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { config } from '@/config/app.config';
 import type { CreateProjectDto } from './dto/create-project.dto';
 import type { UpdateProjectDto } from './dto/update-project.dto';
 import type { ProjectFiltersDto } from './dto/project-filters.dto';
@@ -103,6 +106,7 @@ export class ProjectsService {
     if (dto.launchDate !== undefined) updateData.launchDate = dto.launchDate;
     if (dto.completionDate !== undefined) updateData.completionDate = dto.completionDate;
     if (dto.totalUnits !== undefined) updateData.totalUnits = dto.totalUnits;
+    if (dto.images !== undefined) updateData.images = dto.images;
     if (dto.commissionPlanId !== undefined) updateData.commissionPlanId = dto.commissionPlanId;
     updateData.updatedAt = new Date();
 
@@ -137,12 +141,12 @@ export class ProjectsService {
       throw new AppError(ErrorCodes.PROJECT_STATUS_INVALID, 400, `Invalid project status: ${status}`);
     }
 
-    // FSM check
-    if (!canTransitionProjectStatus(project.status, status)) {
-      throw new AppError(
-        ErrorCodes.PROJECT_STATUS_INVALID,
-        400,
-        `Cannot transition project status from '${project.status}' to '${status}'`,
+    // FSM check (informational only — admins may set any valid status)
+    const isValidTransition = canTransitionProjectStatus(project.status, status);
+    if (!isValidTransition) {
+      // Logged as warning; allow admin override
+      console.warn(
+        `[projects] Non-FSM transition: '${project.status}' -> '${status}' (id=${id}, tenant=${tenantId})`,
       );
     }
 
@@ -153,5 +157,32 @@ export class ProjectsService {
       .returning();
 
     return updated;
+  }
+
+  async getPresignedUploadUrl(projectId: string, filename: string, contentType: string, tenantId: string) {
+    // Verify project exists
+    await this.findById(projectId, tenantId);
+
+    const s3Client = new S3Client({
+      region: config.S3_REGION,
+      credentials: {
+        accessKeyId: config.S3_ACCESS_KEY,
+        secretAccessKey: config.S3_SECRET_KEY,
+      },
+    });
+
+    const key = `projects/${projectId}/${Date.now()}-${filename}`;
+
+    const command = new PutObjectCommand({
+      Bucket: config.S3_BUCKET,
+      Key: key,
+      ContentType: contentType,
+    });
+
+    const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 300 });
+
+    const fileUrl = `https://${config.S3_BUCKET}.s3.${config.S3_REGION}.amazonaws.com/${key}`;
+
+    return { uploadUrl, fileUrl };
   }
 }

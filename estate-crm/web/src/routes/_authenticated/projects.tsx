@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Plus, Loader2, Search, CheckCircle } from 'lucide-react';
+import { Plus, Loader2, Search, CheckCircle, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import {
   useProjects,
@@ -10,6 +10,7 @@ import {
 } from '../../hooks/useProjects';
 import type { ProjectResponseDto, CreateProjectDto, UpdateProjectDto } from '../../api/types.gen';
 import type { ProjectView, ProjectFilters } from '../../types/projects';
+import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import ProjectCard from '../../components/projects/ProjectCard';
 import ProjectDrawer from '../../components/projects/ProjectDrawer';
 import AddProjectModal from '../../components/projects/AddProjectModal';
@@ -35,6 +36,7 @@ function toProjectView(dto: ProjectResponseDto): ProjectView {
     completionDate: dto.completionDate,
     totalUnits: dto.totalUnits,
     soldUnits: dto.soldUnits ?? 0,
+    images: dto.images ?? [],
     createdAt: dto.createdAt,
     updatedAt: dto.updatedAt,
   };
@@ -50,15 +52,16 @@ export default function ProjectsPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
+  const debouncedSearch = useDebouncedValue(search, 350);
   const filters = useMemo<ProjectFilters>(() => {
     const f: ProjectFilters = {};
-    if (search) f.search = search;
+    if (debouncedSearch) f.search = debouncedSearch;
     if (statusFilter !== 'all') f.status = statusFilter;
     f.limit = 100;
     return f;
-  }, [search, statusFilter]);
+  }, [debouncedSearch, statusFilter]);
 
-  const { data: projectsData, isLoading, error } = useProjects(filters);
+  const { data: projectsData, isLoading, error, refetch } = useProjects(filters);
 
   const projects = useMemo<ProjectView[]>(() => {
     return (projectsData?.data || []).map(toProjectView);
@@ -98,18 +101,10 @@ export default function ProjectsPage() {
     );
   }
 
-  if (error) {
-    return (
-      <div className="p-4 sm:p-6">
-        <div className="flex flex-col items-center justify-center py-20 bg-card card-border rounded-2xl">
-          <p className="text-white font-semibold mb-1">Failed to load projects</p>
-          <p className="text-slate-400 text-xs">
-            {(error as any)?.detail || (error as any)?.message || 'An unexpected error occurred'}
-          </p>
-        </div>
-      </div>
-    );
-  }
+  // Inline error (don't unmount filters)
+  const errorMessage = error
+    ? (error as any)?.detail || (error as any)?.message || 'An unexpected error occurred'
+    : null;
 
   return (
     <div className="p-4 sm:p-6 max-w-7xl">
@@ -128,6 +123,22 @@ export default function ProjectsPage() {
           </button>
         )}
       </div>
+
+      {errorMessage && (
+        <div className="mb-4 flex items-start gap-3 p-3 bg-red-500/10 border border-red-500/20 rounded-2xl">
+          <AlertCircle size={16} className="text-red-400 flex-shrink-0 mt-0.5" />
+          <div className="flex-1 min-w-0">
+            <p className="text-red-300 text-xs font-semibold">Failed to load projects</p>
+            <p className="text-red-300/80 text-xs mt-0.5 break-words">{errorMessage}</p>
+          </div>
+          <button
+            onClick={() => refetch()}
+            className="text-[10px] uppercase tracking-wider font-semibold text-red-300 hover:text-white px-2 py-1 rounded-md bg-red-500/15 hover:bg-red-500/25 transition-all"
+          >
+            Retry
+          </button>
+        </div>
+      )}
 
       {/* Stats Strip */}
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 mb-4">
@@ -263,12 +274,16 @@ export default function ProjectsPage() {
         <AddProjectModal
           onClose={() => setShowAddModal(false)}
           onSaved={async (formData: CreateProjectDto) => {
-            return new Promise<void>((resolve, reject) => {
+            return new Promise<ProjectResponseDto>((resolve, reject) => {
               createMutation.mutate(formData, {
-                onSuccess: () => {
+                onSuccess: (data) => {
+                  if (!data) {
+                    reject(new Error('No data returned from server'));
+                    return;
+                  }
                   showToast('Project created');
                   setShowAddModal(false);
-                  resolve();
+                  resolve(data);
                 },
                 onError: (err: any) => {
                   reject(err);

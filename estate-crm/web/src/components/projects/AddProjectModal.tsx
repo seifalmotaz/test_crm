@@ -1,10 +1,12 @@
 import { useState } from 'react';
-import { X } from 'lucide-react';
-import type { CreateProjectDto } from '../../api/types.gen';
+import { X, ImagePlus, Loader2 } from 'lucide-react';
+import type { CreateProjectDto, ProjectResponseDto } from '../../api/types.gen';
+import { useProjectPresignedUpload } from '../../hooks/useProjectPresignedUpload';
+import { projectsControllerUpdate } from '../../api/sdk.gen';
 
 interface AddProjectModalProps {
   onClose: () => void;
-  onSaved: (formData: CreateProjectDto) => Promise<void>;
+  onSaved: (formData: CreateProjectDto) => Promise<ProjectResponseDto>;
 }
 
 interface FormState {
@@ -46,11 +48,19 @@ function buildCreateDto(form: FormState): CreateProjectDto {
   return dto;
 }
 
+const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const MAX_SIZE = 25 * 1024 * 1024;
+
 export default function AddProjectModal({ onClose, onSaved }: AddProjectModalProps) {
   const [form, setForm] = useState<FormState>(initialForm);
   const [errors, setErrors] = useState<FormErrors>({});
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const presignedUpload = useProjectPresignedUpload();
 
   function updateField(k: keyof FormState, v: any) {
     setForm((p) => ({ ...p, [k]: v }));
@@ -60,8 +70,33 @@ export default function AddProjectModal({ onClose, onSaved }: AddProjectModalPro
     const e: FormErrors = {};
     if (!form.name.trim()) e.name = 'Required';
     if (!form.location.trim()) e.location = 'Required';
-    if (form.totalUnits && (Number(form.totalUnits) < 0)) e.totalUnits = 'Must be >= 0';
+    if (form.totalUnits && Number(form.totalUnits) < 0) e.totalUnits = 'Must be >= 0';
     return e;
+  }
+
+  function handleImagePick(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!ACCEPTED_TYPES.includes(file.type)) {
+      setError('Only JPG, PNG, and WebP images are allowed');
+      return;
+    }
+    if (file.size > MAX_SIZE) {
+      setError('File size must be under 25 MB');
+      return;
+    }
+
+    setCoverFile(file);
+    if (coverPreview) URL.revokeObjectURL(coverPreview);
+    setCoverPreview(URL.createObjectURL(file));
+    setError('');
+  }
+
+  function removeCover() {
+    setCoverFile(null);
+    if (coverPreview) URL.revokeObjectURL(coverPreview);
+    setCoverPreview(null);
   }
 
   async function handleSubmit(ev: React.FormEvent) {
@@ -78,7 +113,29 @@ export default function AddProjectModal({ onClose, onSaved }: AddProjectModalPro
 
     setSaving(true);
     try {
-      await onSaved(dto);
+      const created = await onSaved(dto);
+      if (coverFile && created?.id) {
+        setUploading(true);
+        try {
+          const result = await presignedUpload.mutateAsync({
+            projectId: created.id,
+            file: coverFile,
+          });
+          await projectsControllerUpdate({
+            path: { id: created.id },
+            body: { images: [result.fileUrl] },
+          });
+          setCoverFile(null);
+          if (coverPreview) URL.revokeObjectURL(coverPreview);
+          setCoverPreview(null);
+        } catch (uploadErr: any) {
+          setError(
+            `Project created, but cover photo failed: ${uploadErr?.message || 'Upload error'}. You can re-upload from the project drawer.`,
+          );
+        } finally {
+          setUploading(false);
+        }
+      }
     } catch (err: any) {
       setError(err?.detail || err?.message || 'Failed to create project');
     } finally {
@@ -101,11 +158,56 @@ export default function AddProjectModal({ onClose, onSaved }: AddProjectModalPro
         </div>
 
         <form onSubmit={handleSubmit} className="p-5 space-y-5">
+          {/* Cover Photo */}
+          <div>
+            <label className="text-slate-400 text-xs mb-1 block">Cover Photo</label>
+            <label
+              className={`flex flex-col items-center justify-center gap-1.5 border-2 border-dashed rounded-xl cursor-pointer transition-all overflow-hidden ${
+                coverPreview ? 'border-blue-500/40 p-0' : 'border-white/10 hover:border-white/20 hover:bg-white/3 p-4'
+              }`}
+            >
+              {coverPreview ? (
+                <div className="relative w-full h-32">
+                  <img src={coverPreview} className="w-full h-full object-cover" alt="Cover preview" />
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      removeCover();
+                    }}
+                    className="absolute top-2 right-2 w-6 h-6 bg-black/60 rounded-full flex items-center justify-center text-white hover:bg-red-500/80 transition-colors"
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              ) : (
+                <>
+                  {uploading ? (
+                    <Loader2 size={20} className="text-blue-400 animate-spin" />
+                  ) : (
+                    <>
+                      <ImagePlus size={20} className="text-slate-500" />
+                      <p className="text-slate-400 text-xs">
+                        Drop a photo or <span className="text-blue-400 underline">browse</span>
+                      </p>
+                      <p className="text-slate-600 text-[10px]">JPG, PNG, WebP · Max 25 MB</p>
+                    </>
+                  )}
+                </>
+              )}
+              <input
+                type="file"
+                className="hidden"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={handleImagePick}
+                disabled={uploading}
+              />
+            </label>
+          </div>
+
           {/* Basic Info */}
           <div>
-            <p className="text-slate-400 text-[10px] uppercase tracking-widest mb-3">
-              Basic Information
-            </p>
+            <p className="text-slate-400 text-[10px] uppercase tracking-widest mb-3">Basic Information</p>
             <div className="space-y-3">
               <div>
                 <label className="text-slate-400 text-xs mb-1 block">Name *</label>
@@ -203,10 +305,10 @@ export default function AddProjectModal({ onClose, onSaved }: AddProjectModalPro
             </button>
             <button
               type="submit"
-              disabled={saving}
+              disabled={saving || uploading}
               className="flex-1 py-2 bg-blue-500 hover:bg-blue-600 disabled:opacity-60 rounded-xl text-sm font-semibold text-white transition-all"
             >
-              {saving ? 'Saving...' : 'Add Project'}
+              {saving ? 'Saving...' : uploading ? 'Uploading photo...' : 'Add Project'}
             </button>
           </div>
         </form>

@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsInt, IsUUID, Min, MinLength, Matches } from 'class-validator';
+import { IsString, IsOptional, IsInt, IsUUID, IsArray, Min, MinLength, Matches } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class UpdateProjectDto {
@@ -38,6 +38,12 @@ export class UpdateProjectDto {
   @IsInt()
   @Min(1)
   totalUnits?: number;
+
+  @ApiPropertyOptional({ example: ['https://images.example.com/proj1.jpg'], type: [String], description: 'Project image URLs' })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  images?: string[];
 
   @ApiPropertyOptional({ example: '01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a3', description: 'Commission plan ID' })
   @IsOptional()

@@ -38,6 +38,9 @@ export class ProjectResponseDto {
   @ApiPropertyOptional({ example: 0 })
   soldUnits?: number;
 
+  @ApiPropertyOptional({ example: ['https://images.example.com/proj1.jpg'], type: [String] })
+  images?: string[];
+
   @ApiPropertyOptional({ example: '01915d5e-8c1f-7d3a-a5e6-b8c9d0e1f2a3' })
   commissionPlanId?: string;
 

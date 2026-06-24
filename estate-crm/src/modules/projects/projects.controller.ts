@@ -22,6 +22,7 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { ProjectFiltersDto } from './dto/project-filters.dto';
 import { ChangeProjectStatusDto } from './dto/change-project-status.dto';
+import { MediaUploadDto } from '@/modules/properties/dto/media-upload.dto';
 import {
   ProjectResponseDto,
   PaginatedProjectResponseDto,
@@ -89,10 +90,10 @@ export class ProjectsController {
   @Post(':id/status')
   @HttpCode(HttpStatus.OK)
   @Roles('admin')
-  @ApiOperation({ summary: 'Change project status (FSM transition)' })
+  @ApiOperation({ summary: 'Change project status (admin may set any valid status)' })
   @ApiCookieAuth('access_token')
   @ApiResponse({ status: 200, description: 'Status updated', type: ProjectResponseDto })
-  @ApiResponse({ status: 400, description: 'Invalid transition' })
+  @ApiResponse({ status: 400, description: 'Invalid status value' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   async changeStatus(
     @Param('id', ParseUUIDPipe) id: string,
@@ -100,6 +101,21 @@ export class ProjectsController {
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.projectsService.changeStatus(id, dto.status, user.tenantId);
+  }
+
+  @Post(':id/media')
+  @HttpCode(HttpStatus.OK)
+  @Roles('admin', 'manager')
+  @ApiOperation({ summary: 'Generate a pre-signed upload URL for project media' })
+  @ApiCookieAuth('access_token')
+  @ApiResponse({ status: 200, description: 'Pre-signed upload URL generated' })
+  @ApiResponse({ status: 404, description: 'Project not found' })
+  async getPresignedUploadUrl(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: MediaUploadDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.projectsService.getPresignedUploadUrl(id, dto.filename, dto.contentType, user.tenantId);
   }
 
   @Delete(':id')

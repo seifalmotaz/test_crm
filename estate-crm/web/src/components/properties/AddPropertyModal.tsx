@@ -225,9 +225,14 @@ export default function AddPropertyModal({
             path: { id: created.id },
             body: { images: [result.fileUrl] },
           });
+          setCoverFile(null);
+          if (coverPreview) URL.revokeObjectURL(coverPreview);
+          setCoverPreview(null);
         } catch (uploadErr: any) {
-          // Cover photo upload failed but property was created — just ignore for now
-          console.error('Cover photo upload failed:', uploadErr);
+          // Property was created, but cover upload failed — surface the error so the user can retry
+          setError(
+            `Property created, but cover photo failed: ${uploadErr?.message || 'Upload error'}. You can re-upload from the property drawer.`,
+          );
         } finally {
           setUploading(false);
         }

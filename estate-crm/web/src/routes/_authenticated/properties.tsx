@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
-import { Plus, Loader2, LayoutGrid, List, CheckCircle } from 'lucide-react';
+import { Plus, Loader2, LayoutGrid, List, CheckCircle, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useProperties, useCreateProperty, useUpdateProperty, useDeleteProperty, useChangePropertyStatus } from '../../hooks/useProperties';
 import { usersControllerFindAll } from '../../api/sdk.gen';
@@ -8,6 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 import type { PropertyResponseDto } from '../../api/types.gen';
 import type { CreatePropertyDto, UpdatePropertyDto } from '../../api/types.gen';
 import type { PropertyView, PropertyFilters } from '../../types/properties';
+import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import MarketStrip from '../../components/properties/MarketStrip';
 import PropertyFiltersBar from '../../components/properties/PropertyFilters';
 import PropertyCard from '../../components/properties/PropertyCard';
@@ -58,7 +59,14 @@ export default function PropertiesPage() {
     limit: 100,
   });
 
-  const { data: propertiesData, isLoading, error } = useProperties(filters);
+  // Debounce only the search input so dropdowns/dates stay snappy
+  const debouncedSearch = useDebouncedValue(filters.search, 350);
+  const effectiveFilters = useMemo<PropertyFilters>(
+    () => ({ ...filters, search: debouncedSearch ?? '' }),
+    [filters, debouncedSearch],
+  );
+
+  const { data: propertiesData, isLoading, error, refetch } = useProperties(effectiveFilters);
 
   // Fetch projects for dropdown
   const { data: projectsData } = useQuery({
@@ -123,18 +131,14 @@ export default function PropertiesPage() {
     );
   }
 
-  if (error) {
-    return (
-      <div className="p-4 sm:p-6">
-        <div className="flex flex-col items-center justify-center py-20 bg-card card-border rounded-2xl">
-          <p className="text-white font-semibold mb-1">Failed to load properties</p>
-          <p className="text-slate-400 text-xs">
-            {(error as any)?.detail || (error as any)?.message || 'An unexpected error occurred'}
-          </p>
-        </div>
-      </div>
-    );
-  }
+  // Surface the error inline (do not unmount the filters bar — input would lose focus)
+  const errorMessage = error
+    ? (error as any)?.detail ||
+      (error as any)?.message ||
+      (error as any)?.body?.detail ||
+      (error as any)?.body?.message ||
+      'An unexpected error occurred'
+    : null;
 
   return (
     <div className="p-4 sm:p-6 max-w-7xl">
@@ -153,6 +157,23 @@ export default function PropertiesPage() {
           </button>
         )}
       </div>
+
+      {/* Inline error banner — keeps filters bar mounted so search input keeps focus */}
+      {errorMessage && (
+        <div className="mb-4 flex items-start gap-3 p-3 bg-red-500/10 border border-red-500/20 rounded-2xl">
+          <AlertCircle size={16} className="text-red-400 flex-shrink-0 mt-0.5" />
+          <div className="flex-1 min-w-0">
+            <p className="text-red-300 text-xs font-semibold">Failed to load properties</p>
+            <p className="text-red-300/80 text-xs mt-0.5 break-words">{errorMessage}</p>
+          </div>
+          <button
+            onClick={() => refetch()}
+            className="text-[10px] uppercase tracking-wider font-semibold text-red-300 hover:text-white px-2 py-1 rounded-md bg-red-500/15 hover:bg-red-500/25 transition-all"
+          >
+            Retry
+          </button>
+        </div>
+      )}
 
       {/* Market Strip */}
       <MarketStrip properties={properties} />
